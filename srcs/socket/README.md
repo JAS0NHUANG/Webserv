@@ -1,3 +1,6 @@
+# ip
+`man ip`! Read it. ^_^  
+
 # socket
 
 ## prototype:
