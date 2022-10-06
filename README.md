@@ -43,5 +43,11 @@ A mini web server with C++
 ## I/O multiplexing
 differences among `select()`, `kqueue()`, `poll()`, `epoll()`  
 chose one of them.  
+## Synchronous  
+select and poll
 
+## Asynchronous
+epoll and kqueue
+- epoll is supported on Linux system  
+- kqueue is supported on BSD/MacOS system  
 
