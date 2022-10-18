@@ -7,18 +7,6 @@
 # include <unistd.h>
 # include <iostream>
 
-class Socket {
-	public:
-	// canonical
-		Socket(void);
-		~Socket(void);
-		Socket(const Socket &toCopy);
-		Socket &operator=(const Socket &toAssign);
-
-	// member functions
-		int	run(void);
-	
-	private:
-};
+int create_socket(void);
 
 #endif

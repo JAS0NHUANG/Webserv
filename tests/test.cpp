@@ -1,8 +1,8 @@
-#include "Socket.cpp"
+#include "../srcs/socket/Socket.cpp"
 
 int	main(void) {
-	Socket	new_socket;
-	Socket	another_socket;
-	new_socket.run();
+	create_socket();
+	/*
 	another_socket.run();
+	*/
 }
