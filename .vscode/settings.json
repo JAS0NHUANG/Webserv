@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		"functional": "c",
+		"tlpi_hdr.h": "c",
+		"ctype.h": "c",
+		"iostream": "cpp"
+	}
+}

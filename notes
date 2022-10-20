@@ -1,0 +1,27 @@
+// The socket() system call creates a new socket.
+// int socket(int domain, int type, int protocol);
+
+// The bind() system call binds a socket to an address.
+// int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+// The listem() system call marks the stream socket referred to by the fd
+// sockfd as passive. The socket will subsequently be used to accept connection
+// from (active sockets).
+// int listen (int sockfd, int backlog);
+
+// The accept() syscall accepts an incoming connection on the listening stream socket
+// referred to by the file descriptor sockfd. If there are no pending connections
+// when accept() is called, the call blocks until a connection request arrives.
+// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+// The connect() system call connects the active socket referred to by the fd sockfd
+// to the listening socket whose address is specified by addr and addrlen.
+// int connect(int sockfd, const struct sockaddr *addr, sock_len_t addrlen);
+
+// read()/write() OR send()/recv
+/* htonl converts a long integer (e.g. address) to a network representation */ 
+/* htons converts a short integer (e.g. port) to a network representation */
+
+// Notes: test backlog with multiple values
+// Notes: what is the maximum backlog we will give to our server
+// Notes: Must use cerr instead of cout for errors output
