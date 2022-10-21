@@ -10,6 +10,9 @@
 
 #include "TestServer.hpp"
 
+#include <sys/event.h>
+#include <sys/types.h>
+
 int main(){
     // std::cout << "starting ..." << std::endl;
     // std::cout << "Binding ..." << std::endl;

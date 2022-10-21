@@ -5,12 +5,17 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <sys/event.h>
+
+#include <fcntl.h> //open
+
+
 class TestServer : public SimpleServer{
     private:
         void accepter();
         void handler();
         void responder();
-        char buffer[3000] = {0};
+        //char buffer[100] = {0};
         int new_socket;
 
 

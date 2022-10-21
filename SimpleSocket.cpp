@@ -7,6 +7,7 @@ SimpleSocket::SimpleSocket(int domain, int service, int protocol,int port, u_lon
     addr.sin_addr.s_addr = htonl(interface);
     //establish socket
     sock = socket(domain, service, protocol);
+    std::cout<<"localfd" << sock <<std::endl;
     test_connection(sock);
     //establish network connection
     //connection = connect_to_network(sock, addr);
