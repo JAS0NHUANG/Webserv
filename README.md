@@ -1,61 +1,58 @@
-# Webserv, a mini web server with C++
-
-## Configuration file
-The configuration file must have atleast one `server{}`.
-If the same directives is used multiple time in the same context, an overwrite can occur if a parameter is already set.
-Using `#` is considered as a start of a comment and then the rest of the line will not be considered.
-You can use `webserv -t configuration_file`  to check if the configuration is valid.
-
-### Directives list
-
-Syntax **allow_method** _method_ ... ;
-Default: GET POST DELETE
-Context: server, location
-
-Syntax: **cgi** _extension_ _cgi_binary_path_ ;
-Default: _none_
-Context: server, location
-
-Syntax: **listen** *address*[:*port*] ;
-**listen** *port* ;
-Default: listen *:80 | *:8000;
-Context: server
-
-Syntax : **server_name** _name_ ... ;
-Default : **server_name** "" ;
-Context : server
-
-Syntax: **error_page**  _code_ ... [=[_response_]] _uri_;
-Default: _none_
-Context: server, location
-
-Syntax: **client_max_body_size** _size_ ;
-Default: client_max_body_size 1m;
-Context: server, location
-
-Syntax: **location** [ = | ~ | ~* | ^~ ] _uri_ { ... }
-**location** @_name_ { ... }
-Default: _none_
-Context: server, location
-
-Syntax:**return** _code_ [_text_] ;
-**return** _code_ _URL_;
-**return** _URL_;
-Default: _none_
-Context: server, location
-
-Syntax: **root** _path_ ;
-Default: root html;
-Context: server, location
-
-Syntax: **autoindex** on | off ;
-Default: autoindex off;
-Context: server, location
-
-Syntax: **index** _file_ ... ;
-Default: index index.html;
-Context: server, location
-
-Syntax: **upload_store** _directory_ ... ;
-Default: _none_
-Context: server, location
+<h1>Webserv, a mini web server with C++</h1>
+<h2>Configuration file</h2>
+<h3>Explanation</h3>
+<p>The configuration file must have atleast one server{}.</p>
+<p>If the same directives is used multiple time in the same context, an overwrite can occur if a parameter is already set.</p>
+<p>Using # is considered as a start of a comment and then the rest of the line will not be considered.</p>
+<p>You can use webserv -t configuration_file to check if the configuration is valid.</p>
+<h3>Directives list</h3>
+<p>Syntax allow_method method ... ;</p>
+<p>Default: GET POST DELETE</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: cgi extension cgi_binary_path ;</p>
+<p>Default: none Context: server, location</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: listen address[:port] ;</p>
+<p>listen port ;</p>
+<p>Default: listen *:80 | *:8000;</p>
+<p>Context: server</p>
+<p>&nbsp;</p>
+<p>Syntax : server_name name ... ;</p>
+<p>Default : server_name "" ;</p>
+<p>Context : server</p>
+<p>&nbsp;</p>
+<p>Syntax: error_page code ... [=[response]] uri;</p>
+<p>Default: none</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: client_max_body_size size ;</p>
+<p>Default: client_max_body_size 1m;</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: location [ = | ~ | * | ^ ] uri { ... } location @name { ... }</p>
+<p>Default: none</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax:return code [text] ;</p>
+<p>return code URL;</p>
+<p>return URL;</p>
+<p>Default: none</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: root path ;</p>
+<p>Default: root html;</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: autoindex on | off ;</p>
+<p>Default: autoindex off;</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: index file ... ;</p>
+<p>Default: index index.html;</p>
+<p>Context: server, location</p>
+<p>&nbsp;</p>
+<p>Syntax: upload_store directory ... ;</p>
+<p>Default: none</p>
+<p>Context: server, location</p>
