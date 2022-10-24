@@ -1,7 +1,7 @@
-#ifndef SERVER_CONF
-#define SERVER_CONF
+#ifndef SERVER_CONF_HPP
+#define SERVER_CONF_HPP
 
-#include "BaseConf.hpp"
+#include "webserv.hpp"
 
 class ServerConf : public BaseConf {
 	private:

@@ -1,8 +1,4 @@
-#include "colorcodes.hpp"
-#include <iostream>
-#include <string>
-#include <fstream>
-#include "ServerConf.hpp"
+#include "webserv.hpp"
 
 // References:
 // - https://www.linode.com/docs/guides/how-to-configure-nginx/
@@ -31,44 +27,16 @@ void parseFile(char *fileName)
 	configFile.close();
 }
 
-bool isWhitespace(unsigned char c)
-{
-    if (c == ' ' || c == '\t' || c == '\n' ||
-        c == '\r' || c == '\f' || c == '\v')
-        return true;
-    return false;
-}
-
-std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it) {
-	while (isWhitespace(*it) && it != str.end())
-		it++;
-	return it;
-}
-
-std::vector<std::string> splitStr(std::string str) {
-	std::vector<std::string>	vec;
-	std::string::iterator		itStart;
-	std::string::iterator		itEnd;
-
-	for (itStart = str.begin(); itStart < str.end(); itStart++) {
-		itStart = skipWhitespace(str, itStart);
-		itEnd = itStart;
-
-		for (; itEnd < str.end() && !isWhitespace(*itEnd); itEnd++) {}
-
-		std::string tmp(itStart, itEnd);
-		vec.push_back(tmp);
-
-		itStart = itEnd;
-	}
-	return vec;
-}
-
 int main(int argc, char *argv[])
 {
 	ServerConf conf;
 
-	std::vector<std::string> vec(splitStr("Ceci   \t est \t\tune\tstring\r   de     test."));
+	std::vector<std::string> vec(splitLine("Ceci   \t est \t\tune\tst#ring\r   de     test."));
+	for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+		std::cout << "tmp = |" << *it << "|\n";
+
+	vec = deleteComment(vec);
+
 	for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
 		std::cout << "tmp = |" << *it << "|\n";
 
