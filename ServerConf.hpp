@@ -15,7 +15,7 @@ class ServerConf : public BaseConf {
 
 		void debug() const;
 
-		ServerConf(); // NOTE: Check if BaseConf is well construct
+		ServerConf();
 		~ServerConf();
 		ServerConf(const ServerConf &x);
 		ServerConf& operator=(const ServerConf &x);

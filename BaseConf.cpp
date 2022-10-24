@@ -27,9 +27,9 @@ void	BaseConf::debug() const {
 	std::cout << "autoindex    : " << _autoindex << "\n";
 	std::cout << "index        : "; debug_print(_index);
 	std::cout << "cgi          : "; debug_print(_cgi);
-	std::cout << "upload_store : " << _upload_store << "\n"; 
+	std::cout << "upload_store : " << _upload_store << "\n";
 	std::cout << RESET ;
-} 
+}
 
 
 BaseConf::BaseConf() {
@@ -37,7 +37,6 @@ BaseConf::BaseConf() {
 	_allow_method.insert(GET);
 	_allow_method.insert(DELETE);
 
-	// NOTE: _return : create a function that will set the default responses
 	_root = "/var/www/html";
 	_autoindex = false;
 	_index.push_back("index");
@@ -67,7 +66,7 @@ std::vector<std::string> BaseConf::get_index() const {
 	return _index;
 }
 
-bool BaseConf::is_method_allowed(int method) const { 
+bool BaseConf::is_method_allowed(int method) const {
 	if (_allow_method.count(method))
 		return true;
 	return false;
