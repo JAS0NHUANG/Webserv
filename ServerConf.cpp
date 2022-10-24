@@ -30,7 +30,7 @@ ServerConf::ServerConf() {
 
 ServerConf::~ServerConf() {}
 
-ServerConf::ServerConf(const ServerConf &x) {
+ServerConf::ServerConf(const ServerConf &x) : BaseConf() {
 	*this = x;
 }
 

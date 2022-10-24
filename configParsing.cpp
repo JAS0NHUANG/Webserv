@@ -14,8 +14,7 @@ std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it)
 	return it;
 }
 
-std::vector<std::string> splitLine(std::string str) {
-	std::vector<std::string>	vec;
+void splitLine(std::string str, std::vector<std::string> &vec) {
 	std::string::iterator		itStart;
 	std::string::iterator		itEnd;
 
@@ -30,23 +29,48 @@ std::vector<std::string> splitLine(std::string str) {
 
 		itStart = itEnd;
 	}
-	return vec;
 }
 
-std::vector<std::string> deleteComment(std::vector<std::string> vec) {
+void deleteComment(std::vector<std::string> &vec) {
 	std::vector<std::string>::iterator	it;
 	std::string::size_type				i;
 
 	for (it = vec.begin(); it != vec.end(); it++) {
 		i = (*it).find('#');
 		if (i != std::string::npos) {
-			std::cout << "Before resizing: |" << *it << "|\n";
 			(*it).resize(i);
-			std::cout << "After resizing: |" << *it << "|\n";
 			break;
 		}
 	}
+
 	if (it++ != vec.end())
 		vec.erase(it, vec.end());
-	return vec;
+}
+
+void parseFile(char *fileName, ServerConf &conf)
+{
+	(void)conf;
+	std::ifstream				configFile(fileName);
+	std::vector<std::string>	vec;
+
+	if (!configFile.is_open())
+	{
+		std::cerr << RED;
+		std::cerr << "Unable to open configuration file\n";
+		std::cerr << RESET;
+		return;
+	}
+
+	std::string line;
+	while (getline(configFile, line)) {
+		std::cout << "Initial line: |" << line << "|\n";
+		splitLine(line, vec);
+		deleteComment(vec);
+		for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
+			std::cout << "str : |" << *it << "|\n";
+		// ...
+		vec.clear();
+	}
+
+	configFile.close();
 }

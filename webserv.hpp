@@ -17,7 +17,7 @@
 // configParsing-utils.cpp
 bool isWhitespace(unsigned char c);
 std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it);
-std::vector<std::string> splitLine(std::string str);
-std::vector<std::string> deleteComment(std::vector<std::string> vec);
+void splitLine(std::string str, std::vector<std::string> &vec);
+void deleteComment(std::vector<std::string> &vec);
 
 #endif
