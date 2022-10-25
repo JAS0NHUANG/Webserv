@@ -65,7 +65,7 @@ static void add_event(int epollfd,int fd,int state){
     struct epoll_event ev;
     ev.events = state;
     ev.data.fd = fd;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev == -1){
+    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev) == -1){
         errMsgErrno("epoll ctl failed");
         //exit(EXIT_FAILURE);
     }
@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
     struct epoll_event ev, events[MAX_EVENTS];
     int conn_sock, nfds, epollfd;
 
-    epollfd = epoll_create(1));
-    if (epoll_fd == -1) {
+    epollfd = epoll_create(1);
+    if (epollfd == -1) {
 		errMsgErrno("epoll failed");
 		exit(EXIT_FAILURE);
 	}
@@ -134,33 +134,34 @@ int main(int argc, char *argv[]) {
         }
         for (int n = 0; n < nfds; ++n) {
             std::cout << "n :" << n << " nfds :" << nfds << std::endl;
-            if (events[n].events & POLLPRI || events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP){
+            if (events[n].events & EPOLLPRI || events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP){
                 errMsgErrno("event error");
                 continue;
             }
             else if (events[n].data.fd == server_fd){
                 struct sockaddr_storage addr;
                 socklen_t socklen = sizeof(addr);
-                int conn_sock = accept(fd, (struct sockaddr *)&addr, &socklen);
+                int conn_sock = accept(server_fd, (struct sockaddr *)&addr, &socklen);
                 if (conn_sock < 0){
                     errMsgErrno("accept failed");
                     continue;
                 }
-                if (fcntl(conn_sock, F_SETFL, flags | O_NONBLOCK) < 0){
+                int flag = fcntl(conn_sock,F_GETFL,0);
+                if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0){
                     errMsgErrno("fcntl set");
                     exit(EXIT_FAILURE);
                 }
                 //setnonblocking(conn_sock);
-                add_event(epoll_fd, conn_sock, EPOLLIN);
+                add_event(epollfd, conn_sock, EPOLLIN);
                 std::cout << "new connection:" << conn_sock << std::endl;
             } else if(events[n].events & EPOLLIN){
                 char buf[1024] = {0};
-                size_t bytes_read = recv(fd, buf, 1024, 0);
-                std::cout << "READ : |"<< buf << "|"<< std::endl;
-                // if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, conn_sock, NULL) == -1)
-		        //     print_log("EPOLL_CTL_DEL error");
-	            // else
-		        //     print_log("One event delete");
+                size_t bytes_read = recv(server_fd, buf, 1024, 0);
+                std::cout << "READ : |"<< buf << "|" << bytes_read  << std::endl;
+                if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
+                    errMsgErrno("EPOLL_CTL_DEL error");
+	            else
+                    std::cout <<"One event delete"<< std::endl;;
             } else if (events[n].events & EPOLLOUT){
                 std::cout << "write\n";
                 char s[] ="hello from server";
@@ -171,7 +172,7 @@ int main(int argc, char *argv[]) {
             }
         }
 	}
-    close(epoll_fd);
+    close(epollfd);
     close(server_fd);
 	return 0;
 }
