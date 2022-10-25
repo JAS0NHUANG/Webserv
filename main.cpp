@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
         errMsgErrno("kevent failed"); 
 	while (1) {
 		socklen_t addrlen;
-		int new_socket;
+		//int new_socket;
         nev = kevent(kq, NULL, 0, evList, 128, NULL);
         if (nev < 0)
             errMsgErrno("kevent in loop failed"); 
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
             } else if (evList[i].filter == EVFILT_WRITE) {
                 std::cout<<"write :"<<std::endl;
                 uintptr_t fd_client = evList[i].ident;
-                char *s ="hello from server";
+                char s[] ="hello from server";
                 //usleep(3000);
                 if (int re = send(fd_client, s, 18, 0) != 0){
                     errMsgErrno("sendfile");
