@@ -1,76 +1,101 @@
 #include "webserv.hpp"
 
-bool isWhitespace(unsigned char c)
-{
-    if (c == ' ' || c == '\t' || c == '\n' ||
-        c == '\r' || c == '\f' || c == '\v')
-        return true;
-    return false;
+void callDoers(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
+	directives d = findDirective(qu.front()[0]);
+
+	if (d == e_unknown)
+		throwParsingError(qu.front()[0], toString(line), UNEXPECTED);
+
+	if (d == e_allow_method)
+		doAllowMethodParsing(qu, conf, line);
+	else if (d == e_cgi)
+		doCgiParsing(qu, conf, line);
+	else if (d == e_error_page)
+		doErrorPageParsing(qu, conf, line);
+	else if (d == e_client_max_body_size)
+		doClientMaxBodySizeParsing(qu, conf, line);
+	else if (d == e_return)
+		doReturnParsing(qu, conf, line);
+	else if (d == e_root)
+		doRootParsing(qu, conf, line);
+	else if (d == e_autoindex)
+		doAutoindexParsing(qu, conf, line);
+	else if (d == e_index)
+		doIndexParsing(qu, conf, line);
+	else if (d == e_upload_store)
+		doUploadStoreParsing(qu, conf, line);
 }
 
-std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it) {
-	while (isWhitespace(*it) && it != str.end())
-		it++;
-	return it;
-}
+void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerConf> &conf) {
 
-void splitLine(std::string str, std::vector<std::string> &vec) {
-	std::string::iterator		itStart;
-	std::string::iterator		itEnd;
+	int line		= 1;
+	directives d	= e_neutral;
 
-	for (itStart = str.begin(); itStart < str.end(); itStart++) {
-		itStart = skipWhitespace(str, itStart);
-		itEnd = itStart;
+	if (isFileEmpty(qu))
+		std::cerr << "File is empty. Please give a minimal configuration.\n";
 
-		for (; itEnd < str.end() && !isWhitespace(*itEnd); itEnd++) {}
+	while (qu.size()) {
+		if (d == e_neutral) {
+			doServerParsing(qu, line);
+			// NOTE : push_back ServerConf in the vector
+			d = e_server;
+		}
+		
+		if (d == e_server) {
+			if (isFileEmpty(qu))
+				throwParsingError("}", toString(line), EXPECTED);
 
-		std::string tmp(itStart, itEnd);
-		vec.push_back(tmp);
+			if (isCloseBracket(qu.front()[0])) {
+				eraseToken(qu, line);
+				d = e_neutral;
+				continue;
+			}
 
-		itStart = itEnd;
-	}
-}
+			d = findDirective(qu.front()[0]);
+			if (d == e_unknown)
+				throwParsingError(qu.front()[0], toString(line), UNEXPECTED);
+			
+			if (d == e_listen)
+				doListenParsing(qu, conf.front(), line);
+			else if (d == e_server_name)
+				doServerNameParsing(qu, conf.front(), line);
+			else if (d == e_location)
+				doLocationParsing(qu, conf.front(), line);
+			else
+				callDoers(qu, conf.front(), line);
+			
+			d = e_server;
 
-void deleteComment(std::vector<std::string> &vec) {
-	std::vector<std::string>::iterator	it;
-	std::string::size_type				i;
-
-	for (it = vec.begin(); it != vec.end(); it++) {
-		i = (*it).find('#');
-		if (i != std::string::npos) {
-			(*it).resize(i);
-			break;
 		}
 	}
 
-	if (it++ != vec.end())
-		vec.erase(it, vec.end());
+	if (d == e_server)
+		std::cerr << "Expected '}' to close 'server' directive\n";
 }
 
-void parseFile(char *fileName, ServerConf &conf)
+void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
+	while (qu.size()) {
+	std::vector<std::string>::iterator it = qu.front().begin();
+	int i = 0;
+	for (; it != qu.front().end(); it++) {
+			std::cout << *it << "|";
+			i++;
+	}
+	std::cout << "~~~vec size: " << i << "\n";
+	qu.pop();
+	}
+}
+
+void parseFile(char *fileName, std::vector<ServerConf> &conf)
 {
 	(void)conf;
-	std::ifstream				configFile(fileName);
-	std::vector<std::string>	vec;
+	std::queue<std::vector<std::string> >	qu;
 
-	if (!configFile.is_open())
-	{
-		std::cerr << RED;
-		std::cerr << "Unable to open configuration file\n";
-		std::cerr << RESET;
-		return;
-	}
+	saveFile(fileName, qu);
 
-	std::string line;
-	while (getline(configFile, line)) {
-		std::cout << "Initial line: |" << line << "|\n";
-		splitLine(line, vec);
-		deleteComment(vec);
-		for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++)
-			std::cout << "str : |" << *it << "|\n";
-		// ...
-		vec.clear();
-	}
+	// debugPrintQ(qu);
 
-	configFile.close();
+	configParse(qu, conf);
+	
+	
 }

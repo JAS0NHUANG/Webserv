@@ -10,7 +10,7 @@ class ServerConf : public BaseConf {
 		std::vector<std::string>			_server_name; 			// Default = ""
 		std::map<int, std::string>			_error_page; 			// Size = 0 if not set
 		unsigned long long					_client_max_body_size;	// Default 1M
-		std::map<std::string, BaseConf>		_location;				// Size = 0 if not set.
+		std::map<std::string, BaseConf>		_location;				// Size = 0 if not set. map<URI/Config>
 	public:
 
 		void debug() const;
@@ -25,6 +25,7 @@ class ServerConf : public BaseConf {
 		std::vector<std::string>	get_server_name() const; // throw an exeption if not set
 		std::string					get_error_page(int code) const; // throw an exeption if not set
 		unsigned long long			get_client_max_body_size() const; // Default 1M
+
 
 		class	NotFoundException : public std::exception {
 			public:

@@ -13,12 +13,24 @@
 // NOTE: Use throw and catch for error (like parsing errors)
 int main(int argc, char *argv[])
 {
-	ServerConf conf;
+	std::vector<ServerConf> conf;
 
+
+	(void)argc;
 	if (argc != 2)
 		std::cout << "Usage: " << argv[0] << " configuration_file\n";
-	else
-		parseFile(argv[1], conf);
+	else {
+		try {
+			throwParsingError("", "", 0,  argv[0], argv[1]);
+			conf.push_back(ServerConf()); // ????
+			parseFile(argv[1], conf);
+		}
+		catch (std::string &str) {
+			std::cerr << RED ;
+			std::cerr << str << "\n";
+			std::cerr << RESET ;
+		}
+	}
 
 	return 0;
 }

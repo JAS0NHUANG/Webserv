@@ -93,3 +93,4 @@ bool BaseConf::is_return_set() const {
 		return true;
 	return false;
 }
+

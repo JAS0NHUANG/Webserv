@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   colorcodes.h                                       :+:      :+:    :+:   */
+/*   colorcodes.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sdummett <sdummett@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef COLORCODES_H
-# define COLORCODES_H
+#ifndef COLORCODES_HPP
+# define COLORCODES_HPP
 
 //Regular text
 # define BLK "\e[0;30m"

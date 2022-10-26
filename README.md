@@ -53,6 +53,6 @@
 <p>Default: index index.html;</p>
 <p>Context: server, location</p>
 <p>&nbsp;</p>
-<p>Syntax: upload_store directory ... ;</p>
+<p>Syntax: upload_store directory ;</p>
 <p>Default: none</p>
 <p>Context: server, location</p>

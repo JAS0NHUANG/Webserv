@@ -27,6 +27,9 @@ SRCS		=	main.cpp \
 				BaseConf.cpp \
 				ServerConf.cpp \
 				configParsing.cpp \
+				utilsParsing.cpp \
+				saveFile.cpp \
+				doParsing.cpp
 
 
 TEST_SRCS	=	tests/test.cpp \

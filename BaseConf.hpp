@@ -39,6 +39,9 @@ class BaseConf {
 		bool	is_cgi_set() const;
 		bool	is_upload_on() const;
 		bool	is_return_set() const;
+
+		void	set_allow_method(int method, bool clear); // TO IMPLEMENT
+		void	set_return();								// TO IMPLEMENT
 };
 
 void debug_print(std::set<int> x);
