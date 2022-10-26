@@ -10,7 +10,9 @@ bool splitSemicolon(std::string &str, std::vector<std::string> &vec) {
 	it = str.begin();
 
 	tmp.assign(it, it + i);
-	vec.push_back(tmp);
+
+	if (tmp.size())
+		vec.push_back(tmp);
 	vec.push_back(";");
 	it = it + i + 1;
 	if (it == str.end())
@@ -26,6 +28,8 @@ std::vector<std::string> splitLine(std::string str) {
 	std::string::iterator		itStart;
 	std::string::iterator		itEnd;
 
+	if (str.size() == 0)
+		return vec;
 	for (itStart = str.begin(); itStart < str.end(); itStart++) {
 		itStart = skipWhitespace(str, itStart);
 		itEnd = itStart;
@@ -33,12 +37,15 @@ std::vector<std::string> splitLine(std::string str) {
 		for (; itEnd < str.end() && !isWhitespace(*itEnd); itEnd++) {}
 
 		std::string tmp(itStart, itEnd);
-		if (!splitSemicolon(tmp, vec))
+		if (tmp.size() && !splitSemicolon(tmp, vec)) {
 			vec.push_back(tmp);
+		}
 
 		itStart = itEnd;
 	}
+
 	deleteComment(vec);
+
 	return vec;
 }
 
@@ -68,7 +75,10 @@ void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu) {
 		throw std::string("Unable to open configuration file: " + std::string(fileName));
 
 	std::string line;
-	while (getline(configFile, line))
-		qu.push(splitLine(line));
+	while (getline(configFile, line)) {
+		std::vector<std::string> vec = splitLine(line);
+		if (vec.size())
+			qu.push(vec);
+	}
 	configFile.close();
 }

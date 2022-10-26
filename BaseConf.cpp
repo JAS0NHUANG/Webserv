@@ -17,6 +17,20 @@ void debug_print(std::vector<std::string> x) {
 		std::cout << *it << " ";
 	std::cout << "\n";
 }
+void debug_print(std::map<int, std::pair<int, std::string> > x) {
+	std::map<int, std::pair<int, std::string> >::iterator it = x.begin();
+	for (; it != x.end(); it++)
+		std::cout << "[ " << it->first << " | " << it->second.first << " | " << it->second.second << "] ";
+	std::cout << "\n";
+}
+
+void debug_print(std::pair<bool, std::pair<std::string, std::string> > x) {
+	std::cout << "[ " << x.first << " | ( " << x.second.first << " | " << x.second.second << " ) ]\n";
+}
+
+void debug_print(std::pair<bool, std::string> x) {
+	std::cout << "[ " << x.first << " | " << x.second << " ]\n";
+}
 
 void	BaseConf::debug() const {
 	std::cout << MAG ;
@@ -27,7 +41,7 @@ void	BaseConf::debug() const {
 	std::cout << "autoindex    : " << _autoindex << "\n";
 	std::cout << "index        : "; debug_print(_index);
 	std::cout << "cgi          : "; debug_print(_cgi);
-	std::cout << "upload_store : " << _upload_store << "\n";
+	std::cout << "upload_store : "; debug_print(_upload_store);
 	std::cout << RESET ;
 }
 
@@ -41,8 +55,8 @@ BaseConf::BaseConf() {
 	_autoindex = false;
 	_index.push_back("index");
 	_index.push_back("index.html");
-	_cgi.push_back("");
-	_upload_store = false;
+	_cgi.first = false;
+	_upload_store.first = false;
 }
 
 BaseConf::BaseConf(const BaseConf &x) {
@@ -77,20 +91,46 @@ bool BaseConf::is_autoindex_on() const {
 }
 
 bool BaseConf::is_cgi_set() const {
-	if (_cgi[0] == "IS_SET")
-		return true;
-	return false;
+	return _cgi.first == true;
 }
 
 bool BaseConf::is_upload_on() const {
-	if (_upload_store == true)
-		return true;
-	return false;
+	return _upload_store.first;
 }
 
 bool BaseConf::is_return_set() const {
-	if (_return.size())
-		return true;
-	return false;
+	return _return.size() != 0;
 }
 
+void BaseConf::set_allow_method(std::vector<int> vec) {
+	_allow_method.clear();
+	_allow_method.insert(vec.begin(), vec.end());
+}
+
+void	BaseConf::set_return(int code, std::string str, int type) {
+	_return.erase(code);
+	_return.insert(std::make_pair(code, std::make_pair(type, str)));
+}
+
+void	BaseConf::set_root(std::string str) {
+	_root = str;
+}
+
+void	BaseConf::set_autoindex(bool b) {
+	_autoindex = b;
+}
+
+void	BaseConf::set_index(std::vector<std::string> vec) {
+	_index.clear();
+	_index.assign(vec.begin(), vec.end());
+}
+
+void	BaseConf::set_cgi(std::string ext, std::string path) {
+	_cgi.first = true;
+	_cgi.second = std::make_pair(ext, path);
+}
+
+void	BaseConf::set_upload_store(std::string dir) {
+	_upload_store.first = true;
+	_upload_store.second = dir;
+}

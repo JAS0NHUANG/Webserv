@@ -1,19 +1,12 @@
 #include "webserv.hpp"
 
-void callDoers(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
-	directives d = findDirective(qu.front()[0]);
-
-	if (d == e_unknown)
-		throwParsingError(qu.front()[0], toString(line), UNEXPECTED);
+void callDoers(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+	directives d = findDirective(qu.front().front());
 
 	if (d == e_allow_method)
 		doAllowMethodParsing(qu, conf, line);
 	else if (d == e_cgi)
 		doCgiParsing(qu, conf, line);
-	else if (d == e_error_page)
-		doErrorPageParsing(qu, conf, line);
-	else if (d == e_client_max_body_size)
-		doClientMaxBodySizeParsing(qu, conf, line);
 	else if (d == e_return)
 		doReturnParsing(qu, conf, line);
 	else if (d == e_root)
@@ -24,6 +17,8 @@ void callDoers(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int 
 		doIndexParsing(qu, conf, line);
 	else if (d == e_upload_store)
 		doUploadStoreParsing(qu, conf, line);
+	else
+		throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
 }
 
 void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerConf> &conf) {
@@ -37,7 +32,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerCo
 	while (qu.size()) {
 		if (d == e_neutral) {
 			doServerParsing(qu, line);
-			// NOTE : push_back ServerConf in the vector
+			conf.push_back(ServerConf());
 			d = e_server;
 		}
 		
@@ -45,20 +40,24 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerCo
 			if (isFileEmpty(qu))
 				throwParsingError("}", toString(line), EXPECTED);
 
-			if (isCloseBracket(qu.front()[0])) {
+			if (isCloseBracket(qu.front().front())) {
 				eraseToken(qu, line);
 				d = e_neutral;
 				continue;
 			}
 
-			d = findDirective(qu.front()[0]);
+			d = findDirective(qu.front().front());
 			if (d == e_unknown)
-				throwParsingError(qu.front()[0], toString(line), UNEXPECTED);
+				throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
 			
 			if (d == e_listen)
 				doListenParsing(qu, conf.front(), line);
 			else if (d == e_server_name)
 				doServerNameParsing(qu, conf.front(), line);
+			else if (d == e_error_page)
+				doErrorPageParsing(qu, conf.front(), line);
+			else if (d == e_client_max_body_size)
+				doClientMaxBodySizeParsing(qu, conf.front(), line);
 			else if (d == e_location)
 				doLocationParsing(qu, conf.front(), line);
 			else
@@ -74,15 +73,17 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerCo
 }
 
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
+	int line = 1;
 	while (qu.size()) {
-	std::vector<std::string>::iterator it = qu.front().begin();
-	int i = 0;
-	for (; it != qu.front().end(); it++) {
-			std::cout << *it << "|";
-			i++;
-	}
-	std::cout << "~~~vec size: " << i << "\n";
-	qu.pop();
+		std::vector<std::string>::iterator it = qu.front().begin();
+		int i = 0;
+		for (; it != qu.front().end(); it++) {
+				std::cout << *it << "|";
+				i++;
+		}
+		std::cout << "~~~vec size: " << i << " --line:" << line << "\n";
+		qu.pop();
+		++line;
 	}
 }
 
@@ -93,6 +94,7 @@ void parseFile(char *fileName, std::vector<ServerConf> &conf)
 
 	saveFile(fileName, qu);
 
+	//If debug is used, qu will be empty
 	// debugPrintQ(qu);
 
 	configParse(qu, conf);

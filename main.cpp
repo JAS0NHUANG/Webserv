@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 	else {
 		try {
 			throwParsingError("", "", 0,  argv[0], argv[1]);
-			conf.push_back(ServerConf()); // ????
 			parseFile(argv[1], conf);
+			conf.front().debug();
 		}
 		catch (std::string &str) {
 			std::cerr << RED ;

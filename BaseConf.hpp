@@ -12,15 +12,31 @@
 #define POST	2
 #define DELETE	3
 
+#define IS_URL	1
+#define IS_TEXT	2
+
 class BaseConf {
 	protected:
-		std::set<int>				_allow_method;	// methods are defined above, the default is GET, POST, DELETE
-		std::map<int, std::string>	_return;		// int for code, string for holding URL or text; ex: ["IS_URL"/"IS_TEXT", URL/text]
-		std::string					_root;			// "path"
-		bool						_autoindex;		// true/false; default = false
-		std::vector<std::string>	_index;			// [text, ...] ; default = index, index.html
-		std::vector<std::string>	_cgi;			// ["IS_SET", extension, path];
-		bool						_upload_store;	// true/false; default = false
+		/* A set of defined methods */
+		std::set<int>	_allow_method;
+
+		/* [ return code | (url or text | string) ] */
+		std::map<int, std::pair<int, std::string> >	_return;
+
+		/* Just the path where webserv will considered as its root to search files, etc... */
+		std::string	_root;
+
+		/* true or false to know if autoindex is set or not */
+		bool	_autoindex;
+
+		/* vector that hold default page name */
+		std::vector<std::string>	_index;
+
+		/* [ is_set/is_not_set | (extension | path_to_cgi_bin) ] */
+		std::pair<bool, std::pair<std::string, std::string> >	_cgi;
+
+		/* [ is_on/is_off | directory ] */
+		std::pair<bool, std::string>	_upload_store;
 
 	public:
 
@@ -40,12 +56,20 @@ class BaseConf {
 		bool	is_upload_on() const;
 		bool	is_return_set() const;
 
-		void	set_allow_method(int method, bool clear); // TO IMPLEMENT
-		void	set_return();								// TO IMPLEMENT
+		void	set_allow_method(std::vector<int> vec);
+		void	set_return(int code, std::string str, int type);
+		void	set_root(std::string str);
+		void	set_autoindex(bool b);
+		void	set_index(std::vector<std::string> vec);
+		void	set_cgi(std::string ext, std::string path);
+		void	set_upload_store(std::string dir);
 };
 
 void debug_print(std::set<int> x);
 void debug_print(std::map<int, std::string> x);
 void debug_print(std::vector<std::string> x);
+void debug_print(std::map<int, std::pair<int, std::string> > x);
+void debug_print(std::pair<bool, std::pair<std::string, std::string> > x);
+void debug_print(std::pair<bool, std::string> x);
 
 #endif

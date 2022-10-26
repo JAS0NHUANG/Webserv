@@ -23,9 +23,9 @@ void ServerConf::debug() const {
 }
 
 ServerConf::ServerConf() {
-	_address				= ""; // NOTE: What is the default ?
+	_address				= "*";
 	_port					= 80;
-	_client_max_body_size	= 1000000;
+	_client_max_body_size	= 1000000; // 1M
 }
 
 ServerConf::~ServerConf() {}
@@ -42,10 +42,12 @@ ServerConf& ServerConf::ServerConf::operator=(const ServerConf &x) {
 	_index					= x._index;
 	_cgi					= x._cgi;
 	_upload_store			= x._upload_store;
+	_address				= x._address;
+	_port					= x._port;
 	_server_name			= x._server_name;
 	_error_page				= x._error_page;
-	_location				= x._location;
 	_client_max_body_size 	= x._client_max_body_size;
+	_location				= x._location;
 	return *this;
 }
 
@@ -60,19 +62,58 @@ int ServerConf::get_port() const {
 std::vector<std::string> ServerConf::get_server_name() const {
 	if (_server_name.size())
 		return _server_name;
-	throw NotFoundException();
+	return _server_name;
 }
 
 std::string ServerConf::get_error_page(int code) const {
 	if (_error_page.count(code))
 		return _error_page.find(code)->second;
-	throw NotFoundException();
+	return std::string();
 }
 
 unsigned long long ServerConf::get_client_max_body_size() const {
 	return _client_max_body_size;
 }
 
+std::pair<bool, BaseConf>	ServerConf::get_location(std::string uri) const {
+	if (_location.count(uri))
+		return std::make_pair(true, _location.find(uri)->second);
+	return std::make_pair(false, BaseConf());
+}
+
 char const* ServerConf::NotFoundException::what() const throw() {
 	return "Not found";
+}
+
+void	ServerConf::set_address(std::string str) {
+	_address = str;
+}
+
+void	ServerConf::set_port(int port) {
+	_port = port;
+}
+
+void	ServerConf::set_server_name(std::vector<std::string> names) {
+	std::vector<std::string>::iterator it = names.begin();
+
+	for(; it != names.end(); it++)
+		_server_name.push_back(*it);
+}
+
+void	ServerConf::set_error_page(std::vector<int> codes, std::string path) {
+	std::vector<int>::iterator it = codes.begin();
+
+	for (; it != codes.end(); it++) {
+		_error_page.erase(*it);
+		_error_page.insert(std::make_pair(*it, path));
+	}
+}
+
+void	ServerConf::set_client_max_body_size(unsigned long long size) {
+	_client_max_body_size = size;
+}
+
+void	ServerConf::set_location(std::string uri, BaseConf location) {
+	_location.erase(uri);
+	_location.insert(std::make_pair(uri, location));
 }

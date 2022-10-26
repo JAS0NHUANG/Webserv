@@ -15,6 +15,7 @@ void eraseToken(std::queue<std::vector<std::string> > &qu, int &line) {
 void checkIfLineIsEmpty(std::queue<std::vector<std::string> > &qu, int &line) {
 	if (qu.front().size() == 0) {
 		qu.pop();
+
 		if (qu.size())
 			++line;
 	}
@@ -56,6 +57,26 @@ std::string toString(int n) {
 	ss >> str;
 
 	return str;
+}
+
+int toInt(std::string str) {
+	int					n;
+	std::stringstream	ss;
+
+	ss << str;
+	ss >> n;
+
+	return n;
+}
+
+unsigned long long toULL(std::string str) {
+	unsigned long long	n;
+	std::stringstream	ss;
+
+	ss << str;
+	ss >> n;
+
+	return n;
 }
 
 bool isWhitespace(unsigned char c)

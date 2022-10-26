@@ -46,7 +46,7 @@ void deleteComment(std::vector<std::string> &vec);
 void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu);
 
 // configParsing.cpp
-void callDoers(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
+void callDoers(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
 void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerConf> &conf);
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu);
 void parseFile(char *fileName, std::vector<ServerConf> &conf);
@@ -58,13 +58,13 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, ServerConf &
 void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
 void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
 void doLocationParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doReturnParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doRootParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doIndexParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doCgiParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
+void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doReturnParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doRootParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doIndexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doCgiParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
 
 // utilsParsing.cpp
 void errMsgErrno(std::string msg);
@@ -72,8 +72,10 @@ void eraseToken(std::queue<std::vector<std::string> > &qu, int &line);
 void checkIfLineIsEmpty(std::queue<std::vector<std::string> > &qu, int &line);
 directives findDirective(std::string &str);
 std::string toString(int n);
+int toInt(std::string str);
+unsigned long long toULL(std::string str);
 bool isWhitespace(unsigned char c);
-std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it);
+std::string::iterator skipWhitespace(std::string &str, std::string::iterator it);
 bool isServerDirective(std::string &str);
 bool isDirective(std::string str);
 bool isOpenBracket(std::string &str);
