@@ -13,7 +13,7 @@
 // NOTE: Use throw and catch for error (like parsing errors)
 int main(int argc, char *argv[])
 {
-	std::vector<ServerConf> conf;
+	std::vector<Server> conf;
 
 
 	(void)argc;
@@ -24,11 +24,10 @@ int main(int argc, char *argv[])
 			throwParsingError("", "", 0,  argv[0], argv[1]);
 			parseFile(argv[1], conf);
 			conf.front().debug();
+			std::cout << YEL << "Number of server : " << conf.size() << "\n" << RESET;
 		}
 		catch (std::string &str) {
-			std::cerr << RED ;
-			std::cerr << str << "\n";
-			std::cerr << RESET ;
+			std::cerr << RED << str << "\n" << RESET;
 		}
 	}
 

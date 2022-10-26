@@ -24,8 +24,8 @@ endif
 #       SOURCES                                                                #
 # **************************************************************************** #
 SRCS		=	main.cpp \
-				BaseConf.cpp \
-				ServerConf.cpp \
+				Location.cpp \
+				Server.cpp \
 				configParsing.cpp \
 				utilsParsing.cpp \
 				saveFile.cpp \

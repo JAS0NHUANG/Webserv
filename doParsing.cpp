@@ -15,7 +15,7 @@ void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 	
 }
 
-void doListenParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
+void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	// NOTE: IMCOMPLETE -> only handle: listen port;
 	//			need to handle: 		listen address:port; etc...
 	std::vector<std::string> vec;
@@ -35,7 +35,7 @@ void doListenParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf
 	eraseToken(qu, line);
 }
 
-void doServerNameParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
+void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -54,7 +54,7 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, ServerConf &
 	eraseToken(qu, line);
 }
 
-void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
+void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 
 	// NOTE: IMCOMPLETE, only handle one code with one path...
 	eraseToken(qu, line);
@@ -83,7 +83,7 @@ void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, ServerConf &c
 	eraseToken(qu, line);
 }
 
-void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
+void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -98,7 +98,7 @@ void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Serve
 	eraseToken(qu, line);
 }
 
-void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	// NOTE: need to check method properly (if they are valid)
 	// Also 1 method supported for need to support more
 	eraseToken(qu, line);
@@ -117,7 +117,7 @@ void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, BaseConf &c
 	eraseToken(qu, line);
 }
 
-void doReturnParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	// NOTE: Check if its an url of a text
 	// For this will always that its a text
 
@@ -141,7 +141,7 @@ void doReturnParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, 
 	eraseToken(qu, line);
 }
 
-void doRootParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -155,7 +155,7 @@ void doRootParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, in
 	eraseToken(qu, line);
 }
 
-void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	// NOTE: Check the value of the token: if its 'on' or 'off'
 	// For now it will always return on
 
@@ -172,7 +172,7 @@ void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &con
 	eraseToken(qu, line);
 }
 
-void doIndexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doIndexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -191,7 +191,7 @@ void doIndexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, i
 	eraseToken(qu, line);
 }
 
-void doCgiParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doCgiParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -211,7 +211,7 @@ void doCgiParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int
 	eraseToken(qu, line);
 }
 
-void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -226,14 +226,14 @@ void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, BaseConf &c
 	eraseToken(qu, line);
 }
 
-void doLocationParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line) {
+void doLocationParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	// NOTE: Maybe we need to check if it's a valid uri
 
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY !", qu);
 
 	std::string uri = qu.front().front();
-	BaseConf location;
+	Location location(conf);
 
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY !", qu);
@@ -251,7 +251,7 @@ void doLocationParsing(std::queue<std::vector<std::string> > &qu, ServerConf &co
 
 	conf.set_location(uri, location);
 
-	if (isFileEmpty(qu))
+	if (isFileEmpty(qu) || qu.front().front() != "}")
 		throwParsingError("}", toString(line), EXPECTED);
 		// add : expected '}' to close location directive
 	

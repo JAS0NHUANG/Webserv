@@ -1,6 +1,6 @@
 #include "webserv.hpp"
 
-void callDoers(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line) {
+void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	directives d = findDirective(qu.front().front());
 
 	if (d == e_allow_method)
@@ -21,7 +21,7 @@ void callDoers(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &l
 		throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
 }
 
-void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerConf> &conf) {
+void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> &conf) {
 
 	int line		= 1;
 	directives d	= e_neutral;
@@ -32,7 +32,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerCo
 	while (qu.size()) {
 		if (d == e_neutral) {
 			doServerParsing(qu, line);
-			conf.push_back(ServerConf());
+			conf.push_back(Server());
 			d = e_server;
 		}
 		
@@ -87,9 +87,8 @@ void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
 	}
 }
 
-void parseFile(char *fileName, std::vector<ServerConf> &conf)
+void parseFile(char *fileName, std::vector<Server> &conf)
 {
-	(void)conf;
 	std::queue<std::vector<std::string> >	qu;
 
 	saveFile(fileName, qu);
@@ -98,6 +97,4 @@ void parseFile(char *fileName, std::vector<ServerConf> &conf)
 	// debugPrintQ(qu);
 
 	configParse(qu, conf);
-	
-	
 }

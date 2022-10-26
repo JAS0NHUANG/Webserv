@@ -15,7 +15,7 @@
 #define IS_URL	1
 #define IS_TEXT	2
 
-class BaseConf {
+class Location {
 	protected:
 		/* A set of defined methods */
 		std::set<int>	_allow_method;
@@ -42,10 +42,10 @@ class BaseConf {
 
 		void	debug() const;
 
-		BaseConf();
-		BaseConf(const BaseConf &x);
-		~BaseConf();
-		BaseConf& operator=(const BaseConf &x);
+		Location();
+		Location(const Location &x);
+		~Location();
+		Location& operator=(const Location &x);
 
 		std::string					get_root() const;
 		std::vector<std::string>	get_index() const;
@@ -56,13 +56,13 @@ class BaseConf {
 		bool	is_upload_on() const;
 		bool	is_return_set() const;
 
-		void	set_allow_method(std::vector<int> vec);
-		void	set_return(int code, std::string str, int type);
-		void	set_root(std::string str);
+		void	set_allow_method(std::vector<int> &vec);
+		void	set_return(int &code, std::string &str, int &type);
+		void	set_root(std::string &str);
 		void	set_autoindex(bool b);
-		void	set_index(std::vector<std::string> vec);
-		void	set_cgi(std::string ext, std::string path);
-		void	set_upload_store(std::string dir);
+		void	set_index(std::vector<std::string> &vec);
+		void	set_cgi(std::string &ext, std::string &path);
+		void	set_upload_store(std::string &dir);
 };
 
 void debug_print(std::set<int> x);

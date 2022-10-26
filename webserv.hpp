@@ -7,16 +7,15 @@
 #include <queue>
 #include <string>
 #include <string.h>
-// #include <utility>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include "colorcodes.hpp"
 
 // Classes
-#include "BaseConf.hpp"
-class ServerConf;
-#include "ServerConf.hpp"
+#include "Location.hpp"
+class Server;
+#include "Server.hpp"
 
 #define UNEXPECTED 0
 #define EXPECTED 1
@@ -46,25 +45,25 @@ void deleteComment(std::vector<std::string> &vec);
 void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu);
 
 // configParsing.cpp
-void callDoers(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void configParse(std::queue<std::vector<std::string> > &qu, std::vector<ServerConf> &conf);
+void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> &conf);
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu);
-void parseFile(char *fileName, std::vector<ServerConf> &conf);
+void parseFile(char *fileName, std::vector<Server> &conf);
 
 // doParsing.cpp
 void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line);
-void doListenParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doServerNameParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doLocationParsing(std::queue<std::vector<std::string> > &qu, ServerConf &conf, int &line);
-void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void doReturnParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void doRootParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void doIndexParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void doCgiParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
-void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, BaseConf &conf, int &line);
+void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
+void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
+void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
+void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
+void doLocationParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
+void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void doIndexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void doCgiParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 
 // utilsParsing.cpp
 void errMsgErrno(std::string msg);
