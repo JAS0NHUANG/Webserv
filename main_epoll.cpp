@@ -43,6 +43,7 @@
 #define BACKLOG		5		// Notes: change it to something bigger
 #define EPOLLEVENTS 100
 #define MAX_EVENTS 10
+#define BUFFER_SIZE 1024
 
 void	*ft_memset(void *s, int c, size_t n)
 {
@@ -59,6 +60,26 @@ void	errMsgErrno(std::string msg) {
 	std::cerr << msg << "\n";
 	std::cerr << strerror(errno) << "\n";
 	std::cerr << RESET ;
+}
+
+int	recv_event(int socket_fd)
+{
+	int	ret = 0;
+	int	len;
+	std::string str;
+
+	while (1)
+	{
+		char	buf[BUFFER_SIZE];
+		len = recv(socket_fd, buf, BUFFER_SIZE - 1, 0);
+		if (len <= 0)
+			break ;
+		ret += len;
+		buf[len] = 0;
+		str += buf;
+	}
+    std::cout << "READ : |"<< buf << "|" << std::endl;
+	return ret;
 }
 
 static void add_event(int epollfd,int fd,int state){
@@ -123,18 +144,19 @@ int main(int argc, char *argv[]) {
     ev.data.fd = server_fd;
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server_fd, &ev) == -1) {
         errMsgErrno("epoll_ctl: listen_sock");
-        exit(EXIT_FAILURE);
+        //close(epollfd);
+        //exit(EXIT_FAILURE);
     }
 	while (1) {
 		socklen_t addrlen;
         nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
         if (nfds == -1) {
             errMsgErrno("epoll_wait");
-            exit(EXIT_FAILURE);
+            //exit(EXIT_FAILURE);
         }
         for (int n = 0; n < nfds; ++n) {
             std::cout << "n :" << n << " nfds :" << nfds << std::endl;
-            if (events[n].events & EPOLLPRI || events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP){
+            if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP){
                 errMsgErrno("event error");
                 continue;
             }
@@ -148,31 +170,34 @@ int main(int argc, char *argv[]) {
                 }
                 int flag = fcntl(conn_sock,F_GETFL,0);
                 if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0){
-                    errMsgErrno("fcntl set");
+                   // errMsgErrno("fcntl set");
                     exit(EXIT_FAILURE);
                 }
                 //setnonblocking(conn_sock);
                 add_event(epollfd, conn_sock, EPOLLIN);
                 std::cout << "new connection:" << conn_sock << std::endl;
             } else if(events[n].events & EPOLLIN){
-                char buf[1024] = {0};
-                size_t bytes_read = recv(server_fd, buf, 1024, 0);
-                std::cout << "READ : |"<< buf << "|" << bytes_read  << std::endl;
+                if (recv_event(socket_fd) < 0)
+                    errMsgErrno("recv error");
                 if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
                     errMsgErrno("EPOLL_CTL_DEL error");
 	            else
-                    std::cout <<"One event delete"<< std::endl;;
+                    std::cout <<"one client delete"<< std::endl;
             } else if (events[n].events & EPOLLOUT){
-                std::cout << "write\n";
-                char s[] ="hello from server";
-                //usleep(3000);
-                if (int re = send(events[n].data.fd, s, 18, 0) != 0){
+                std::cout <<"write back"<< std::endl;;
+                const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello wordl</h1><r><n>";
+                if (int re = send(events[n].data.fd, msg, strlen(msg), 0) != 0){
                     errMsgErrno("send error");
                 }
+                close(events[n].data.fd);
+                if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
+                    errMsgErrno("EPOLL_CTL_DEL error");
+	            else
+                    std::cout <<"one client delete"<< std::endl;
             }
         }
 	}
     close(epollfd);
-    close(server_fd);
+    //close(server_fd);??
 	return 0;
 }
