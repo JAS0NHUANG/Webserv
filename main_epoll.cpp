@@ -39,10 +39,10 @@
 
 #include <sys/epoll.h> 
 
-#define PORT_NUM	50000	// Notes: change it to port 80 (http)
+#define PORT_NUM	4242	// Notes: change it to port 80 (http)
 #define BACKLOG		5		// Notes: change it to something bigger
 #define EPOLLEVENTS 100
-#define MAX_EVENTS 10
+#define MAX_EVENTS 128
 #define BUFFER_SIZE 1024
 
 void	*ft_memset(void *s, int c, size_t n)
@@ -62,7 +62,7 @@ void	errMsgErrno(std::string msg) {
 	std::cerr << RESET ;
 }
 
-int	recv_event(int socket_fd)
+int	recv_event(int fd)
 {
 	int	ret = 0;
 	int	len;
@@ -71,14 +71,14 @@ int	recv_event(int socket_fd)
 	while (1)
 	{
 		char	buf[BUFFER_SIZE];
-		len = recv(socket_fd, buf, BUFFER_SIZE - 1, 0);
+		len = recv(fd, buf, BUFFER_SIZE - 1, 0);
 		if (len <= 0)
 			break ;
 		ret += len;
 		buf[len] = 0;
 		str += buf;
 	}
-    std::cout << "READ : |"<< buf << "|" << std::endl;
+    std::cout << "READ : |"<< str << "|" << std::endl;
 	return ret;
 }
 
@@ -177,14 +177,30 @@ int main(int argc, char *argv[]) {
                 add_event(epollfd, conn_sock, EPOLLIN);
                 std::cout << "new connection:" << conn_sock << std::endl;
             } else if(events[n].events & EPOLLIN){
-                if (recv_event(socket_fd) < 0)
+                // if (recv_event(events[n].data.fd) < 0)
+                //     errMsgErrno("recv error");
+                // if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
+                //     errMsgErrno("EPOLL_CTL_DEL error");
+	            // else
+                //     std::cout <<"one client delete"<< std::endl;
+                int ret = recv_event(events[n].data.fd);
+                if (ret > 0){
+                    ev.events = EPOLLOUT;
+                    ev.data.fd = events[n].data.fd;
+                    if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
+                        errMsgErrno("EPOLL_CTL_MOD error");
+                } else if (ret == 0){
+                    std::cout <<"client close"<< std::endl;
+                    close(events[n].data.fd);
+                    if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
+                        errMsgErrno("EPOLL_CTL_DEL error");
+	                else
+                        std::cout <<"one client delete"<< std::endl;
+                } else{
                     errMsgErrno("recv error");
-                if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
-                    errMsgErrno("EPOLL_CTL_DEL error");
-	            else
-                    std::cout <<"one client delete"<< std::endl;
+                }
             } else if (events[n].events & EPOLLOUT){
-                std::cout <<"write back"<< std::endl;;
+                std::cout <<"write back"<< std::endl;
                 const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello wordl</h1><r><n>";
                 if (int re = send(events[n].data.fd, msg, strlen(msg), 0) != 0){
                     errMsgErrno("send error");
