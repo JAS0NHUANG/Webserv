@@ -55,27 +55,38 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf
 }
 
 void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
-
-	// NOTE: IMCOMPLETE, only handle one code with one path...
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPY", qu);
 
-	std::vector<int>	codes;
-	std::string			path;
+	std::vector<std::string> strvec;
+	while (qu.size() && !isSemicolon(qu.front().front())) {
+		strvec.push_back(qu.front().front());
+		eraseToken(qu, line);
+		throwIfFileIsEmpty("EMPTY", qu);
+	}
 
-	codes.push_back(toInt(qu.front().front()));
-	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	if (strvec.size() < 2) {
+		std::cerr << "error_page directive need a minimum of 2 arguments\n";
+		// NOTE : need to throw here
+		return;
+	}
 
-	path = qu.front().front();
-	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	std::string uri = strvec.back();
+	strvec.pop_back();
 
-	// while (qu.size() && !isSemicolon(qu.front()[0])) {
-	// 	eraseToken(qu, line);
-	// }
+	std::vector<int> codes;
+	std::vector<std::string>::iterator it = strvec.begin();
+	for (; it != strvec.end(); it++) {
+		if (isNum(*it) == false) {
+			std::cerr << "NOT INT\n";
+			// NOTE : need to throw here
+			return;
+		}
+		// NOTE : need to check if error_code is valid
+		codes.push_back(toInt(*it));
+	}
 
-	conf.set_error_page(codes, path);
+	conf.set_error_page(codes, uri);
 
 	if (qu.size() == 0 || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
@@ -87,7 +98,11 @@ void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Serve
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	// NOTE: CHeck if its a real number.
+	if (isNum(qu.front().front()) == false) {
+		std::cerr << "NOT NUM\n";
+		// NOTE : need to throw here
+		return;
+	}
 	conf.set_client_max_body_size(toULL(qu.front().front()));
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
@@ -98,6 +113,16 @@ void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Serve
 	eraseToken(qu, line);
 }
 
+int methodToInt(std::string str) {
+	if (str == "GET")
+		return GET;
+	if (str == "POST")
+		return POST;
+	return DELETE;
+}
+
+
+
 void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	// NOTE: need to check method properly (if they are valid)
 	// Also 1 method supported for need to support more
@@ -105,11 +130,19 @@ void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &c
 	throwIfFileIsEmpty("EMPTY", qu);
 
 	std::vector<int> vec;
-	vec.push_back(toInt(qu.front().front()));
+	while (qu.size() && !isSemicolon(qu.front().front())) {
+		strToUpper(qu.front().front());
+		if (isValidMethod(qu.front().front()) == false) {
+			std::cerr << "NOT A VALID METHOD\n";
+			// NOTE : need to throw here
+			return;
+		}
+		vec.push_back(methodToInt(qu.front().front()));
+		eraseToken(qu, line);
+		throwIfFileIsEmpty("EMPTY", qu);
+	}
 
 	conf.set_allow_method(vec);
-	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
 
 	if (qu.size() == 0 || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
@@ -121,9 +154,19 @@ void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, 
 	// NOTE: Check if its an url of a text
 	// For this will always that its a text
 
+	// NOTE : This below is not well supported (need to fix it)
+	// return code;
+	// return code [text];
+	// return code URL;
+	// return URL;
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
+	if (isNum(qu.front().front()) == false) {
+		std::cerr << "NOT NUMMMMM\n";
+		// NOTE : need to throw here
+		return;
+	}
 	int code = toInt(qu.front().front());
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
@@ -156,13 +199,21 @@ void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, in
 }
 
 void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
-	// NOTE: Check the value of the token: if its 'on' or 'off'
-	// For now it will always return on
-
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	conf.set_autoindex(true);
+	strToUpper(qu.front().front());
+	if (qu.front().front() != "ON" && qu.front().front() != "OFF") {
+		std::cerr << "NOT ON || OFF\n";
+		// NOTE : need to throw here
+		return;
+	}
+
+	if (qu.front().front() == "ON")
+		conf.set_autoindex(true);
+	else
+		conf.set_autoindex(false);
+
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
@@ -228,6 +279,7 @@ void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &c
 
 void doLocationParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	// NOTE: Maybe we need to check if it's a valid uri
+	// NOTE: How we can consider a valid uri ?
 
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY !", qu);

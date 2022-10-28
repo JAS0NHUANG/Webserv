@@ -100,12 +100,12 @@ void	Server::set_server_name(std::vector<std::string> &names) {
 		_server_name.push_back(*it);
 }
 
-void	Server::set_error_page(std::vector<int> &codes, std::string &path) {
+void	Server::set_error_page(std::vector<int> &codes, std::string &uri) {
 	std::vector<int>::iterator it = codes.begin();
 
 	for (; it != codes.end(); it++) {
 		_error_page.erase(*it);
-		_error_page.insert(std::make_pair(*it, path));
+		_error_page.insert(std::make_pair(*it, uri));
 	}
 }
 

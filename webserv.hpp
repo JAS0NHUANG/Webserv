@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include "colorcodes.hpp"
 
 // Classes
@@ -73,7 +74,10 @@ directives findDirective(std::string &str);
 std::string toString(int n);
 int toInt(std::string str);
 unsigned long long toULL(std::string str);
+void	strToUpper(std::string &str);
 bool isWhitespace(unsigned char c);
+bool isNum(std::string str);
+bool isValidMethod(std::string str);
 std::string::iterator skipWhitespace(std::string &str, std::string::iterator it);
 bool isServerDirective(std::string &str);
 bool isDirective(std::string str);

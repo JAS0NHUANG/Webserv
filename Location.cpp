@@ -8,7 +8,7 @@ void debug_print(std::set<int> x) {
 
 void debug_print(std::map<int, std::string> x) {
 	for (std::map<int, std::string>::iterator it = x.begin(); it != x.end(); it++)
-		std::cout << it->second << " ";
+		std::cout << "[ " << it->first << " | " << it->second << " ] ";
 	std::cout << "\n";
 }
 

@@ -79,6 +79,12 @@ unsigned long long toULL(std::string str) {
 	return n;
 }
 
+void	strToUpper(std::string &str) {
+	std::string::iterator it = str.begin();
+	for (; it != str.end(); it++)
+		*it = std::toupper(*it);
+}
+
 bool isWhitespace(unsigned char c)
 {
     if (c == ' ' || c == '\t' || c == '\n' ||
@@ -91,6 +97,19 @@ std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it)
 	while (isWhitespace(*it) && it != str.end())
 		it++;
 	return it;
+}
+
+bool isNum(std::string str) {
+	std::string::iterator it = str.begin();
+	for (; it != str.end(); it++)
+		if (std::isdigit(*it) == false)
+			return false;
+
+	return true;
+}
+
+bool isValidMethod(std::string str) {
+	return (str == "GET" || str == "POST" || str == "DELETE");
 }
 
 bool isServerDirective(std::string &str) {
