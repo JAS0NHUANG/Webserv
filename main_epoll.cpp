@@ -201,8 +201,21 @@ int main(int argc, char *argv[]) {
                 }
             } else if (events[n].events & EPOLLOUT){
                 std::cout <<"write back"<< std::endl;
-                const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello world</h1><r><n>";
-                if (int re = send(events[n].data.fd, msg, strlen(msg), 0) < 0){
+                // const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello world</h1><r><n>";
+                // send a message/response to the connection
+		        std::string response =
+			    "HTTP/1.1 9876543210 crazy status code\n"
+			    "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+			    "Server: Apache/2.2.3\n"
+			    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+			    "ETag: \"56d-9989200-1132c580\"\n"
+			    "Content-Type: text/html\n"
+			    "Content-Length: 15\n"
+			    "Accept-Ranges: bytes\n"
+			    "42Header: Jason/WenTsu/Stone\n"
+			    "\n"
+			    "<h1>HELLO!!!</h1>";
+                if (int re = send(events[n].data.fd, response.c_str(), response.size(), 0) < 0){
                     errMsgErrno("send error");
                 }
                 if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
