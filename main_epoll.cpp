@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
                     std::cout <<"client close"<< std::endl;
                     close(events[n].data.fd);
                     if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
-                        errMsgErrno("EPOLL_CTL_DEL error");
+                        errMsgErrno("EPOLL_CTL_DEL error1");
 	                else
                         std::cout <<"one client delete"<< std::endl;
                 } else{
@@ -201,15 +201,15 @@ int main(int argc, char *argv[]) {
                 }
             } else if (events[n].events & EPOLLOUT){
                 std::cout <<"write back"<< std::endl;
-                const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello wordl</h1><r><n>";
-                if (int re = send(events[n].data.fd, msg, strlen(msg), 0) != 0){
+                const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello world</h1><r><n>";
+                if (int re = send(events[n].data.fd, msg, strlen(msg), 0) < 0){
                     errMsgErrno("send error");
                 }
-                close(events[n].data.fd);
                 if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
-                    errMsgErrno("EPOLL_CTL_DEL error");
+                    errMsgErrno("EPOLL_CTL_DEL error2");
 	            else
                     std::cout <<"one client delete"<< std::endl;
+                close(events[n].data.fd);
             }
         }
 	}

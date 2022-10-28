@@ -7,7 +7,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-#define PORT 50000
+#define PORT 4242
 
 int main(int argc, char *argv[])
 {
