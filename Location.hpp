@@ -20,8 +20,8 @@ class Location {
 		/* A set of defined methods */
 		std::set<int>	_allow_method;
 
-		/* [ return code | (url or text | string) ] */
-		std::map<int, std::pair<int, std::string> >	_return;
+		/* [ return code | url ] */
+		std::map<int, std::string>	_return;
 
 		/* Just the path where webserv will considered as its root to search files, etc... */
 		std::string	_root;
@@ -57,7 +57,7 @@ class Location {
 		bool	is_return_set() const;
 
 		void	set_allow_method(std::vector<int> &vec);
-		void	set_return(int &code, std::string &str, int &type);
+		void	set_return(int &code, std::string &str);
 		void	set_root(std::string &str);
 		void	set_autoindex(bool b);
 		void	set_index(std::vector<std::string> &vec);

@@ -23,7 +23,8 @@ int main(int argc, char *argv[])
 		try {
 			throwParsingError("", "", 0,  argv[0], argv[1]);
 			parseFile(argv[1], conf);
-			conf.front().debug();
+			for (std::vector<Server>::iterator it = conf.begin(); it != conf.end(); it++)
+				(*it).debug();
 			std::cout << YEL << "Number of server : " << conf.size() << "\n" << RESET;
 		}
 		catch (std::string &str) {

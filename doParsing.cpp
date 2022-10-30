@@ -18,6 +18,13 @@ void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	// NOTE: IMCOMPLETE -> only handle: listen port;
 	//			need to handle: 		listen address:port; etc...
+
+	// listen 127.0.0.1:8000;
+	// listen 127.0.0.1;
+	// listen 8000;
+	// listen *:8000;
+	// listen localhost:8000;
+
 	std::vector<std::string> vec;
 
 	eraseToken(qu, line);
@@ -29,7 +36,7 @@ void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, in
 
 	conf.set_port(toInt(vec.front()));
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -48,11 +55,12 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf
 
 	conf.set_server_name(names);
 
-	if (qu.size() == 0)
+	if (qu.empty())
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
 }
+
 
 void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
@@ -82,13 +90,17 @@ void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf,
 			// NOTE : need to throw here
 			return;
 		}
-		// NOTE : need to check if error_code is valid
+		if (isHttpErrorStatusCode(*it) == false) {
+			std::cerr << "NOT A VALID HTTP STATUS CODE\n";
+			// NOTE : need to throw here
+			return;
+		}
 		codes.push_back(toInt(*it));
 	}
 
 	conf.set_error_page(codes, uri);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -97,6 +109,15 @@ void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf,
 void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
+
+	std::string::iterator it = qu.front().front().end() - 1;
+	if (*it != 'm' && *it != 'M') {
+		std::cerr << "expected 'm' to precise memory capacity unit\n";
+		// NOTE : need to throw here
+		return;
+	}
+	qu.front().front().erase(it);
+
 
 	if (isNum(qu.front().front()) == false) {
 		std::cerr << "NOT NUM\n";
@@ -107,7 +128,7 @@ void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Serve
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -120,8 +141,6 @@ int methodToInt(std::string str) {
 		return POST;
 	return DELETE;
 }
-
-
 
 void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	// NOTE: need to check method properly (if they are valid)
@@ -144,19 +163,15 @@ void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &c
 
 	conf.set_allow_method(vec);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
 }
 
 void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
-	// NOTE: Check if its an url of a text
-	// For this will always that its a text
 
-	// NOTE : This below is not well supported (need to fix it)
-	// return code;
-	// return code [text];
+	// NOTE : Do we really need for our webserv?
 	// return code URL;
 	// return URL;
 	eraseToken(qu, line);
@@ -172,13 +187,12 @@ void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, 
 	throwIfFileIsEmpty("EMPTY", qu);
 
 	std::string str = qu.front().front();
-	int type = IS_TEXT;
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	conf.set_return(code, str, type);
+	conf.set_return(code, str);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -192,7 +206,7 @@ void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, in
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -217,7 +231,7 @@ void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &con
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -236,7 +250,7 @@ void doIndexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, i
 
 	conf.set_index(vec);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -256,7 +270,7 @@ void doCgiParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int
 
 	conf.set_cgi(ext, path);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);
@@ -271,7 +285,7 @@ void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &c
 	eraseToken(qu, line);
 	throwIfFileIsEmpty("EMPTY", qu);
 
-	if (qu.size() == 0 || qu.front().front() != ";")
+	if (qu.empty() || qu.front().front() != ";")
 		throwParsingError(";", toString(line), EXPECTED);
 
 	eraseToken(qu, line);

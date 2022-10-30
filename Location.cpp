@@ -107,9 +107,9 @@ void Location::set_allow_method(std::vector<int> &vec) {
 	_allow_method.insert(vec.begin(), vec.end());
 }
 
-void	Location::set_return(int &code, std::string &str, int &type) {
+void	Location::set_return(int &code, std::string &str) {
 	_return.erase(code);
-	_return.insert(std::make_pair(code, std::make_pair(type, str)));
+	_return.insert(std::make_pair(code, str));
 }
 
 void	Location::set_root(std::string &str) {

@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <algorithm>
 #include "colorcodes.hpp"
 
 // Classes
@@ -74,7 +73,9 @@ directives findDirective(std::string &str);
 std::string toString(int n);
 int toInt(std::string str);
 unsigned long long toULL(std::string str);
-void	strToUpper(std::string &str);
+bool isHttpErrorStatusCode(std::string str);
+bool isRedirectStatusCode(std::string str);
+void strToUpper(std::string &str);
 bool isWhitespace(unsigned char c);
 bool isNum(std::string str);
 bool isValidMethod(std::string str);
@@ -89,11 +90,5 @@ std::string::size_type hasColon(std::string &str);
 bool isFileEmpty(std::queue<std::vector<std::string> > &qu);
 void throwIfFileIsEmpty(std::string msg, std::queue<std::vector<std::string> > &qu);
 void throwParsingError( std::string token, std::string line, int reason, std::string bName = "", std::string fName = "");
-
-
-
-
-
-
 
 #endif
