@@ -23,7 +23,7 @@ void Server::debug() const {
 }
 
 Server::Server() {
-	_address				= "*";
+	_address				= "0.0.0.0";
 	_port					= 80;
 	_client_max_body_size	= 1000000; // 1M
 }
@@ -85,7 +85,7 @@ char const* Server::NotFoundException::what() const throw() {
 	return "Not found";
 }
 
-void	Server::set_address(std::string &str) {
+void	Server::set_address(std::string str) {
 	_address = str;
 }
 

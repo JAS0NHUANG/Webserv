@@ -73,6 +73,8 @@ directives findDirective(std::string &str);
 std::string toString(int n);
 int toInt(std::string str);
 unsigned long long toULL(std::string str);
+bool isValidIpAddress(std::string str);
+bool isValidPort(std::string str);
 bool isHttpErrorStatusCode(std::string str);
 bool isRedirectStatusCode(std::string str);
 void strToUpper(std::string &str);

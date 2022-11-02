@@ -38,7 +38,7 @@ class Server : public Location {
 		unsigned long long			get_client_max_body_size() const; // Default is 1M
 		std::pair<bool, Location>	get_location(std::string uri) const; // If uri is not found, bool is false
 
-		void	set_address(std::string &str);
+		void	set_address(std::string str);
 		void	set_port(int port);
 		void	set_server_name(std::vector<std::string> &names);
 		void	set_error_page(std::vector<int> &codes, std::string &path);

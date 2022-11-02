@@ -36,7 +36,7 @@ void	Location::debug() const {
 	std::cout << MAG ;
 	std::cout << "Debugging Location\n";
 	std::cout << "allow_method : "; debug_print(_allow_method);
-	std::cout << "return       : "; debug_print(_return);
+	std::cout << "return       : " << _return << "\n";
 	std::cout << "root         : " << _root	<< "\n";
 	std::cout << "autoindex    : " << _autoindex << "\n";
 	std::cout << "index        : "; debug_print(_index);
@@ -107,9 +107,8 @@ void Location::set_allow_method(std::vector<int> &vec) {
 	_allow_method.insert(vec.begin(), vec.end());
 }
 
-void	Location::set_return(int &code, std::string &str) {
-	_return.erase(code);
-	_return.insert(std::make_pair(code, str));
+void	Location::set_return(std::string &str) {
+	_return = str;
 }
 
 void	Location::set_root(std::string &str) {

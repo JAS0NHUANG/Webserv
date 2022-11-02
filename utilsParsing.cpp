@@ -85,6 +85,34 @@ void	strToUpper(std::string &str) {
 		*it = std::toupper(*it);
 }
 
+bool isValidIpAddress(std::string str) {
+	std::string sub;
+	int loop = 0;
+	std::string::size_type j = 0;
+	std::string::size_type i = 0;
+
+	for (; loop != 4; loop++) {
+		if (loop != 3)
+			i = str.find(".", i + 1);
+		if (i != std::string::npos) {
+			sub = str.substr(j, i - j);
+			if (sub.empty() || !isNum(sub) || sub.size() > 3 || !(toInt(sub) >= 0 && toInt(sub) <= 255))
+				return false;
+		}
+		else
+			return false;
+		j = i + 1;
+	}
+	return true;
+}
+
+bool isValidPort(std::string str) {
+	if (toInt(str) >= 0 && toInt(str) <= 65535)
+		return true;
+
+	return false;
+}
+
 bool isWhitespace(unsigned char c)
 {
     if (c == ' ' || c == '\t' || c == '\n' ||
