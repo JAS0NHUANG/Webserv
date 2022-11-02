@@ -39,7 +39,6 @@ enum directives {
 };
 
 // saveFile.cpp
-bool splitSemicolon(std::string &str, std::vector<std::string> &vec);
 std::vector<std::string> splitLine(std::string str);
 void deleteComment(std::vector<std::string> &vec);
 void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu);

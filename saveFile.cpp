@@ -1,28 +1,5 @@
 #include "webserv.hpp"
 
-bool splitSemicolon(std::string &str, std::vector<std::string> &vec) {
-	std::string::size_type	i = str.find(';');
-	std::string::iterator	it;
-	std::string				tmp;
-
-	if (i == std::string::npos)
-		return false;
-	it = str.begin();
-
-	tmp.assign(it, it + i);
-
-	if (tmp.size())
-		vec.push_back(tmp);
-	vec.push_back(";");
-	it = it + i + 1;
-	if (it == str.end())
-		return true; 
-	tmp.assign(it, str.end());
-	vec.push_back(tmp);
-	return true;
-
-}
-
 std::string::size_type smallestIndex(std::vector<std::string::size_type> stvec) {
 	std::string::size_type i = stvec.back();
 	stvec.pop_back();
@@ -126,8 +103,8 @@ void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu) {
 	std::string line;
 	while (getline(configFile, line)) {
 		std::vector<std::string> vec = splitLine(line);
-		if (vec.size())
-			qu.push(vec);
+		qu.push(vec);
 	}
+	std::cout << "Numbers of lines: " << qu.size() << "\n";
 	configFile.close();
 }

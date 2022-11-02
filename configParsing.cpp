@@ -30,6 +30,13 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> 
 		std::cerr << "File is empty. Please give a minimal configuration.\n";
 
 	while (qu.size()) {
+
+		// Skip empty lines
+		while (qu.front().empty()) {
+			qu.pop();
+			++line;
+		}
+
 		if (d == e_neutral) {
 			doServerParsing(qu, line);
 			conf.push_back(Server());
