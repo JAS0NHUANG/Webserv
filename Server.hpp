@@ -31,7 +31,7 @@ class Server : public Location {
 		Server(const Server &x);
 		Server& operator=(const Server &x);
 
-		std::string					get_address() const; // Default is *
+		std::string					get_address() const; // Default is 0.0.0.0
 		int							get_port() const; // Default is 80
 		std::vector<std::string>	get_server_name() const; // Return empty vector if not set
 		std::string					get_error_page(int code) const; // Return empty string if not set

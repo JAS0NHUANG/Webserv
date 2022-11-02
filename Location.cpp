@@ -76,31 +76,37 @@ Location& Location::operator=(const Location &x) {
 	return *this;
 }
 
+bool Location::is_method_allowed(int method) const {
+	if (_allow_method.find(method) == _allow_method.end())
+		return false;
+	return true;
+}
+
+std::string Location::get_return() const {
+	return _return;
+}
+
+std::string Location::get_root() const {
+	return _root;
+}
+
+bool Location::get_autoindex() const {
+	return _autoindex;
+}
+
 std::vector<std::string> Location::get_index() const {
 	return _index;
 }
 
-bool Location::is_method_allowed(int method) const {
-	if (_allow_method.count(method))
-		return true;
-	return false;
+std::pair<bool, std::pair<std::string, std::string> > Location::get_cgi() const {
+	return _cgi;
 }
 
-bool Location::is_autoindex_on() const {
-	return _autoindex;
+std::pair<bool, std::string> Location::get_upload_store() const {
+	return _upload_store;
 }
 
-bool Location::is_cgi_set() const {
-	return _cgi.first == true;
-}
 
-bool Location::is_upload_on() const {
-	return _upload_store.first;
-}
-
-bool Location::is_return_set() const {
-	return _return.size() != 0;
-}
 
 void Location::set_allow_method(std::vector<int> &vec) {
 	_allow_method.clear();

@@ -47,14 +47,13 @@ class Location {
 		~Location();
 		Location& operator=(const Location &x);
 
+		bool						is_method_allowed(int method) const;
+		std::string					get_return() const;
 		std::string					get_root() const;
+		bool						get_autoindex() const;
 		std::vector<std::string>	get_index() const;
-
-		bool	is_method_allowed(int method) const;
-		bool	is_autoindex_on() const;
-		bool	is_cgi_set() const;
-		bool	is_upload_on() const;
-		bool	is_return_set() const;
+		std::pair<bool, std::pair<std::string, std::string> > get_cgi() const;
+		std::pair<bool, std::string> get_upload_store() const;
 
 		void	set_allow_method(std::vector<int> &vec);
 		void	set_return(std::string &str);
