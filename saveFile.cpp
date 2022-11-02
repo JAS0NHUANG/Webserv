@@ -23,6 +23,56 @@ bool splitSemicolon(std::string &str, std::vector<std::string> &vec) {
 
 }
 
+std::string::size_type smallestIndex(std::vector<std::string::size_type> stvec) {
+	std::string::size_type i = stvec.back();
+	stvec.pop_back();
+	while (!stvec.empty()) {
+		if (i > stvec.back())
+			i = stvec.back();
+		stvec.pop_back();
+	}
+	return i;
+}
+
+std::vector<std::string> splitTokens(std::string str, std::vector<std::string> &strVec) {
+	std::string::size_type i = 0;
+	std::vector<std::string::size_type> indexVec;
+	std::string tmp;
+
+	while (!str.empty()) {
+		indexVec.clear();
+		indexVec.push_back( str.find("{"));
+		indexVec.push_back( str.find("#"));
+		indexVec.push_back( str.find("}"));
+		indexVec.push_back( str.find(";"));
+
+		i = smallestIndex(indexVec);
+		if (i == std::string::npos) {
+			strVec.push_back(str);
+			return strVec;
+		}
+
+		if (i != std::string::npos) {
+			tmp = str.substr(0, i);
+			if (!tmp.empty())
+				strVec.push_back(tmp);
+
+			if (str[i] == '{')
+				strVec.push_back("{");
+			else if (str[i] == '}')
+				strVec.push_back("}");
+			else if (str[i] == '#')
+				strVec.push_back("#");
+			else if (str[i] == ';')
+				strVec.push_back(";");
+
+			str.erase(0, i + 1);
+		}
+	}
+
+	return strVec;
+}
+
 std::vector<std::string> splitLine(std::string str) {
 	std::vector<std::string> 	vec;
 	std::string::iterator		itStart;
@@ -37,9 +87,8 @@ std::vector<std::string> splitLine(std::string str) {
 		for (; itEnd < str.end() && !isWhitespace(*itEnd); itEnd++) {}
 
 		std::string tmp(itStart, itEnd);
-		if (tmp.size() && !splitSemicolon(tmp, vec)) {
-			vec.push_back(tmp);
-		}
+		if (!tmp.empty())
+			splitTokens(tmp, vec);
 
 		itStart = itEnd;
 	}
