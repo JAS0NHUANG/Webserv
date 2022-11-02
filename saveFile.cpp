@@ -105,6 +105,5 @@ void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu) {
 		std::vector<std::string> vec = splitLine(line);
 		qu.push(vec);
 	}
-	std::cout << "Numbers of lines: " << qu.size() << "\n";
 	configFile.close();
 }

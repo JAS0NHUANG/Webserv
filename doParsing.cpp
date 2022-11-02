@@ -2,14 +2,12 @@
 
 void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 	if (qu.front().front() != "server")
-		throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
-		// add: " Expected "server" "
+		throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
 
 	eraseToken(qu, line);
 
-	if (!isOpenBracket(qu.front().front()))
-		throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
-		//add: " Expected "{" "
+	if (qu.front().front() != "{")
+		throwParsingError("expected '{'", toString(line));
 
 	eraseToken(qu, line);
 	
@@ -17,24 +15,19 @@ void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 
 void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::string address, port;
 	std::string str = qu.front().front();
 	std::string::size_type i = 0;
 
 	i = str.find(":", i);
-	if (i == std::string::npos) {
-		std::cerr << "LISTEN BAD ARGUMENTS\n";
-		// NOTE : need to throw here
-		return;
-	}
+	if (i == std::string::npos)
+		throwParsingError("listen directive bad arguments", toString(line));
+
 	address = str.substr(0, i);
-	std::cout << "address : " << address << "\n";
-
 	port = str.substr(i + 1, str.size() - i);
-	std::cout << "port    : " << port << "\n";
-
+ 
 	if (address == "localhost")
 		conf.set_address("127.0.0.1");
 	else if (address == "*")
@@ -42,42 +35,40 @@ void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, in
 	else if (isValidIpAddress(address))
 		conf.set_address(address);
 	else {
-		std::cerr << "IP address is invalid\n";
-		// NOTE : need to throw here
+		throwParsingError("invalid ip address", toString(line));
 		return;
 	}
 
 	if (!isNum(port) || !isValidPort(port)) {
-		std::cerr << "Port number is invalid\n";
-		//NOTE : need to throw here
+		throwParsingError("invalid port number", toString(line));
 		return ;
 	}
 	conf.set_port(toInt(port));
 
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::vector<std::string> names;
-	while (qu.size() && !isSemicolon(qu.front().front())) {
+	while (qu.size() && qu.front().front() != ";") {
 		names.push_back(qu.front().front());
 		eraseToken(qu, line);
-		throwIfFileIsEmpty("EMPTY", qu);
+		throwIfFileIsEmpty(qu, line);
 	}
 
 	conf.set_server_name(names);
 
 	if (qu.empty())
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
@@ -85,20 +76,17 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf
 
 void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::vector<std::string> strvec;
-	while (qu.size() && !isSemicolon(qu.front().front())) {
+	while (qu.size() && qu.front().front() != ";") {
 		strvec.push_back(qu.front().front());
 		eraseToken(qu, line);
-		throwIfFileIsEmpty("EMPTY", qu);
+		throwIfFileIsEmpty(qu, line);
 	}
 
-	if (strvec.size() < 2) {
-		std::cerr << "error_page directive need a minimum of 2 arguments\n";
-		// NOTE : need to throw here
-		return;
-	}
+	if (strvec.size() < 2)
+		throwParsingError("error_page directive need a minimum of 2 arguments", toString(line));
 
 	std::string uri = strvec.back();
 	strvec.pop_back();
@@ -106,126 +94,105 @@ void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf,
 	std::vector<int> codes;
 	std::vector<std::string>::iterator it = strvec.begin();
 	for (; it != strvec.end(); it++) {
-		if (isNum(*it) == false) {
-			std::cerr << "NOT INT\n";
-			// NOTE : need to throw here
-			return;
-		}
-		if (isHttpErrorStatusCode(*it) == false) {
-			std::cerr << "NOT A VALID HTTP STATUS CODE\n";
-			// NOTE : need to throw here
-			return;
-		}
+		if (isNum(*it) == false)
+			throwParsingError(std::string(*it + " is not an integer"), toString(line));
+
+		if (isHttpErrorStatusCode(*it) == false)
+			throwParsingError(std::string(*it + " is not a valid http status code"), toString(line));
+
 		codes.push_back(toInt(*it));
 	}
 
 	conf.set_error_page(codes, uri);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';;", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::string::iterator it = qu.front().front().end() - 1;
-	if (*it != 'm' && *it != 'M') {
-		std::cerr << "expected 'm' to precise memory capacity unit\n";
-		// NOTE : need to throw here
-		return;
-	}
+	if (*it != 'm' && *it != 'M')
+		throwParsingError("expected 'm' to precise memory capacity unit", toString(line));
+
 	qu.front().front().erase(it);
 
 
-	if (isNum(qu.front().front()) == false) {
-		std::cerr << "NOT NUM\n";
-		// NOTE : need to throw here
-		return;
-	}
+	if (isNum(qu.front().front()) == false)
+		throwParsingError(std::string(qu.front().front() + " is not an integer"), toString(line));
+
 	conf.set_client_max_body_size(toULL(qu.front().front()));
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
-}
-
-int methodToInt(std::string str) {
-	if (str == "GET")
-		return GET;
-	if (str == "POST")
-		return POST;
-	return DELETE;
 }
 
 void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::vector<int> vec;
-	while (qu.size() && !isSemicolon(qu.front().front())) {
+	while (qu.size() && qu.front().front() != ";") {
 		strToUpper(qu.front().front());
-		if (isValidMethod(qu.front().front()) == false) {
-			std::cerr << "NOT A VALID METHOD\n";
-			// NOTE : need to throw here
-			return;
-		}
+		if (isValidMethod(qu.front().front()) == false)
+			throwParsingError(std::string(qu.front().front() + " is not a valid method"), toString(line));
+
 		vec.push_back(methodToInt(qu.front().front()));
 		eraseToken(qu, line);
-		throwIfFileIsEmpty("EMPTY", qu);
+		throwIfFileIsEmpty(qu, line);
 	}
 
 	conf.set_allow_method(vec);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	conf.set_return(qu.front().front());
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	conf.set_root(qu.front().front());
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	strToUpper(qu.front().front());
-	if (qu.front().front() != "ON" && qu.front().front() != "OFF") {
-		std::cerr << "NOT ON || OFF\n";
-		// NOTE : need to throw here
-		return;
-	}
+	if (qu.front().front() != "ON" && qu.front().front() != "OFF")
+		throwParsingError("expected 'on' of 'off'", toString(line));
 
 	if (qu.front().front() == "ON")
 		conf.set_autoindex(true);
@@ -233,94 +200,93 @@ void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &con
 		conf.set_autoindex(false);
 
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doIndexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::vector<std::string> vec;
-	while (qu.size() && !isSemicolon(qu.front().front())) {
+	while (qu.size() && qu.front().front() != ";") {
 		vec.push_back(qu.front().front());
 		eraseToken(qu, line);
-		throwIfFileIsEmpty("EMPTY", qu);
+		throwIfFileIsEmpty(qu, line);
 	}
 
 	conf.set_index(vec);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doCgiParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::string ext = qu.front().front();
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::string path = qu.front().front();
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	conf.set_cgi(ext, path);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	conf.set_upload_store(qu.front().front());
 
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	if (qu.empty() || qu.front().front() != ";")
-		throwParsingError(";", toString(line), EXPECTED);
+		throwParsingError("expected ';'", toString(line));
 
 	eraseToken(qu, line);
 }
 
 void doLocationParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY !", qu);
+	throwIfFileIsEmpty(qu, line);
 
 	std::string uri = qu.front().front();
 	Location location(conf);
 
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY !", qu);
+	throwIfFileIsEmpty(qu, line);
 
-	if (!isOpenBracket(qu.front().front()))
-		throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
+	if (qu.front().front() != "{")
+		throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
 		// add : expected '{'
 
 	eraseToken(qu, line);
-	throwIfFileIsEmpty("EMPTY !", qu);
+	throwIfFileIsEmpty(qu, line);
 
 
-	while (qu.size() && !isCloseBracket(qu.front().front()))
+	while (qu.size() && qu.front().front() != "}")
 		callDoers(qu, location, line);
 
 	conf.set_location(uri, location);
 
-	if (isFileEmpty(qu) || qu.front().front() != "}")
-		throwParsingError("}", toString(line), EXPECTED);
-		// add : expected '}' to close location directive
+	if (qu.empty() || qu.front().front() != "}")
+		throwParsingError("expected '}'", toString(line));
 	
 	eraseToken(qu, line);
 }

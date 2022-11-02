@@ -18,7 +18,7 @@ void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &l
 	else if (d == e_upload_store)
 		doUploadStoreParsing(qu, conf, line);
 	else
-		throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
+		throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
 }
 
 void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> &conf) {
@@ -26,13 +26,13 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> 
 	int line		= 1;
 	directives d	= e_neutral;
 
-	if (isFileEmpty(qu))
+	if (qu.empty())
 		std::cerr << "File is empty. Please give a minimal configuration.\n";
 
 	while (qu.size()) {
 
 		// Skip empty lines
-		while (qu.front().empty()) {
+		while (!qu.empty() && qu.front().empty()) {
 			qu.pop();
 			++line;
 		}
@@ -44,10 +44,10 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> 
 		}
 		
 		if (d == e_server) {
-			if (isFileEmpty(qu))
-				throwParsingError("}", toString(line), EXPECTED);
+			if (qu.empty())
+				throwParsingError("expected '}'", toString(line));
 
-			if (isCloseBracket(qu.front().front())) {
+			if (qu.front().front() == "}") {
 				eraseToken(qu, line);
 				d = e_neutral;
 				continue;
@@ -55,7 +55,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> 
 
 			d = findDirective(qu.front().front());
 			if (d == e_unknown)
-				throwParsingError(qu.front().front(), toString(line), UNEXPECTED);
+				throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
 			
 			if (d == e_listen)
 				doListenParsing(qu, conf.front(), line);
@@ -76,7 +76,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> 
 	}
 
 	if (d == e_server)
-		std::cerr << "Expected '}' to close 'server' directive\n";
+		throwParsingError("expected '}' to close 'server' directive", toString(line));
 }
 
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {

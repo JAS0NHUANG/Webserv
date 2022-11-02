@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 		std::cout << "Usage: " << argv[0] << " configuration_file\n";
 	else {
 		try {
-			throwParsingError("", "", 0,  argv[0], argv[1]);
+			throwParsingError("", "", argv[0], argv[1]);
 			parseFile(argv[1], conf);
 			for (std::vector<Server>::iterator it = conf.begin(); it != conf.end(); it++)
 				(*it).debug();

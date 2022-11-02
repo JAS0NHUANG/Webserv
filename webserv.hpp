@@ -17,9 +17,6 @@
 class Server;
 #include "Server.hpp"
 
-#define UNEXPECTED 0
-#define EXPECTED 1
-
 enum directives {
 	e_unknown,
 	e_server,
@@ -72,6 +69,7 @@ directives findDirective(std::string &str);
 std::string toString(int n);
 int toInt(std::string str);
 unsigned long long toULL(std::string str);
+int methodToInt(std::string str);
 bool isValidIpAddress(std::string str);
 bool isValidPort(std::string str);
 bool isHttpErrorStatusCode(std::string str);
@@ -83,13 +81,7 @@ bool isValidMethod(std::string str);
 std::string::iterator skipWhitespace(std::string &str, std::string::iterator it);
 bool isServerDirective(std::string &str);
 bool isDirective(std::string str);
-bool isOpenBracket(std::string &str);
-bool isCloseBracket(std::string &str);
-bool isSemicolon(std::string &str);
-bool isColon(std::string &str);
-std::string::size_type hasColon(std::string &str);
-bool isFileEmpty(std::queue<std::vector<std::string> > &qu);
-void throwIfFileIsEmpty(std::string msg, std::queue<std::vector<std::string> > &qu);
-void throwParsingError( std::string token, std::string line, int reason, std::string bName = "", std::string fName = "");
+void throwIfFileIsEmpty(std::queue<std::vector<std::string> > &qu, int line);
+void throwParsingError( std::string msg, std::string line, std::string bName = "", std::string fName = "");
 
 #endif

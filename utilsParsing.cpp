@@ -13,10 +13,10 @@ void eraseToken(std::queue<std::vector<std::string> > &qu, int &line) {
 }
 
 void checkIfLineIsEmpty(std::queue<std::vector<std::string> > &qu, int &line) {
-	if (qu.front().size() == 0) {
+	// Skip empty lines
+	while (!qu.empty() && qu.front().empty()) {
 		qu.pop();
-
-		if (qu.size())
+		if (!qu.empty())
 			++line;
 	}
 }
@@ -83,6 +83,14 @@ void	strToUpper(std::string &str) {
 	std::string::iterator it = str.begin();
 	for (; it != str.end(); it++)
 		*it = std::toupper(*it);
+}
+
+int methodToInt(std::string str) {
+	if (str == "GET")
+		return GET;
+	if (str == "POST")
+		return POST;
+	return DELETE;
 }
 
 bool isValidIpAddress(std::string str) {
@@ -177,42 +185,16 @@ bool isDirective(std::string str) {
 	return false;
 }
 
-bool isOpenBracket(std::string &str) {
-	return str == "{";
+void throwIfFileIsEmpty(std::queue<std::vector<std::string> > &qu, int line) {
+	if (qu.empty())
+		throwParsingError("unexpected end of file", toString(line));
 }
 
-bool isCloseBracket(std::string &str) {
-	return str == "}";
-}
-
-bool isSemicolon(std::string &str) {
-	return str == ";";
-}
-
-bool isColon(std::string &str) {
-	return str == ":";
-}
-
-std::string::size_type hasColon(std::string &str) {
-	return str.find(':');
-}
-
-bool isFileEmpty(std::queue<std::vector<std::string> > &qu) {
-	return qu.empty();
-}
-
-void throwIfFileIsEmpty(std::string msg, std::queue<std::vector<std::string> > &qu) {
-	if (isFileEmpty(qu))
-		throw std::string(msg);
-}
-
-void throwParsingError( std::string token, std::string line, int reason, std::string bName, std::string fName) {
+void throwParsingError( std::string msg, std::string line, std::string bName, std::string fName) {
 	static std::string binName = bName;
 	static std::string fileName = fName;
 	if (fName != "")
 		return;
-	if (reason == UNEXPECTED)
-		throw std::string(binName + ": unexpected \"" + token + "\" in " + fileName + ":" + line);
-	else if (reason == EXPECTED)
-		throw std::string(binName + ": expected \"" + token + "\" in " + fileName + ":" + line);
+
+	throw std::string(binName + ": " + msg + " in " + fileName + ":" + line);
 }
