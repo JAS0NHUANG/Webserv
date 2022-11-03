@@ -12,9 +12,6 @@
 #define POST	2
 #define DELETE	3
 
-#define IS_URL	1
-#define IS_TEXT	2
-
 class Location {
 	protected:
 		/* A set of defined methods */

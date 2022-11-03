@@ -104,7 +104,8 @@ bool isValidIpAddress(std::string str) {
 			i = str.find(".", i + 1);
 		if (i != std::string::npos) {
 			sub = str.substr(j, i - j);
-			if (sub.empty() || !isNum(sub) || sub.size() > 3 || !(toInt(sub) >= 0 && toInt(sub) <= 255))
+			if (sub.empty() || !isNum(sub) || sub.size() > 3 || 
+				!(toInt(sub) >= 0 && toInt(sub) <= 255))
 				return false;
 		}
 		else

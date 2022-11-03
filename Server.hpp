@@ -54,5 +54,4 @@ class Server : public Location {
 
 void debug_print(std::map<std::string, Location> x);
 
-
 #endif

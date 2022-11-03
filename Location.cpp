@@ -45,7 +45,6 @@ void	Location::debug() const {
 	std::cout << RESET ;
 }
 
-
 Location::Location() {
 	_allow_method.insert(POST);
 	_allow_method.insert(GET);
@@ -53,7 +52,6 @@ Location::Location() {
 
 	_root = "/var/www/html";
 	_autoindex = false;
-	_index.push_back("index");
 	_index.push_back("index.html");
 	_cgi.first = false;
 	_upload_store.first = false;
@@ -105,8 +103,6 @@ std::pair<bool, std::pair<std::string, std::string> > Location::get_cgi() const 
 std::pair<bool, std::string> Location::get_upload_store() const {
 	return _upload_store;
 }
-
-
 
 void Location::set_allow_method(std::vector<int> &vec) {
 	_allow_method.clear();
