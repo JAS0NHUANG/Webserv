@@ -1,4 +1,5 @@
 #include "webserv.hpp"
+#include "./srcs/socket/Socket.cpp"
 
 // References:
 // - https://www.linode.com/docs/guides/how-to-configure-nginx/
@@ -31,6 +32,12 @@ int main(int argc, char *argv[])
 			std::cerr << RED << str << "\n" << RESET;
 		}
 	}
+
+	// main content from Jason
+	Socket	new_socket;
+	Socket	another_socket;
+	new_socket.run();
+	another_socket.run();
 
 	return 0;
 }
