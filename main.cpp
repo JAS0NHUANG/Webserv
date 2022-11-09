@@ -1,5 +1,4 @@
-#include "webserv.hpp"
-#include "./srcs/socket/Socket.cpp"
+#include "./incs/webserv.hpp"
 
 // References:
 // - https://www.linode.com/docs/guides/how-to-configure-nginx/
@@ -34,10 +33,11 @@ int main(int argc, char *argv[])
 	}
 
 	// main content from Jason
-	Socket	new_socket;
-	Socket	another_socket;
-	new_socket.run();
-	another_socket.run();
+	// Socket	new_socket;
+	// Socket	another_socket;
+	// new_socket.run();
+	// another_socket.run();
+	create_socket();
 
 	return 0;
 }

@@ -1,40 +1,6 @@
-// #include <sys/socket.h>
-// #include <iostream>
-
-// #include "SimpleSocket.hpp"
-
-// #include "BindingSocket.hpp"
-// #include "ConnectingSocket.hpp"
-
-// #include "ListeningSocket.hpp"
-
-// #include "TestServer.hpp"
-
-// #include <sys/event.h>
-// #include <sys/types.h>
-
-// int main(){
-//     // std::cout << "starting ..." << std::endl;
-//     // std::cout << "Binding ..." << std::endl;
-//     // BindingSocket bs = BindingSocket(AF_INET, SOCK_STREAM, 0, 4241, INADDR_ANY);
-//     // std::cout << "Listening ..." << std::endl;
-//     // ListeningSocket ls = ListeningSocket(AF_INET, SOCK_STREAM, 0, 4243, INADDR_ANY, 20);
-//     // std::cout << "done ..." << std::endl;
-
-//     TestServer ts;
-
-
-// }
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <iostream>
-#include <string>
-#include <string.h> // strerror
-#include <errno.h> // errno
-#include "colorcodes.h"
-#include <unistd.h> //close
 #include <fcntl.h>
 
 #include <sys/epoll.h> 
@@ -45,22 +11,6 @@
 #define MAX_EVENTS 128
 #define BUFFER_SIZE 1024
 
-void	*ft_memset(void *s, int c, size_t n)
-{
-	while (n)
-	{
-		*((unsigned char *)s + n - 1) = (unsigned char)c;
-		n--;
-	}
-	return (s);
-}
-
-void	errMsgErrno(std::string msg) {
-	std::cerr << RED ;
-	std::cerr << msg << "\n";
-	std::cerr << strerror(errno) << "\n";
-	std::cerr << RESET ;
-}
 
 int	recv_event(int fd)
 {

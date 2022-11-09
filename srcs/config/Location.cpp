@@ -1,4 +1,4 @@
-#include "Location.hpp"
+#include "../../incs/Location.hpp"
 
 void debug_print(std::set<int> x) {
 	for (std::set<int>::iterator it = x.begin(); it != x.end(); it++)

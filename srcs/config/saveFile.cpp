@@ -1,4 +1,4 @@
-#include "webserv.hpp"
+#include "../../incs/webserv.hpp"
 
 std::string::size_type smallestIndex(std::vector<std::string::size_type> stvec) {
 	std::string::size_type i = stvec.back();

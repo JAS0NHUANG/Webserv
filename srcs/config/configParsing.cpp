@@ -1,4 +1,4 @@
-#include "webserv.hpp"
+#include "../../incs/webserv.hpp"
 
 void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
 	directives d = findDirective(qu.front().front());

@@ -6,7 +6,9 @@
 #include <vector>
 #include <queue>
 #include <string>
-#include <string.h>
+#include <string.h> // strerror
+#include <errno.h> // errno
+#include <unistd.h> //close
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -16,6 +18,10 @@
 #include "Location.hpp"
 class Server;
 #include "Server.hpp"
+#include "Socket.hpp"
+
+#include "utils.hpp"
+
 
 enum directives {
 	e_unknown,

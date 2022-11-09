@@ -1,11 +1,4 @@
-#include "webserv.hpp"
-
-void errMsgErrno(std::string msg) {
-	std::cerr << RED ;
-	std::cerr << msg << "\n";
-	std::cerr << strerror(errno) << "\n";
-	std::cerr << RESET ;
-}
+#include "../../incs/webserv.hpp"
 
 void eraseToken(std::queue<std::vector<std::string> > &qu, int &line) {
 	qu.front().erase(qu.front().begin());

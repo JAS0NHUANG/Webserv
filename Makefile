@@ -24,12 +24,14 @@ endif
 #       SOURCES                                                                #
 # **************************************************************************** #
 SRCS		=	main.cpp \
-				Location.cpp \
-				Server.cpp \
-				configParsing.cpp \
-				utilsParsing.cpp \
-				saveFile.cpp \
-				doParsing.cpp
+				srcs/config/Location.cpp \
+				srcs/config/Server.cpp \
+				srcs/config/configParsing.cpp \
+				srcs/config/utilsParsing.cpp \
+				srcs/config/saveFile.cpp \
+				srcs/config/doParsing.cpp \
+				srcs/socket/Socket.cpp \
+				srcs/utils/utils.cpp 
 
 TEST_SRCS	=	tests/test.cpp \
 
