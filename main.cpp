@@ -1,19 +1,5 @@
 #include "req-resp.hpp"
 
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>	// Temporary required for inet_ntop()
-
-#include <iostream>
-#include <string>
-#include <string.h>		// strerror
-#include <errno.h>		// errno
-#include <unistd.h>		// close()
-
-#include "colorcodes.hpp"
-
-
 #define PORT_NUM	4242	// Notes: change it to port 80 (http)
 #define BACKLOG		5		// Notes: change it to something bigger
 
@@ -78,7 +64,7 @@ int main()
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		errMsgErrno("socket failed");
 	else
-		std::cout << "\nSOCKET OPENED\n";
+		std::cout << BLU << "SOCKET OPENED\n" << RESET;
 
 	ft_memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
@@ -86,12 +72,10 @@ int main()
 
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &sa, sizeof(sa)) < 0)
 		errMsgErrno("setsockopt failed");
-	if (bind(server_fd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-		std::cout << "\nERROR BINDING FAILED\n";
-		exit(0);
-	}
+	if (bind(server_fd, (struct sockaddr *)&sa, sizeof(sa)) < 0)
+		errMsgErrno("BINDING FAILED");
 	else
-		std::cout << "BINDED SUCCESFULLY\n\n";
+		std::cout << BLU << "BINDED SUCCESSFULLY\n" << RESET;
 
 	if (listen(server_fd, BACKLOG) < 0)
 		errMsgErrno("listen failed");
@@ -99,8 +83,8 @@ int main()
 	while (true) {
 		socklen_t len = sizeof(cli);
 		int connt_fd = accept(server_fd, (struct sockaddr *)&cli, &len);
-		std::cout << "ACCEPTED\n";
-		std::cout << "REQUEST FROM " <<inet_ntop(AF_INET, &cli.sin_addr, str, sizeof(str)) << ", PORT " << htons(cli.sin_port) << "\n";
+		std::cout << GRN << "ACCEPTED\n" << RESET;
+		std::cout << "REQUEST FROM " <<inet_ntop(AF_INET, &cli.sin_addr, str, sizeof(str)) << ":" << htons(cli.sin_port) << "\n";
 
 		std::string request = getRequest(connt_fd);
 
@@ -108,7 +92,8 @@ int main()
 		std::cout << YEL << request << RESET;
 
 		// NOTE : Parse request here
-
+		Request req;
+		parseRequest(request, req);
 		// NOTE : Build response here
 
 		std::string response = getResponse();
