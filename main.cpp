@@ -1,4 +1,4 @@
-#include "req-resp.hpp"
+#include "request.hpp"
 
 #define PORT_NUM	4242	// Notes: change it to port 80 (http)
 #define BACKLOG		5		// Notes: change it to something bigger
@@ -93,7 +93,12 @@ int main()
 
 		// NOTE : Parse request here
 		Request req;
+		// ft_memset(&req, 0, sizeof(req));
+		// req.headers.insert(std::make_pair("ASHE", "BOB"));
+
 		parseRequest(request, req);
+
+
 		// NOTE : Build response here
 
 		std::string response = getResponse();

@@ -1,58 +1,61 @@
-#include "req-resp.hpp"
-
-void	debugPrintRequest(Request &req) {
-	std::map<std::string, std::string>::iterator it;// = req.headers.begin();
-	std::cout << MAG;
-	std::cout << "Debug Request Structure:\n";
-	std::cout << "Method    : " << req.method    << "\n";
-	std::cout << "Path      : " << req.path      << "\n";
-	std::cout << "isHttp1.1 : " << req.isHttp1_1 << "\n";
-
-	// NOTE : Why am I segfaulting here ??!
-	// std::cout << "Headers   : \n";
-	// for (it = req.headers.begin(); it != req.headers.end(); it++)
-	// 	std::cout << it->first << " : " << it->second << "\n";
-
-	std::cout << "Body      : \n";
-	std::cout << req.body << "\n";
-	std::cout << RESET;
-}
-
-void getStringAsQueue(std::string &str, std::queue<std::string> &qu) {
-	std::string line;
-	std::istringstream iss(str);
-
-	while (getline(iss, line))
-		qu.push(line);
-}
-
-void debugPrintQ(std::queue<std::string> &qu) {
-	while (!qu.empty()) {
-		std::cout << BYEL << qu.front() << "\n";
-		qu.pop();
-	}
-}
-
-void skipQueueEmptyLines(std::queue<std::string> &qu) {
-	while (!qu.empty() && qu.front().empty())
-		qu.pop();
-}
+#include "request.hpp"
 
 void saveRequestLine(std::queue<std::string> &qu, Request &req) {
-	(void)req; //
 	if (!qu.empty()) {
-		// TODO
-		std::cout << "req line : " << qu.front() << "\n";
+		std::string::iterator it = qu.front().begin();
+		it = skipWhitespace(qu.front(), it);
+
+		std::string str = getNextString(qu.front(), it);
+		if (isValidMethod(str))
+			req.method = methodToInt(str);
+		else
+			std::cout << RED << "INVALID METHOD\n" << RESET;
+
+		it = skipWhitespace(qu.front(), it);
+		str = getNextString(qu.front(), it);
+		if (!str.empty())
+			req.path = str;
+		else
+			std::cout << RED << "INVALID PATH\n" << RESET;
+
+		it = skipWhitespace(qu.front(), it);
+		str = getNextString(qu.front(), it);
+		if (!str.empty() && str == "HTTP/1.1")
+			req.isHttp1_1 = true;
+		else
+			std::cout << RED << "INVALID HTTP VERSION\n" << RESET;
+
+		it = skipWhitespace(qu.front(), it);
+		if (it != qu.front().end())
+			std::cout << RED << "MALFORMED REQUEST LINE\n" << RESET;
+		// std::cout << "req line : " << qu.front() << "\n";
 		qu.pop();
 	}
 	else
-		std::cout << RED "Error : no request line\n" RESET;
+		std::cout << RED "ERROR NO REQUEST LINE\n" RESET;
 }
 
 void saveHeaders(std::queue<std::string> &qu, Request &req) {
-	(void)req; //
-	while (!qu.empty() && !qu.front().empty()) {
-		// TODO
+	std::string::iterator it;
+	std::string::size_type i = std::string::npos;
+	std::pair<std::string, std::string> header;
+	while (!qu.empty() && !qu.front().empty() && qu.front() != "\r") {
+		i = qu.front().find(':');
+		if (i != std::string::npos){
+			header.first = qu.front().substr(0, i);
+			qu.front().erase(0, i + 1);
+		}
+		else
+			std::cout << RED << "MALFORMED HEADER\n" << RESET;
+
+		it = qu.front().begin();
+		it = skipWhitespace(qu.front(), it);
+		header.second = getNextString(qu.front(), it);
+		if (!header.second.empty() && *it == '\r')
+			req.headers.insert(header);
+		else
+			std::cout << RED << "MALFORMED HEADER\n" << RESET;
+
 		qu.pop();
 	}
 }
@@ -64,8 +67,7 @@ void saveBody(std::queue<std::string> &qu, Request &req) {
 	}
 }
 
-void	parseRequest(std::string str, Request &req) {
-	ft_memset(&req, 0, sizeof(req));
+void parseRequest(std::string str, Request &req) {
 	std::cout << MAG << "Parsing Request...\n" << RESET;
 
 	std::queue<std::string> qu;
@@ -87,6 +89,9 @@ void	parseRequest(std::string str, Request &req) {
 	saveRequestLine(qu, req);
 
 	// 3.
+	saveHeaders(qu, req);
+
+	// 4.
 	saveBody(qu, req);
 
 	// Debugging Request Structure
