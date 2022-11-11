@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 	// new_socket.run();
 	// another_socket.run();
 	create_socket();
+	Socket sock_object;
 
 	return 0;
 }

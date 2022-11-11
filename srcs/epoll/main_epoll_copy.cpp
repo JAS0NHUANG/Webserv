@@ -1,9 +1,9 @@
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <fcntl.h>
-
 #include <sys/epoll.h> 
+
+#include "../../incs/webserv.hpp"
 
 #define PORT_NUM	4242	// Notes: change it to port 80 (http)
 #define BACKLOG		5		// Notes: change it to something bigger
@@ -41,7 +41,11 @@ static void add_event(int epollfd,int fd,int state){
         //exit(EXIT_FAILURE);
     }
 }
-// clang++ -Wall -Wextra -Werror -std=c++98 main.cpp -o server && ./server
+
+int run_epoll(std::vector<Socket> &socket_list) {
+
+}
+
 int main(int argc, char *argv[]) {
 	(void)argc;
 	(void)argv;

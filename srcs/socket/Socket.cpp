@@ -1,48 +1,64 @@
-#include "../../incs/Socket.hpp"
-#include <fcntl.h>
 
-int	create_socket(void) {
-	int	port;
+#include "../../incs/webserv.hpp"
+#include <fcntl.h>
+Socket::Socket() {
+	this->_port = 4242;
 	// this struct is needed to setsockopt and bind
-	sockaddr_in	socket_addr;
-	int socket_fd;
-	int	accept_sock_fd;
+	sockaddr_in	sock_addr;
 
 	// create socket
-	socket_fd = socket(PF_INET, SOCK_STREAM, 0);
-	std::cout << "This is the socket fd: " << socket_fd << "\n";
-	if (socket_fd == -1)
-		std::cout << "Failed to create socket.\n";
+	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		errMsgErrno("socket failed");
+        exit(EXIT_FAILURE);
+	}
+	// std::cout << "This is the socket fd: " << sock_fd << "\n";
 
-	port = 4242;
-	socket_addr.sin_family = AF_INET;
-	socket_addr.sin_addr.s_addr = INADDR_ANY;
-	socket_addr.sin_port = htons(port);
+	// setup socket
+	ft_memset((char *) &sock_addr, 0, (sizeof(sock_addr)));
+	sock_addr.sin_family = AF_INET;
+	sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	sock_addr.sin_port = htons(this->_port);
+
 	// this will make addr reusable?!
-	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_addr, sizeof(socket_addr)) < 0)
-		std::cout << "Failed to setsockopt.\n";
+	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
+		sizeof(sock_addr)) < 0) {
+		errMsgErrno("setsockopt failed");
+        exit(EXIT_FAILURE);
+	}
 
 	// bind
-	if (bind(socket_fd, (struct sockaddr*)&socket_addr, sizeof(socket_addr)) < 0) {
-		std::cout << "Failed to bind to port " << port << ". error: " << strerror(errno) << "\n";
-		return (-1);
+	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0) {
+		errMsgErrno("bind failed");
+		exit(EXIT_FAILURE);
 	}
-	std::cout << "Bind to port " << port << " successful.\n";
+	// std::cout << "Bind to port " << port << " successful.\n";
 
 	// listen
-	if (listen(socket_fd, 1024)) {
-		std::cout << "failed to listen on " << socket_fd << " \n";
-		return (-1);
+	if (listen(this->_sock_fd, 1024) < 0) {
+		errMsgErrno("listen failed");
+    	exit(EXIT_FAILURE);
 	}
-	std::cout << "Listening on " << socket_fd << " \n";
+	// std::cout << "Listening on " << sock_fd << " \n";
 
 	// try to set the socket non-blocking
-	std::cout << "FD flag: " << fcntl(socket_fd, F_GETFD) << "\n";
-	std::cout << "fd " << socket_fd;
+	std::cout << "FD flag: " << fcntl(this->_sock_fd, F_GETFD) << "\n";
+	std::cout << "fd " << this->_sock_fd;
+}
 
+Socket::~Socket() {
+	std::cout << "socket distructor!!\n";
+}
+
+/*
+Socket::Socket(const Socket &toCopy) {
+}
+*/
+
+int	create_socket(void) {
+	/* accept, recv and send
 	while(1){
 		// accept connection
-		accept_sock_fd = accept(socket_fd, (struct sockaddr*)&socket_addr, (unsigned int*)&socket_addr.sin_len);
+		int accept_sock_fd = accept(sock_fd, (struct sockaddr*)&sock_addr, (unsigned int*)&sock_addr.sin_len);
 
 		// recv from the connection
 		char buffer[2048] = {0};
@@ -64,6 +80,6 @@ int	create_socket(void) {
 			"<h1>HELLO!!!</h1>";
 		 send(accept_sock_fd, response.c_str(), response.size(), 0);
 	}
-
+	*/
 	return (0);
 };

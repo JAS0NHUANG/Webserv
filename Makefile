@@ -31,6 +31,7 @@ SRCS		=	main.cpp \
 				srcs/config/saveFile.cpp \
 				srcs/config/doParsing.cpp \
 				srcs/socket/Socket.cpp \
+				srcs/epoll/epoll.cpp \
 				srcs/utils/utils.cpp 
 
 TEST_SRCS	=	tests/test.cpp \
