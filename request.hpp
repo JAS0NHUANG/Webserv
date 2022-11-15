@@ -17,9 +17,18 @@
 #include <sstream>
 #include "colorcodes.hpp"
 
+#include <sys/epoll.h>
+#include <cstdlib>
+#include <fcntl.h>
+
 #define GET		1
 #define POST	2
 #define DELETE	3
+
+#define PORT_NUM 8080 // Notes: change it to port 80 (http)
+#define BACKLOG 5	  // Notes: change it to something bigger
+#define MAX_EVENTS 128
+#define BUFFER_SIZE 2056
 
 struct Request {
 	int 								method;
@@ -27,6 +36,13 @@ struct Request {
 	bool								isHttp1_1;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
+};
+
+struct Webserv {
+	struct sockaddr_in sa;
+	int server_fd;
+	struct epoll_event ev, events[MAX_EVENTS];
+	int nfds, epollfd;
 };
 
 // parseReq.cpp
@@ -48,5 +64,9 @@ bool isValidMethod(std::string str);
 
 // main.cpp
 void	*ft_memset(void *s, int c, size_t n);
+void errMsgErrno(std::string msg);
+
+// initWebserv.cpp
+void initWebserv(Webserv &datas);
 
 #endif
