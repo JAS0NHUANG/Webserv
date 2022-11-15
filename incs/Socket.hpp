@@ -14,7 +14,7 @@ class Socket {
 		short			_port;
 		int				_sock_fd;
 		sockaddr_in		_addr;
-		size_t			_addrLen;
+		size_t			_addr_len;
 		
 	public:
 		// canonical

@@ -37,8 +37,12 @@ int main(int argc, char *argv[])
 	// Socket	another_socket;
 	// new_socket.run();
 	// another_socket.run();
-	create_socket();
+
+
+	std::vector<Socket> socket_list;
 	Socket sock_object;
+	socket_list.push_back(sock_object);
+	run_epoll(socket_list);
 
 	return 0;
 }
