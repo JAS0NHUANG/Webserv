@@ -6,14 +6,20 @@ void debugPrintRequest(Request &req) {
 	std::cout << "Debug Request Structure:\n";
 	std::cout << "Method    : " << req.method    << "\n";
 	std::cout << "Path      : " << req.path      << "\n";
-	std::cout << "isHttp1.1 : " << req.isHttp1_1 << "\n";
 	std::cout << "Headers   : \n";
 	for (it = req.headers.begin(); it != req.headers.end(); it++)
 		std::cout << it->first << " : " << it->second << "\n";
-	std::cout << "Body      : \n";
-	std::cout << req.body << "\n";
+	std::cout << "Body      : \n{|";
+	std::cout << req.body << "|}\n";
 	std::cout << RESET;
 }
+
+void   strToUpper(std::string &str) {
+	std::string::iterator it = str.begin();
+	for (; it != str.end(); it++)
+		*it = std::toupper(*it);
+}
+
 
 bool isWhitespace(unsigned char c)
 {

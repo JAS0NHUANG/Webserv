@@ -1,5 +1,5 @@
-#ifndef REQRES_HPP
-#define REQRES_HPP
+#ifndef REQUEST_HPP
+#define REQUEST_HPP
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -8,6 +8,9 @@
 #include <string.h>		// strerror
 #include <errno.h>		// errno
 #include <unistd.h>		// close()
+#include <sys/epoll.h>
+#include <cstdlib>
+#include <fcntl.h>
 
 #include <cstddef>
 #include <iostream>
@@ -17,23 +20,18 @@
 #include <sstream>
 #include "colorcodes.hpp"
 
-#include <sys/epoll.h>
-#include <cstdlib>
-#include <fcntl.h>
-
 #define GET		1
 #define POST	2
 #define DELETE	3
 
-#define PORT_NUM 8080 // Notes: change it to port 80 (http)
-#define BACKLOG 5	  // Notes: change it to something bigger
-#define MAX_EVENTS 128
+#define PORT_NUM 8080	// NOTE : To be set with the compliance of the config file
+#define BACKLOG 1000 // Number of client that can connect to the server simultaneously
+#define MAX_EVENTS 128	
 #define BUFFER_SIZE 2056
 
 struct Request {
 	int 								method;
 	std::string							path;
-	bool								isHttp1_1;
 	std::map<std::string, std::string>	headers;
 	std::string							body;
 };
@@ -61,6 +59,7 @@ void skipQueueEmptyLines(std::queue<std::string> &qu);
 std::string getNextString(std::string &line, std::string::iterator &it);
 int methodToInt(std::string str);
 bool isValidMethod(std::string str);
+void strToUpper(std::string &str);
 
 // main.cpp
 void	*ft_memset(void *s, int c, size_t n);

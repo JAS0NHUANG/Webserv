@@ -8,7 +8,6 @@ RM			=	rm
 #       TITLE                                                                  #
 # **************************************************************************** #
 NAME		=	webserv
-TEST		=	Webserv_test
 
 # **************************************************************************** #
 #       FLAGS                                                                  #
@@ -43,11 +42,9 @@ all			:	$(NAME)
 
 clean		:
 				$(RM) $(RMFLAGS) $(OBJS)
-				$(RM) $(RMFLAGS) $(TEST_OBJS)
 
 fclean		:	clean
 				$(RM) $(RMFLAGS) $(NAME)
-				$(RM) $(RMFLAGS) $(TEST)
 
 re			:	fclean all
 

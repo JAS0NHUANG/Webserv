@@ -136,6 +136,10 @@ int main()
 
 				// [ true = close , else false | request string ]
 				std::pair<bool, std::string> resp;
+
+				// handleRequest will create the response as a pair,
+				// the boolean says if we close the connection,
+				// and the string is the response
 				resp = handleRequest(requests.find(datas.events->data.fd)->second);
 				std::cout << YEL << "Response :\n|" << resp.second << "|\n" RESET;
 				requests.erase(datas.events->data.fd);

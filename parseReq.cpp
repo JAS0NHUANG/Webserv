@@ -20,41 +20,42 @@ void saveRequestLine(std::queue<std::string> &qu, Request &req) {
 
 		it = skipWhitespace(qu.front(), it);
 		str = getNextString(qu.front(), it);
-		if (!str.empty() && str == "HTTP/1.1")
-			req.isHttp1_1 = true;
-		else
+		if (str == "HTTP/1.1") // Is mandatory to be 'HTTP/1.1' version ?
 			std::cout << RED << "INVALID HTTP VERSION\n" << RESET;
 
 		it = skipWhitespace(qu.front(), it);
 		if (it != qu.front().end())
 			std::cout << RED << "MALFORMED REQUEST LINE\n" << RESET;
-		// std::cout << "req line : " << qu.front() << "\n";
 		qu.pop();
 	}
 	else
 		std::cout << RED "ERROR NO REQUEST LINE\n" RESET;
 }
 
+// Headers names will be in MAJUSCULE, because they are case insensitive
 void saveHeaders(std::queue<std::string> &qu, Request &req) {
 	std::string::iterator it;
 	std::string::size_type i = std::string::npos;
 	std::pair<std::string, std::string> header;
+	// NOTE : telnet sends 'EOT' instead of 'EOF' so loop will not end
+	// Maybe need to fix this
 	while (!qu.empty() && !qu.front().empty() && qu.front() != "\r") {
 		i = qu.front().find(':');
-		if (i != std::string::npos){
+		if (i != std::string::npos && i != 0 && !isWhitespace(qu.front()[i - 1])){
 			header.first = qu.front().substr(0, i);
+			strToUpper(header.first);
 			qu.front().erase(0, i + 1);
 		}
 		else
-			std::cout << RED << "MALFORMED HEADER\n" << RESET;
+			std::cout << RED << "MALFORMED HEADER (header name)\n" << RESET;
 
 		it = qu.front().begin();
 		it = skipWhitespace(qu.front(), it);
 		header.second = getNextString(qu.front(), it);
-		if (!header.second.empty() && *it == '\r')
+		if (!header.second.empty() && *it == '\r' && req.headers.count(header.first) != 1)
 			req.headers.insert(header);
 		else
-			std::cout << RED << "MALFORMED HEADER\n" << RESET;
+			std::cout << RED << "400 BAD REQUEST\n" << RESET;
 
 		qu.pop();
 	}
