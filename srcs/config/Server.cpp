@@ -23,8 +23,8 @@ void Server::debug() const {
 }
 
 Server::Server() {
-	_address				= "0.0.0.0";
-	_port					= 80;
+	_address				= "127.0.0.1";
+	_port					= 8000;
 	_client_max_body_size	= 1000000; // 1M
 }
 

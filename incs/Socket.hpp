@@ -23,6 +23,7 @@ class Socket {
 		Socket(const Socket &toCopy);
 		Socket&			operator=(const Socket &toAssign);
 
+		Socket(int port, std::string address);
 		// getter
 		int				getPort(void);
 		int				getSockFd(void);

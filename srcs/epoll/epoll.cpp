@@ -11,6 +11,31 @@
 #define MAX_EVENTS 128
 #define BUFFER_SIZE 1024
 
+std::string response =
+	"HTTP/1.1 9876543210 crazy status code\n"
+	"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+	"Server: Apache/2.2.3\n"
+	"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+	"ETag: \"56d-9989200-1132c580\"\n"
+	"Content-Type: text/html\n"
+	"Content-Length: 15\n"
+	"Accept-Ranges: bytes\n"
+	"42Header: Jason/WenTsu/Stone\n"
+	"\n"
+	"<h1>reponse 1</h1>";
+std::string response1 =
+	"HTTP/1.1 9876543210 crazy status code\n"
+	"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+	"Server: Apache/2.2.3\n"
+	"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+	"ETag: \"56d-9989200-1132c580\"\n"
+	"Content-Type: text/html\n"
+	"Content-Length: 15\n"
+	"Accept-Ranges: bytes\n"
+	"42Header: Jason/WenTsu/Stone\n"
+	"\n"
+	"<h1>reponse 2</h1>";
+
 
 static int	recv_event(int fd)
 {
@@ -28,7 +53,7 @@ static int	recv_event(int fd)
 		buf[len] = 0;
 		str += buf;
 	}
-	std::cout << "READ : |"<< str << "|" << std::endl;
+	std::cout << BYEL << "READ : |"<< str << "|" << std::endl << RESET;
 	return ret;
 }
 
@@ -42,18 +67,20 @@ static void add_event(int epollfd,int fd,int state){
 	}
 }
 
-int	create_epoll() {
+static int check_event_fd(int event_fd, std::vector<Socket> &socket_list) {
+	for(int i = 0;i < (int)socket_list.size();i++) {
+		if (event_fd == socket_list[i].getSockFd())
+			return (1);
+	}
+	return (0);
+}
+
+int	epoll_init() {
 	return (0);
 }
 
 int run_epoll(std::vector<Socket> &socket_list) {
-	std::cout << GRN ;
-	std::cout << "socket_fd: " << socket_list[0].getSockFd() ;
-	std::cout << "LISTENING...\n";
-	std::cout << "LISTENING...\n";
-	std::cout << RESET ;
 
-	int server_fd = socket_list[0].getSockFd();
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 
@@ -63,12 +90,9 @@ int run_epoll(std::vector<Socket> &socket_list) {
 		errMsgErrno("epoll failed");
 		exit(EXIT_FAILURE);
 	}
-	ev.events = EPOLLIN;
-	ev.data.fd = socket_list[0].getSockFd();
-	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server_fd, &ev) == -1) {
-		errMsgErrno("epoll_ctl: listen_sock");
-		//close(epollfd);
-		//exit(EXIT_FAILURE);
+	for(int i = 0;i < (int)socket_list.size();i++) {
+		std::cout << "socket fd: " << socket_list[i].getSockFd() << "\n";
+		add_event(epollfd, socket_list[i].getSockFd(), EPOLLIN);
 	}
 	int trytry = 0;
 	while (1) {
@@ -79,34 +103,28 @@ int run_epoll(std::vector<Socket> &socket_list) {
 			//exit(EXIT_FAILURE);
 		}
 		for (int n = 0; n < event_fds; ++n) {
-			std::cout << "n :" << n << " event_fds :" << event_fds << std::endl;
+			std::cout << MAG <<  "n :" << n << " event_fds :" << event_fds << std::endl << RESET; 
+			std::cout << MAG << "n :" << n << " current event fd :" << events[n].data.fd << std::endl << RESET;
 			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP){
 				errMsgErrno("event error");
 				continue;
 			}
-			else if (events[n].data.fd == server_fd){
+			else if (check_event_fd(events[n].data.fd, socket_list)){
 				struct sockaddr_storage addr;
 				socklen_t socklen = sizeof(addr);
-				int conn_sock = accept(server_fd, (struct sockaddr *)&addr, &socklen);
+				int conn_sock = accept(events[n].data.fd, (struct sockaddr *)&addr, &socklen);
 				if (conn_sock < 0){
 					errMsgErrno("accept failed");
 					continue;
 				}
-				//setnonblocking(conn_sock);
 				int flag = fcntl(conn_sock,F_GETFL,0);
 				if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0){
-					// errMsgErrno("fcntl set");
+					errMsgErrno("fcntl set");
 					exit(EXIT_FAILURE);
 				}
 				add_event(epollfd, conn_sock, EPOLLIN);
 				std::cout << "new connection:" << conn_sock << std::endl;
 			} else if(events[n].events & EPOLLIN){
-				// if (recv_event(events[n].data.fd) < 0)
-				// errMsgErrno("recv error");
-				// if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
-				// errMsgErrno("EPOLL_CTL_DEL error");
-				// else
-				// std::cout <<"one client delete"<< std::endl;
 				int recv_char = recv_event(events[n].data.fd);
 				if (recv_char > 0){
 					ev.events = EPOLLOUT;
@@ -124,41 +142,14 @@ int run_epoll(std::vector<Socket> &socket_list) {
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
 						errMsgErrno("EPOLL_CTL_DEL error1");
 					else
-						std::cout <<"one client delete"<< std::endl;
+						std::cout << MAG << "one client delete"<< std::endl << RESET;
 				} else {
 					errMsgErrno("recv error");
 				}
 			} else if (events[n].events & EPOLLOUT){
 				std::cout <<"write back"<< std::endl;
-				// const char *msg = "HTTP/1.1 200 OK \r\n\r\n<h1>hello world</h1><r><n>";
+
 				// send a message/response to the connection
-				std::string response =
-					"HTTP/1.1 9876543210 crazy status code\n"
-					"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
-					"Server: Apache/2.2.3\n"
-					"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-					"ETag: \"56d-9989200-1132c580\"\n"
-					"Content-Type: text/html\n"
-					"Content-Length: 15\n"
-					"Accept-Ranges: bytes\n"
-					"42Header: Jason/WenTsu/Stone\n"
-					"\n"
-					"<h1>reponse 1</h1>";
-				std::string response1 =
-					"HTTP/1.1 9876543210 crazy status code\n"
-					"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
-					"Server: Apache/2.2.3\n"
-					"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-					"ETag: \"56d-9989200-1132c580\"\n"
-					"Content-Type: text/html\n"
-					"Content-Length: 15\n"
-					"Accept-Ranges: bytes\n"
-					"42Header: Jason/WenTsu/Stone\n"
-					"\n"
-					"<h1>reponse 2</h1>";
-				//if (int re = send(events[n].data.fd, response.c_str(), response.size(), 0) < 0){
-					//errMsgErrno("send error");
-				//}
 				if (trytry == 1)
 					send(events[n].data.fd, response.c_str(), response.size(), 0);
 				else if (trytry == -1)
@@ -166,12 +157,12 @@ int run_epoll(std::vector<Socket> &socket_list) {
 				if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
 					errMsgErrno("EPOLL_CTL_DEL error2");
 				else
-					std::cout <<"one client delete"<< std::endl;
+					std::cout << MAG <<"one client delete"<< std::endl << RESET;
 				close(events[n].data.fd);
 			}
 		}
 	}
 	close(epollfd);
-	//close(server_fd);??
+	//close(server_fd); ?
 	return 0;
 }

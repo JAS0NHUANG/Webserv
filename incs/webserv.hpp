@@ -11,6 +11,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <arpa/inet.h>
+
 // containers
 #include <map>
 #include <set>
