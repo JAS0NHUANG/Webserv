@@ -1,2 +1,3 @@
-# Webserv
-A mini web server with C++
+Webserv, a mini web server with C++
+===================================
+
