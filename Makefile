@@ -23,9 +23,17 @@ endif
 #       SOURCES                                                                #
 # **************************************************************************** #
 SRCS		=	main.cpp \
-				parseReq.cpp \
-				utilsParseReq.cpp \
-				initWebserv.cpp
+				srcs/config/Location.cpp \
+				srcs/config/Server.cpp \
+				srcs/config/configParsing.cpp \
+				srcs/config/utilsParsing.cpp \
+				srcs/config/saveFile.cpp \
+				srcs/config/doParsing.cpp \
+				srcs/socket/Socket.cpp \
+				srcs/epoll/epoll.cpp \
+				srcs/utils/utils.cpp \
+				srcs/request/parseReq.cpp \
+				srcs/request/utilsParseReq.cpp
 
 # **************************************************************************** #
 #       RULES                                                                  #

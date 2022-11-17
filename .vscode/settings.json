@@ -51,6 +51,8 @@
 		"cstring": "cpp",
 		"optional": "cpp",
 		"ranges": "cpp",
-		"cinttypes": "cpp"
+		"cinttypes": "cpp",
+		"set": "cpp",
+		"fstream": "cpp"
 	}
 }
