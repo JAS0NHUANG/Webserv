@@ -106,6 +106,23 @@ std::pair<bool, std::string> handleRequest(std::string &request) {
 	return resp;
 }
 
+void accept_conn(struct epoll_event ev, int epollfd) {
+	struct sockaddr_storage addr;
+	socklen_t socklen = sizeof(addr);
+	int conn_sock = accept(ev.data.fd, (struct sockaddr *)&addr, &socklen);
+	if (conn_sock < 0){
+		errMsgErrno("accept");
+		return;
+	}
+	int flag = fcntl(conn_sock, F_GETFL, 0);
+	if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0) {
+		errMsgErrno("fcntl");
+		exit(EXIT_FAILURE);
+	}
+	add_event(epollfd, conn_sock, EPOLLIN);
+	std::cout << "New incoming connection:" << conn_sock << "\n";
+}
+
 int run_epoll(std::vector<Socket> &socket_list) {
 
 	struct epoll_event ev, events[MAX_EVENTS];
@@ -144,22 +161,8 @@ int run_epoll(std::vector<Socket> &socket_list) {
 				continue;
 			}
 			// Accepting a new connection
-			else if (check_event_fd(events[n].data.fd, socket_list)) {
-				struct sockaddr_storage addr;
-				socklen_t socklen = sizeof(addr);
-				int conn_sock = accept(events[n].data.fd, (struct sockaddr *)&addr, &socklen);
-				if (conn_sock < 0){
-					errMsgErrno("accept");
-					continue;
-				}
-				int flag = fcntl(conn_sock, F_GETFL, 0);
-				if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0) {
-					errMsgErrno("fcntl");
-					exit(EXIT_FAILURE);
-				}
-				add_event(epollfd, conn_sock, EPOLLIN);
-				std::cout << "New incoming connection:" << conn_sock << "\n";
-			}
+			else if (check_event_fd(events[n].data.fd, socket_list))
+				accept_conn(events[n], epollfd);
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				bool requestIsComplete = getRequest(events[n].data.fd, requests);
