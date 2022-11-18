@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 	}
 	catch (std::string &str) {
 		std::cerr << RED << str << "\n" << RESET;
+		return 1;
 	}
 
 	// create sockets
