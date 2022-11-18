@@ -32,8 +32,7 @@ SRCS		=	main.cpp \
 				srcs/socket/Socket.cpp \
 				srcs/epoll/epoll.cpp \
 				srcs/utils/utils.cpp \
-				srcs/request/parseReq.cpp \
-				srcs/request/utilsParseReq.cpp
+				srcs/request/Request.cpp \
 
 # **************************************************************************** #
 #       RULES                                                                  #

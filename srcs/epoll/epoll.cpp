@@ -106,13 +106,13 @@ std::pair<bool, std::string> handleRequest(std::string &request) {
 	return resp;
 }
 
-void accept_conn(struct epoll_event ev, int epollfd) {
+Request accept_conn(struct epoll_event ev, int epollfd) {
 	struct sockaddr_storage addr;
 	socklen_t socklen = sizeof(addr);
 	int conn_sock = accept(ev.data.fd, (struct sockaddr *)&addr, &socklen);
 	if (conn_sock < 0){
 		errMsgErrno("accept");
-		return;
+		// return;
 	}
 	int flag = fcntl(conn_sock, F_GETFL, 0);
 	if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0) {
@@ -121,12 +121,15 @@ void accept_conn(struct epoll_event ev, int epollfd) {
 	}
 	add_event(epollfd, conn_sock, EPOLLIN);
 	std::cout << "New incoming connection:" << conn_sock << "\n";
+	return Request(conn_sock);
 }
 
 int run_epoll(std::vector<Socket> &socket_list) {
 
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
+	// Request req;
+	std::vector<Request> vecreq;
 
 	// [ fd | request ] if the request has not been totally read, the fd stays in this structure.
 	// Maybe we will need to add a pair <string (request), time> to know 
@@ -161,12 +164,16 @@ int run_epoll(std::vector<Socket> &socket_list) {
 				continue;
 			}
 			// Accepting a new connection
-			else if (check_event_fd(events[n].data.fd, socket_list))
-				accept_conn(events[n], epollfd);
+			else if (check_event_fd(events[n].data.fd, socket_list)) {
+				Request req(accept_conn(events[n], epollfd));
+				vecreq.push_back(req);
+			}
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
-				bool requestIsComplete = getRequest(events[n].data.fd, requests);
-				if (requestIsComplete) {
+				vecreq[0].recv_buffer();
+				// bool requestIsComplete = getRequest(events[n].data.fd, requests);
+				// if (requestIsComplete) {
+				if (vecreq[0].is_complete()) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
 					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
