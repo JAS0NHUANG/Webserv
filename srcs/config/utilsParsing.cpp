@@ -184,7 +184,7 @@ void throwIfFileIsEmpty(std::queue<std::vector<std::string> > &qu, int line) {
 		throwParsingError("unexpected end of file", toString(line));
 }
 
-void throwParsingError( std::string msg, std::string line, std::string bName, std::string fName) {
+void throwParsingError(std::string msg, std::string line, std::string bName, std::string fName) {
 	static std::string binName = bName;
 	static std::string fileName = fName;
 	if (fName != "")

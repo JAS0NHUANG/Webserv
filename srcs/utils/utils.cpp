@@ -16,3 +16,11 @@ void	errMsgErrno(std::string msg) {
 	std::cerr << strerror(errno) << "\n";
 	std::cerr << RESET ;
 }
+
+void throwError(std::string msg, std::string bName) {
+	static std::string binName = bName;
+	if (bName != "")
+		return;
+
+	throw std::string(binName + ": " + msg + ": " + strerror(errno));
+}

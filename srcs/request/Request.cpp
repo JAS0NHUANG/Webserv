@@ -1,7 +1,5 @@
 #include "../../incs/Request.hpp"
 
-Request::Request() {}
-
 Request::Request(int fd) : _fd(fd) {}
 
 Request::Request(const Request &src) {

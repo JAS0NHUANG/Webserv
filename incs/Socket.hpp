@@ -15,7 +15,7 @@ class Socket {
 		int				_sock_fd;
 		sockaddr_in		_addr;
 		size_t			_addr_len;
-		
+
 	public:
 		// canonical
 		Socket();
