@@ -1,6 +1,8 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
+#include "webserv.hpp"
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -22,9 +24,11 @@ class Request {
 		bool								_isComplete;
 		int									_timeout;
 		int									_fd;
-		std::pair<bool, std::string>		check_if_buffer_has_nl(std::string buf);
-		void								parse_line(std::string &line);
-		Request(); // file descriptor is mandatory to instantiate this object
+		std::deque<std::string>				getlines(std::string buf);
+		void								parse_line(std::deque<std::string> &lines);
+		std::vector<std::string>			ft_split(const char *str, const char *charset);
+		Request();
+
 	public:
 		Request(int fd);
 		Request(const Request &src);
@@ -33,6 +37,11 @@ class Request {
 
 		void recv_buffer();
 		bool is_complete() const;
+
+		// getters
+		int									get_method() const;
+		std::string							get_path() const;
+		std::map<std::string, std::string>	get_headers() const;
 
 		void debug() const;
 };

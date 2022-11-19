@@ -30,4 +30,6 @@ class Server;
 #include "utils.hpp"
 #include "colorcodes.hpp"
 
+#define BUFFER_SIZE 2056
+
 #endif

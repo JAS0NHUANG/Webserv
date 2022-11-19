@@ -9,7 +9,6 @@
 #define BACKLOG		5		// Notes: change it to something bigger
 #define EPOLLEVENTS 100
 #define MAX_EVENTS 128
-#define BUFFER_SIZE 1024
 
 std::string response =
 	"HTTP/1.1 9876543210 crazy status code\n"

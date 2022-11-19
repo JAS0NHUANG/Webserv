@@ -2,7 +2,7 @@ server {
 	root /home/stone/webserv/tests/www/;
 	allow_method GET;
 	cgi .bla /home/stone/webserv/tests/www/YoupiBanane/cgi_tester;
-	listen localhost:80;
+	listen localhost:8080;
 
 	location /put_test {
 		allow_method POST;

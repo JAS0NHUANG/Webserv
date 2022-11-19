@@ -20,27 +20,41 @@ Request& Request::operator=(const Request &src) {
 
 Request::~Request() {}
 
-int BUFFER_SIZE = 2056;
-
-void Request::parse_line(std::string &line) {
-	(void)line;
+void Request::parse_line(std::deque<std::string> &lines) {
+	(void)lines;
 }
 
-std::pair<bool, std::string> Request::check_if_buffer_has_nl(std::string buf) {
-	std::string line;
+// std::pair<bool, std::string> Request::check_if_buffer_has_nl(std::string buf) { // DELETE
+// 	std::string line;
 	
-	_ss << buf;
-	std::string::size_type i = buf.find("\n");
-	if (i != std::string::npos) {
-		std::getline(_ss, line);
-		return std::pair<bool, std::string>(true, line);
-	}
-	return std::pair<bool, std::string>(false, "");
+// 	_ss << buf;
+// 	std::string::size_type i = buf.find("\n");
+// 	if (i != std::string::npos) {
+// 		std::getline(_ss, line);
+// 		return std::pair<bool, std::string>(true, line);
+// 	}
+// 	return std::pair<bool, std::string>(false, "");
 
+
+// }
+
+std::deque<std::string> Request::getlines(std::string buf) {
+	std::deque<std::string> lines;
+	_ss << buf;
+
+	std::string::size_type i = buf.find("\n");
+	while (i != std::string::npos) {
+		std::string inter;
+		std::getline(_ss, inter);
+		lines.push_back(inter);
+		buf.erase(0, i + 1);
+		i = buf.find("\n");
+	}
+	return lines;
 }
 
 void Request::recv_buffer() {
-	std::pair<bool, std::string> pr;
+	std::deque<std::string>	lines;
 	char buffer[BUFFER_SIZE] = {0};
 
 	while (true) {
@@ -54,10 +68,12 @@ void Request::recv_buffer() {
 			std::cerr << "recv\n" ; // NOTE : handle error
 		}
 		buffer[valread] = '\0';
-		pr = check_if_buffer_has_nl(buffer);
-		if (pr.first == true) {
-			parse_line(pr.second);
-			std::cout << "Request(class) line : " << pr.second << "\n";
+		lines = getlines(buffer);
+		if (!lines.empty()) {
+			// DEBUG
+			for (std::deque<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
+				std::cout << "Line : |" << *it << "|\n";
+			parse_line(lines);
 		}
 	}
 	
@@ -66,6 +82,85 @@ void Request::recv_buffer() {
 bool Request::is_complete() const {
 	return _isComplete;
 }
+
+int Request::get_method() const {
+	return _method;
+}
+
+std::string Request::get_path() const {
+	return _path;
+}
+
+std::map<std::string, std::string> Request::get_headers() const {
+	return _headers;
+}
+
+// --------- ft_split ----------- //
+int		ft_check_charset(char c, const char *charset)
+{
+	int i;
+
+	i = 0;
+	while (charset[i] != 0)
+	{
+		if (c == charset[i])
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+int		ft_count_words(const char *str, const char *charset)
+{
+	int len;
+
+	len = 0;
+	if (!(ft_check_charset(*str, charset)))
+		len++;
+	while (*str)
+	{
+		if (ft_check_charset(*str, charset))
+		{
+			while (ft_check_charset(*str, charset) && *str != 0)
+				str++;
+			len++;
+		}
+		else
+			str++;
+	}
+	if (ft_check_charset(*(str - 1), charset))
+		len--;
+	return (len);
+}
+
+std::vector<std::string> Request::ft_split(const char *str, const char *charset)
+{
+	int		i;
+	int		len;
+	std::vector<std::string> tokens;
+
+	while (*str != 0)
+	{
+		if (ft_check_charset(*str, charset))
+			str++;
+		else
+		{
+			len = 0;
+			while (!(ft_check_charset(str[len], charset)) && str[len] != 0)
+				len++;
+			i = 0;
+			std::string intermediate;
+			while (i < len) {
+				intermediate.push_back(*(str++));
+				i++;
+			}
+			intermediate.push_back('\0');
+			tokens.push_back(intermediate);
+		}
+	}
+	return tokens;
+}
+
 void Request::debug() const {
 	std::cout << "File descriptor: " << _fd << "\n";
 }
