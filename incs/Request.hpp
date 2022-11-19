@@ -19,13 +19,18 @@ class Request {
 		std::string							_path;
 		std::map<std::string, std::string>	_headers;
 		std::stringstream					_ss;
-		bool								_requestLineHasBeenRead;
-		bool								_hostLineHasBeenRead;
+		bool								_process_request_line;
+		bool								_host_header_received;
+		bool								_process_headers;
 		bool								_isComplete;
 		int									_timeout;
 		int									_fd;
+
 		std::deque<std::string>				getlines(std::string buf);
 		void								parse_line(std::deque<std::string> &lines);
+		void								process_request_line(std::vector<std::string> &tokens);
+		void								process_header(std::vector<std::string> &tokens);
+		void								process_body(std::vector<std::string> &tokens);
 		std::vector<std::string>			ft_split(const char *str, const char *charset);
 		void								remove_cr_char(std::deque<std::string> &lines);
 		Request();
