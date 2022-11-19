@@ -27,6 +27,7 @@ class Request {
 		std::deque<std::string>				getlines(std::string buf);
 		void								parse_line(std::deque<std::string> &lines);
 		std::vector<std::string>			ft_split(const char *str, const char *charset);
+		void								remove_cr_char(std::deque<std::string> &lines);
 		Request();
 
 	public:

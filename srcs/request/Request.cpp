@@ -20,23 +20,22 @@ Request& Request::operator=(const Request &src) {
 
 Request::~Request() {}
 
-void Request::parse_line(std::deque<std::string> &lines) {
-	(void)lines;
+void Request::remove_cr_char(std::deque<std::string> &lines) {
+	std::deque<std::string>::iterator it;
+
+	for (it = lines.begin(); it != lines.end(); it++) {
+		if (!(*it).empty() && (*it)[(*it).size() - 1] == '\r')
+			(*it).erase((*it).size() - 1, 1);
+	}
 }
 
-// std::pair<bool, std::string> Request::check_if_buffer_has_nl(std::string buf) { // DELETE
-// 	std::string line;
-	
-// 	_ss << buf;
-// 	std::string::size_type i = buf.find("\n");
-// 	if (i != std::string::npos) {
-// 		std::getline(_ss, line);
-// 		return std::pair<bool, std::string>(true, line);
-// 	}
-// 	return std::pair<bool, std::string>(false, "");
+void Request::parse_line(std::deque<std::string> &lines) {
+	std::deque<std::string>::iterator it = lines.begin();
 
-
-// }
+	remove_cr_char(lines);
+	for (; it != lines.end(); it++)
+		std::cout << "req_line : |" << *it << "|" << std::endl;
+}
 
 std::deque<std::string> Request::getlines(std::string buf) {
 	std::deque<std::string> lines;
@@ -69,14 +68,9 @@ void Request::recv_buffer() {
 		}
 		buffer[valread] = '\0';
 		lines = getlines(buffer);
-		if (!lines.empty()) {
-			// DEBUG
-			for (std::deque<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
-				std::cout << "Line : |" << *it << "|\n";
+		if (!lines.empty())
 			parse_line(lines);
-		}
 	}
-	
 }
 
 bool Request::is_complete() const {
