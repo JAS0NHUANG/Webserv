@@ -14,11 +14,15 @@
 #include <sys/socket.h>
 #include <errno.h>
 
-class Client { // NOTE : Maybe change this name to client 
+class Client {
 	protected:
+		// underlying datas
 		int									_method;
 		std::string							_path;
 		std::map<std::string, std::string>	_headers;
+		std::string							_body;
+		int									_code;
+		unsigned long long					_max_body_size; // NOTE : to set
 		std::stringstream					_ss;
 		bool								_process_request_line;
 		bool								_host_header_received;
@@ -26,16 +30,22 @@ class Client { // NOTE : Maybe change this name to client
 		std::time_t							_timeout;
 		int									_fd;
 
-		std::deque<std::string>				getlines(std::string buf);
+		// parsing
 		void								parse_line(std::deque<std::string> &lines);
-		void								process_request_line(std::deque<std::string> &lines);
-		void								process_header(std::deque<std::string> &lines);
-		void								process_body(std::deque<std::string> &lines);
-		std::vector<std::string>			ft_split(const char *str, const char *charset);
-		void								remove_cr_char(std::deque<std::string> &lines);
+		void								process_request_line(std::string &line);
+		void								process_header(std::string &line);
+		void								process_body(std::string &line);
 
+		// parsing utils
+		void								remove_cr_char(std::deque<std::string> &lines);
+		std::deque<std::string>				getlines(std::string buf);
+		std::vector<std::string>			ft_split(const char *str, const char *charset);
+
+		// timeout
 		void								start_timeout();
 		std::time_t							get_timeout() const;
+
+		void								send_client_error_response() const;
 
 	public:
 		Client();
@@ -44,6 +54,7 @@ class Client { // NOTE : Maybe change this name to client
 		Client& operator=(const Client &src);
 		~Client();
 
+		// received from client / send to client
 		bool recv_request();
 		bool send_response();
 

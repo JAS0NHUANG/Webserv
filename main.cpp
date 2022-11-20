@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 		std::cout << GRN << "\nSockets created!\n" << RESET;
 
 		// run epoll
-		run_epoll(socket_list);
+		run_server(socket_list, conf);
 	}
 	catch (std::string &str) {
 		std::cerr << RED << str << "\n" << RESET;

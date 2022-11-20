@@ -61,12 +61,13 @@ int accept_conn(struct epoll_event ev, int epollfd) {
 	if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0)
 		errMsgErrno("fcntl");
 	add_event(epollfd, conn_sock, EPOLLIN);
-	std::cout << "New incoming connection:" << conn_sock << "\n";
+	std::cout << BBLU "New incoming connection:" << conn_sock << RESET "\n";
 	return conn_sock;
 }
 
-int run_epoll(std::vector<Socket> &socket_list) {
+int run_server(std::vector<Socket> &socket_list, std::vector<Server> &conf) {
 
+	(void)conf;
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients;
@@ -117,7 +118,7 @@ int run_epoll(std::vector<Socket> &socket_list) {
 				std::cout << "Creating a response\n";
 				done = clients[events[n].data.fd].send_response();
 
-				if (done) { // <-- NOTE : TO FIX
+				if (done) {
 					clients.erase(events[n].data.fd);
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_DEL)");

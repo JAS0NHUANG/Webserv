@@ -30,7 +30,7 @@ SRCS		=	main.cpp \
 				srcs/config/saveFile.cpp \
 				srcs/config/doParsing.cpp \
 				srcs/socket/Socket.cpp \
-				srcs/epoll/epoll.cpp \
+				srcs/server/server.cpp \
 				srcs/utils/utils.cpp \
 				srcs/client/Client.cpp \
 

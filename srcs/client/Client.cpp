@@ -36,10 +36,10 @@ void Client::remove_cr_char(std::deque<std::string> &lines) {
 	}
 }
 
-void Client::process_request_line(std::deque<std::string> &lines) {
+void Client::process_request_line(std::string &line) {
 	std::cout << "process_request_line\n";
 
-	std::vector<std::string> tokens = ft_split(lines.front().c_str(), "\t\v\r ");
+	std::vector<std::string> tokens = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
 	for (; it != tokens.end() && (*it).empty(); it++) ;
 
@@ -84,9 +84,9 @@ void Client::process_request_line(std::deque<std::string> &lines) {
 
 // NOTE : What to do if same header names are received ???
 // NOTE
-void Client::process_header(std::deque<std::string> &lines) {
+void Client::process_header(std::string &line) {
 	std::cout << "process_headers\n";
-	std::vector<std::string> tokens = ft_split(lines.front().c_str(), "\t\v\r ");
+	std::vector<std::string> tokens = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
 
 	if (it == tokens.end()) {
@@ -120,12 +120,25 @@ void Client::process_header(std::deque<std::string> &lines) {
 	}
 }
 
-void Client::process_body(std::deque<std::string> &lines) {
-	// NOTE : The body must not be tokenize
-	// That means ft_split is at the wrong place
-
-	(void)lines;
+void Client::process_body(std::string &line) {
 	std::cout << "process_body\n";
+	// NOTE : Each time this function is called, need to check max_body_size
+
+	if (_body.size() + line.size() > _max_body_size) {
+		std::cerr << RED "ERR_CODE MAX BODY SIZE REACHED\n" RESET;
+		return;
+	}
+
+	if (line.empty()) {
+		std::cout << "END OF BODY\n";
+		// Check if the body is chunked or not,
+		// to know if we send back response or
+		// wait for more incoming datas.
+		// Hint: "Transfer-Encoding: chunked"
+		return;
+	}
+	_body += line;
+
 }
 
 // NOTE : A verifier qu'il y a bien dans le deque une entree vide 
@@ -137,18 +150,17 @@ void Client::parse_line(std::deque<std::string> &lines) {
 	remove_cr_char(lines);
 
 	for (; it != lines.end(); it++)
-		std::cout << "req_line : |" << *it << "|" << std::endl;
-
+		std::cout << BCYN "LINE : |" << *it <<  "|\n" RESET;
 
 	while (!lines.empty()) {
 		if (_process_request_line)
-			process_request_line(lines);
+			process_request_line(lines.front());
 		else if (_process_headers) {
-			process_header(lines);
+			process_header(lines.front());
 			// Maybe parse the header right here to know what to do next
 		}
 		else
-			process_body(lines);
+			process_body(lines.front());
 
 		lines.pop_front();
 	}
@@ -182,28 +194,55 @@ bool Client::recv_request() {
 				// if all the headers has been read,
 				// Host: has been received and the method is GET
 				// then send the response
-				// NOTE : Create a function for this check
+
+				// NOTE : Create a function fthat check if the request is complete
 				if (_method == GET && _process_headers == false && _host_header_received)
 					return true;
 				return false;
 			}
-			std::cerr << RED "recv\n" RESET; // NOTE : handle error
+			errMsgErrno("recv");
+			// throw -> catch -> close
 		}
 		buffer[valread] = '\0';
 		lines = getlines(buffer);
-		if (!lines.empty())
-			parse_line(lines);
+		if (!lines.empty()) {
+			try { // This will catch any bad request 
+				parse_line(lines);
+			}
+			catch (int error_code) {
+				_code = error_code;
+				return true;
+			}
+		}
 	}
 	return true; // true if the request is finished
 }
 
+void Client::send_client_error_response() const {
+	// NOTE: BUILD ERROR RESPONSE ACCORDING TO ERROR_CODE
+
+	// if (_error_code == 400)
+		// std::string response("HTTP/1.1 400 Bad Request\n");
+
+	std::string response("HTTP/1.1 400 Bad Request\n");
+	if (send(_fd, response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+}
+
 bool Client::send_response() {
 	// NOTE : TO DEV
+	// Returns true if we need to close the connection 
 	std::cout << "Sending response\n";
+
+	if (_code >= 400 && _code <= 499) {
+		send_client_error_response();
+		return true;
+	}
+
 	std::string response("HTTP/1.1 200 OK\n\nHello world\n");
 	if (send(_fd, response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
-	return true; // true if we need to close the connection 
+	return true;
 }
 
 int Client::get_method() const {
