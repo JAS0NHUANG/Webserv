@@ -6,6 +6,7 @@ Client::Client(int fd) :
 	_process_request_line(true),
 	_host_header_received(false),
 	_process_headers(true),
+	_timeout(std::time(NULL)),
 	_fd(fd) {}
 
 Client::Client(const Client &src) {
@@ -285,6 +286,14 @@ std::vector<std::string> Client::ft_split(const char *str, const char *charset)
 		}
 	}
 	return tokens;
+}
+
+void Client::start_timeout() {
+	_timeout = std::time(NULL);
+}
+
+std::time_t Client::get_timeout() const {
+	return std::time(NULL) - _timeout;
 }
 
 void Client::debug() const {

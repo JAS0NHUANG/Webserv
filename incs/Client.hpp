@@ -8,6 +8,7 @@
 #include <iostream>
 #include <utility>
 #include <map>
+#include <ctime>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -22,7 +23,7 @@ class Client { // NOTE : Maybe change this name to client
 		bool								_process_request_line;
 		bool								_host_header_received;
 		bool								_process_headers;
-		int									_timeout;
+		std::time_t							_timeout;
 		int									_fd;
 
 		std::deque<std::string>				getlines(std::string buf);
@@ -32,6 +33,9 @@ class Client { // NOTE : Maybe change this name to client
 		void								process_body(std::deque<std::string> &lines);
 		std::vector<std::string>			ft_split(const char *str, const char *charset);
 		void								remove_cr_char(std::deque<std::string> &lines);
+
+		void								start_timeout();
+		std::time_t							get_timeout() const;
 
 	public:
 		Client();
