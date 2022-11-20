@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <errno.h>
 
-class Request {
+class Client { // NOTE : Maybe change this name to client 
 	protected:
 		int									_method;
 		std::string							_path;
@@ -33,21 +33,23 @@ class Request {
 		void								process_body(std::deque<std::string> &lines);
 		std::vector<std::string>			ft_split(const char *str, const char *charset);
 		void								remove_cr_char(std::deque<std::string> &lines);
-		Request();
 
 	public:
-		Request(int fd);
-		Request(const Request &src);
-		Request& operator=(const Request &src);
-		~Request();
+		Client();
+		Client(int fd);
+		Client(const Client &src);
+		Client& operator=(const Client &src);
+		~Client();
 
-		void recv_buffer();
+		void recv_request();
+		void send_response();
 		bool is_complete() const;
 
 		// getters
 		int									get_method() const;
 		std::string							get_path() const;
 		std::map<std::string, std::string>	get_headers() const;
+		int									get_fd() const;
 
 		void debug() const;
 };

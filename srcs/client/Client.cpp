@@ -1,16 +1,18 @@
-#include "../../incs/Request.hpp"
+#include "../../incs/Client.hpp"
 
-Request::Request(int fd) :
+Client::Client() {}
+
+Client::Client(int fd) :
 	_process_request_line(true),
 	_host_header_received(false),
 	_process_headers(true),
 	_fd(fd) {}
 
-Request::Request(const Request &src) {
+Client::Client(const Client &src) {
 	*this = src;
 }
 
-Request& Request::operator=(const Request &src) {
+Client& Client::operator=(const Client &src) {
 	_method					= src._method;
 	_path					= src._path;
 	_headers				= src._headers;
@@ -23,9 +25,9 @@ Request& Request::operator=(const Request &src) {
 	return *this;
 }
 
-Request::~Request() {}
+Client::~Client() {}
 
-void Request::remove_cr_char(std::deque<std::string> &lines) {
+void Client::remove_cr_char(std::deque<std::string> &lines) {
 	std::deque<std::string>::iterator it;
 
 	for (it = lines.begin(); it != lines.end(); it++) {
@@ -34,7 +36,7 @@ void Request::remove_cr_char(std::deque<std::string> &lines) {
 	}
 }
 
-void Request::process_request_line(std::deque<std::string> &lines) {
+void Client::process_request_line(std::deque<std::string> &lines) {
 	std::cout << "process_request_line\n";
 
 	std::vector<std::string> tokens = ft_split(lines.front().c_str(), "\t\v\r ");
@@ -44,7 +46,6 @@ void Request::process_request_line(std::deque<std::string> &lines) {
 	if (it == tokens.end())
 		return;
 
-	// PARSE (METHOD / PATH / VERSION)
 	if (*it == "GET")
 		_method = GET;
 	else if (*it == "POST")
@@ -83,7 +84,7 @@ void Request::process_request_line(std::deque<std::string> &lines) {
 
 // NOTE : What to do if same header names are received ???
 // NOTE
-void Request::process_header(std::deque<std::string> &lines) {
+void Client::process_header(std::deque<std::string> &lines) {
 	std::cout << "process_headers\n";
 	std::vector<std::string> tokens = ft_split(lines.front().c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
@@ -119,7 +120,7 @@ void Request::process_header(std::deque<std::string> &lines) {
 	}
 }
 
-void Request::process_body(std::deque<std::string> &lines) {
+void Client::process_body(std::deque<std::string> &lines) {
 	// NOTE : The body must not be tokenize
 	// That means ft_split is at the wrong place
 
@@ -130,7 +131,7 @@ void Request::process_body(std::deque<std::string> &lines) {
 // NOTE : A verifier qu'il y a bien dans le deque une entree vide 
 // a l'endroit ou il y aurait potentiellement une ligne vide 
 // dans la requete
-void Request::parse_line(std::deque<std::string> &lines) {
+void Client::parse_line(std::deque<std::string> &lines) {
 	std::deque<std::string>::iterator it = lines.begin();
 
 	remove_cr_char(lines);
@@ -153,7 +154,7 @@ void Request::parse_line(std::deque<std::string> &lines) {
 	}
 }
 
-std::deque<std::string> Request::getlines(std::string buf) {
+std::deque<std::string> Client::getlines(std::string buf) {
 	std::deque<std::string> lines;
 	_ss << buf;
 
@@ -168,7 +169,7 @@ std::deque<std::string> Request::getlines(std::string buf) {
 	return lines;
 }
 
-void Request::recv_buffer() {
+void Client::recv_request() {
 	std::deque<std::string>	lines;
 	char buffer[BUFFER_SIZE] = {0};
 
@@ -189,21 +190,33 @@ void Request::recv_buffer() {
 	}
 }
 
-bool Request::is_complete() const {
+void Client::send_response() {
+	// NOTE : to dev
+	std::string response("HTTP/1.1 200 OK\n\nHello world\n");
+	if (send(_fd, response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+}
+
+bool Client::is_complete() const {
 	return _isComplete;
 }
 
-int Request::get_method() const {
+int Client::get_method() const {
 	return _method;
 }
 
-std::string Request::get_path() const {
+std::string Client::get_path() const {
 	return _path;
 }
 
-std::map<std::string, std::string> Request::get_headers() const {
+std::map<std::string, std::string> Client::get_headers() const {
 	return _headers;
 }
+
+int Client::get_fd() const {
+	return _fd;
+}
+
 
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
@@ -243,7 +256,7 @@ int		ft_count_words(const char *str, const char *charset)
 	return (len);
 }
 
-std::vector<std::string> Request::ft_split(const char *str, const char *charset)
+std::vector<std::string> Client::ft_split(const char *str, const char *charset)
 {
 	int		i;
 	int		len;
@@ -270,6 +283,6 @@ std::vector<std::string> Request::ft_split(const char *str, const char *charset)
 	return tokens;
 }
 
-void Request::debug() const {
+void Client::debug() const {
 	std::cout << "File descriptor: " << _fd << "\n";
 }

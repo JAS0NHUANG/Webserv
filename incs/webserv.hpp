@@ -24,7 +24,7 @@ class Server;
 #include "Location.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"
-#include "Request.hpp"
+#include "Client.hpp"
 
 #include "config.hpp"
 #include "utils.hpp"

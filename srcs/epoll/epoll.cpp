@@ -89,23 +89,8 @@ int	epoll_init() {
 	return (0);
 }
 
-void sendResponse(std::string &response, struct epoll_event event) {
-	if (send(event.data.fd, response.c_str(), response.size(), 0) < 0)
-		errMsgErrno("send failed");
-}
 
-std::pair<bool, std::string> handleRequest(std::string &request) {
-	(void)request;
-	// Maybe we will use struct Request instead of the string request
-	std::pair<bool, std::string> resp;
-
-	std::cout << "Handling request\n";
-	resp.first = true;
-	resp.second = "HTTP/1.1 200 OK\n\nHello world\n";
-	return resp;
-}
-
-Request accept_conn(struct epoll_event ev, int epollfd) {
+Client accept_conn(struct epoll_event ev, int epollfd) {
 	struct sockaddr_storage addr;
 	socklen_t socklen = sizeof(addr);
 	int conn_sock = accept(ev.data.fd, (struct sockaddr *)&addr, &socklen);
@@ -120,20 +105,14 @@ Request accept_conn(struct epoll_event ev, int epollfd) {
 	}
 	add_event(epollfd, conn_sock, EPOLLIN);
 	std::cout << "New incoming connection:" << conn_sock << "\n";
-	return Request(conn_sock);
+	return Client(conn_sock);
 }
 
 int run_epoll(std::vector<Socket> &socket_list) {
 
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
-	// Request req;
-	std::vector<Request> vecreq;
-
-	// [ fd | request ] if the request has not been totally read, the fd stays in this structure.
-	// Maybe we will need to add a pair <string (request), time> to know 
-	// if the timeout of receiving a request has been reached.
-	std::map<int, std::string> requests;
+	std::map<int, Client> clients;
 
 	// create the epoll instance
 	epollfd = epoll_create(1);
@@ -164,15 +143,14 @@ int run_epoll(std::vector<Socket> &socket_list) {
 			}
 			// Accepting a new connection
 			else if (check_event_fd(events[n].data.fd, socket_list)) {
-				Request req(accept_conn(events[n], epollfd));
-				vecreq.push_back(req);
+				Client req(accept_conn(events[n], epollfd));
+				clients[req.get_fd()] = req;
 			}
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
-				vecreq[0].recv_buffer();
-				// bool requestIsComplete = getRequest(events[n].data.fd, requests);
-				// if (requestIsComplete) {
-				if (vecreq[0].is_complete()) {
+				clients[events[n].data.fd].recv_request();
+
+				if (clients[events[n].data.fd].is_complete()) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
 					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
@@ -182,32 +160,19 @@ int run_epoll(std::vector<Socket> &socket_list) {
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";
+				clients[events[n].data.fd].send_response();
 
-				// [ true = close , false = stay open | request string ]
-				std::pair<bool, std::string> resp;
-
-				// handleRequest will create the response as a pair,
-				// the boolean says if we close the connection,
-				// and the string is the response
-				resp = handleRequest(requests.find(events->data.fd)->second);
-				std::cout << YEL << "Response :\n|" << resp.second << "|\n" RESET;
-				requests.erase(events->data.fd);
-				sendResponse(resp.second, events[n]);
-
-				// We close if the connection is no more needed
-				// But for that we need to parse the request
-				// For now by default we will always close 
-				// a connection when the request has been successfully received
-				if (resp.first == true) {
+				if (true) { // <-- NOTE : TO FIX
+					clients.erase(events[n].data.fd);
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
 						errMsgErrno("epoll_ctl, EPOLL_CTL_DEL");
 					else
 						std::cout << "Client deleted from event list\n";
 
-					if (close(events[n].data.fd) < 0)
+					if (close(events[n].data.fd) < 0) {
 						errMsgErrno("close");
-					else
-						std::cout << "A connection has been closed\n";
+					}
+					std::cout << "A connection has been closed\n";
 				}
 			}
 		}
