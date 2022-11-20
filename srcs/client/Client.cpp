@@ -19,7 +19,6 @@ Client& Client::operator=(const Client &src) {
 	_process_request_line	= src._process_request_line;
 	_host_header_received	= src._host_header_received;
 	_process_headers		= src._process_headers;
-	_isComplete				= src._isComplete;
 	_timeout				= src._timeout;
 	_fd						= src._fd;
 	return *this;
@@ -169,36 +168,41 @@ std::deque<std::string> Client::getlines(std::string buf) {
 	return lines;
 }
 
-void Client::recv_request() {
+bool Client::recv_request() {
 	std::deque<std::string>	lines;
 	char buffer[BUFFER_SIZE] = {0};
 
 	while (true) {
 		int valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
-		if (valread == 0) {
-			return;
-		}
+		if (valread == 0)
+			return true;
 		else if (valread < 0) {
-			if (errno == EAGAIN)
-				return;
-			std::cerr << "recv\n" ; // NOTE : handle error
+			if (errno == EAGAIN) {
+				// if all the headers has been read,
+				// Host: has been received and the method is GET
+				// then send the response
+				// NOTE : Create a function for this check
+				if (_method == GET && _process_headers == false && _host_header_received)
+					return true;
+				return false;
+			}
+			std::cerr << RED "recv\n" RESET; // NOTE : handle error
 		}
 		buffer[valread] = '\0';
 		lines = getlines(buffer);
 		if (!lines.empty())
 			parse_line(lines);
 	}
+	return true; // true if the request is finished
 }
 
-void Client::send_response() {
-	// NOTE : to dev
+bool Client::send_response() {
+	// NOTE : TO DEV
+	std::cout << "Sending response\n";
 	std::string response("HTTP/1.1 200 OK\n\nHello world\n");
 	if (send(_fd, response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
-}
-
-bool Client::is_complete() const {
-	return _isComplete;
+	return true; // true if we need to close the connection 
 }
 
 int Client::get_method() const {

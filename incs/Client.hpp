@@ -22,7 +22,6 @@ class Client { // NOTE : Maybe change this name to client
 		bool								_process_request_line;
 		bool								_host_header_received;
 		bool								_process_headers;
-		bool								_isComplete;
 		int									_timeout;
 		int									_fd;
 
@@ -41,9 +40,8 @@ class Client { // NOTE : Maybe change this name to client
 		Client& operator=(const Client &src);
 		~Client();
 
-		void recv_request();
-		void send_response();
-		bool is_complete() const;
+		bool recv_request();
+		bool send_response();
 
 		// getters
 		int									get_method() const;

@@ -90,7 +90,7 @@ int	epoll_init() {
 }
 
 
-Client accept_conn(struct epoll_event ev, int epollfd) {
+int accept_conn(struct epoll_event ev, int epollfd) {
 	struct sockaddr_storage addr;
 	socklen_t socklen = sizeof(addr);
 	int conn_sock = accept(ev.data.fd, (struct sockaddr *)&addr, &socklen);
@@ -105,7 +105,7 @@ Client accept_conn(struct epoll_event ev, int epollfd) {
 	}
 	add_event(epollfd, conn_sock, EPOLLIN);
 	std::cout << "New incoming connection:" << conn_sock << "\n";
-	return Client(conn_sock);
+	return conn_sock;
 }
 
 int run_epoll(std::vector<Socket> &socket_list) {
@@ -113,6 +113,7 @@ int run_epoll(std::vector<Socket> &socket_list) {
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients;
+	bool done;
 
 	// create the epoll instance
 	epollfd = epoll_create(1);
@@ -143,14 +144,15 @@ int run_epoll(std::vector<Socket> &socket_list) {
 			}
 			// Accepting a new connection
 			else if (check_event_fd(events[n].data.fd, socket_list)) {
-				Client req(accept_conn(events[n], epollfd));
-				clients[req.get_fd()] = req;
+				int conn_sock = accept_conn(events[n], epollfd);
+				Client new_client(conn_sock);
+				clients[conn_sock] = new_client;
 			}
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
-				clients[events[n].data.fd].recv_request();
+				done = clients[events[n].data.fd].recv_request();
 
-				if (clients[events[n].data.fd].is_complete()) {
+				if (done) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
 					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
@@ -160,9 +162,9 @@ int run_epoll(std::vector<Socket> &socket_list) {
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";
-				clients[events[n].data.fd].send_response();
+				done = clients[events[n].data.fd].send_response();
 
-				if (true) { // <-- NOTE : TO FIX
+				if (done) { // <-- NOTE : TO FIX
 					clients.erase(events[n].data.fd);
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
 						errMsgErrno("epoll_ctl, EPOLL_CTL_DEL");
