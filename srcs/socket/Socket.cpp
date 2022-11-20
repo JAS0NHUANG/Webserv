@@ -3,9 +3,9 @@
 Socket::Socket(int port, std::string address) {
 	this->_port = port;
 
+	// create socket
 	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		return;
-		// throw std::string("socket failed:" +  strerror(errno) + "\n");
+		throwError("socket");
 
 	// this struct is needed to setsockopt and bind
 	sockaddr_in	sock_addr;
@@ -22,7 +22,7 @@ Socket::Socket(int port, std::string address) {
 	// this will make addr reusable?!
 	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
 		sizeof(sock_addr)) < 0)
-		throw std::string("setsockopt");
+		throwError("setsockopt");
 
 	// bind
 	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0)
@@ -64,6 +64,7 @@ Socket::Socket() {
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
 		throwError("listen");
+	std::cout << "Listening on socket fd " << _sock_fd << " \n";
 }
 
 Socket::~Socket() {}

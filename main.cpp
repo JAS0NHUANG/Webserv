@@ -27,14 +27,14 @@ int main(int argc, char *argv[])
 			socket_list.push_back(Socket((*it).get_port(), (*it).get_address()));
 		}
 		std::cout << GRN << "\nSockets created!\n" << RESET;
+
+		// run epoll
+		run_epoll(socket_list);
 	}
 	catch (std::string &str) {
 		std::cerr << RED << str << "\n" << RESET;
 		return 1;
 	}
-
-	// run epoll
-	run_epoll(socket_list);
 
 	return (0);
 }

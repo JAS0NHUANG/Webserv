@@ -11,10 +11,7 @@ void	*ft_memset(void *s, int c, size_t n)
 }
 
 void	errMsgErrno(std::string msg) {
-	std::cerr << RED ;
-	std::cerr << msg << ": ";
-	std::cerr << strerror(errno) << "\n";
-	std::cerr << RESET ;
+	std::cerr << RED << msg << ": " << strerror(errno) << "\n" << RESET ;
 }
 
 void throwError(std::string msg, std::string bName) {
