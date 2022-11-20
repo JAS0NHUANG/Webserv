@@ -28,9 +28,9 @@ class Request {
 
 		std::deque<std::string>				getlines(std::string buf);
 		void								parse_line(std::deque<std::string> &lines);
-		void								process_request_line(std::vector<std::string> &tokens);
-		void								process_header(std::vector<std::string> &tokens);
-		void								process_body(std::vector<std::string> &tokens);
+		void								process_request_line(std::deque<std::string> &lines);
+		void								process_header(std::deque<std::string> &lines);
+		void								process_body(std::deque<std::string> &lines);
 		std::vector<std::string>			ft_split(const char *str, const char *charset);
 		void								remove_cr_char(std::deque<std::string> &lines);
 		Request();

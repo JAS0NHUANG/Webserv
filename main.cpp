@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 		throwParsingError("", "", argv[0], argv[1]);
 		throwError("", argv[0]);
 		parseFile(argv[1], conf);
-		for (it = conf.begin(); it != conf.end(); it++)
-			(*it).debug();
+		// for (it = conf.begin(); it != conf.end(); it++)
+		// 	(*it).debug();
 		std::cout << YEL << "Number of server : " << conf.size() << "\n" << RESET;
 
 		// create sockets

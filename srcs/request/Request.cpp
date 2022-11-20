@@ -34,8 +34,10 @@ void Request::remove_cr_char(std::deque<std::string> &lines) {
 	}
 }
 
-void Request::process_request_line(std::vector<std::string> &tokens) {
+void Request::process_request_line(std::deque<std::string> &lines) {
 	std::cout << "process_request_line\n";
+
+	std::vector<std::string> tokens = ft_split(lines.front().c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
 	for (; it != tokens.end() && (*it).empty(); it++) ;
 
@@ -81,14 +83,17 @@ void Request::process_request_line(std::vector<std::string> &tokens) {
 
 // NOTE : What to do if same header names are received ???
 // NOTE
-void Request::process_header(std::vector<std::string> &tokens) {
+void Request::process_header(std::deque<std::string> &lines) {
 	std::cout << "process_headers\n";
+	std::vector<std::string> tokens = ft_split(lines.front().c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
 
 	if (it == tokens.end()) {
 		std::cout << "NO MORE HEADERS TO READ.\n";
 		if (!_host_header_received)
 			std::cerr << RED "400 BAD REQUEST HOST HEADER NOT RECEIVED\n" RESET;
+		else
+			_process_headers = false;
 		return;
 	}
 
@@ -97,18 +102,28 @@ void Request::process_header(std::vector<std::string> &tokens) {
 		std::cout << "Header was |" << *it << "|\n"; 
 		return;
 	}
-	(*it).erase((*it).size() - 1, 1); // Erasing ':'
 
-	// NOTE : To continue ...
+	std::string header_name(*it);
+	if (header_name == "Host:")
+		_host_header_received = true;
 
-	// std::string name(*it);
-	// ++it;
-	// if (it == tokens.end())
-	// _headers[*it] 
+	++it;
+	if (it == tokens.end()) {
+		// NOTE : is it really an error
+		std::cerr << RED "400 BAD REQUEST HEADER FIELD DO CONTAINS VALUE\n" RESET; 
+		return;
+	}
+	_headers[header_name] = *it;
+	if (++it != tokens.end()) {
+		std::cerr << RED "Care there is more header value tokens that will go in the void\n" RESET;
+	}
 }
 
-void Request::process_body(std::vector<std::string> &tokens) {
-	(void)tokens;
+void Request::process_body(std::deque<std::string> &lines) {
+	// NOTE : The body must not be tokenize
+	// That means ft_split is at the wrong place
+
+	(void)lines;
 	std::cout << "process_body\n";
 }
 
@@ -123,19 +138,16 @@ void Request::parse_line(std::deque<std::string> &lines) {
 	for (; it != lines.end(); it++)
 		std::cout << "req_line : |" << *it << "|" << std::endl;
 
-	std::vector<std::string> tokens;
+
 	while (!lines.empty()) {
-		tokens = ft_split(lines.front().c_str(), "\t\v\r ");
-
-		for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); it++)
-			std::cout << "TOKEN : |" << *it << "|\n";
-
 		if (_process_request_line)
-			process_request_line(tokens);
-		else if (_process_headers)
-			process_header(tokens);
+			process_request_line(lines);
+		else if (_process_headers) {
+			process_header(lines);
+			// Maybe parse the header right here to know what to do next
+		}
 		else
-			process_body(tokens);
+			process_body(lines);
 
 		lines.pop_front();
 	}
