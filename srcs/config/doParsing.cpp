@@ -125,7 +125,7 @@ void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Serve
 	if (isNum(qu.front().front()) == false)
 		throwParsingError(std::string(qu.front().front() + " is not an integer"), toString(line));
 
-	conf.set_client_max_body_size(toULL(qu.front().front()));
+	conf.set_client_max_body_size(toULL(qu.front().front()) * 1000000);
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 

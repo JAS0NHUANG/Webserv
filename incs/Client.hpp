@@ -22,13 +22,13 @@ class Client {
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
 		int									_code;
-		unsigned long long					_max_body_size; // NOTE : to set
 		std::stringstream					_ss;
 		bool								_process_request_line;
 		bool								_host_header_received;
 		bool								_process_headers;
 		std::time_t							_timeout;
 		int									_fd;
+		Server								_conf;
 
 		// parsing
 		void								parse_line(std::deque<std::string> &lines);
@@ -49,7 +49,7 @@ class Client {
 
 	public:
 		Client();
-		Client(int fd);
+		Client(int fd, Server conf);
 		Client(const Client &src);
 		Client& operator=(const Client &src);
 		~Client();

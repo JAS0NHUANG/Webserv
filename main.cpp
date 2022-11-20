@@ -23,13 +23,13 @@ int main(int argc, char *argv[])
 
 		// create sockets
 		for (it = conf.begin(); it != conf.end(); it++) {
-			std::cout << GRN <<  "\naddress: " << (*it).get_address() << ", port: " << (*it).get_port() << RESET;
-			socket_list.push_back(Socket((*it).get_port(), (*it).get_address()));
+			std::cout << GRN <<  "\naddress: " << (*it).get_address() << ", port: " << (*it).get_port() << "\n" RESET;
+			socket_list.push_back(Socket((*it).get_port(), (*it).get_address(), *it));
 		}
 		std::cout << GRN << "\nSockets created!\n" << RESET;
 
-		// run epoll
-		run_server(socket_list, conf);
+		// run server
+		run_server(socket_list);
 	}
 	catch (std::string &str) {
 		std::cerr << RED << str << "\n" << RESET;

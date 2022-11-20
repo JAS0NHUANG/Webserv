@@ -20,7 +20,6 @@
 #include <queue>
 
 // Classes
-class Server;
 #include "Location.hpp"
 #include "Server.hpp"
 #include "Socket.hpp"

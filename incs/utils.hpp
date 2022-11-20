@@ -7,6 +7,6 @@ void	*ft_memset(void *s, int c, size_t n);
 void	errMsgErrno(std::string msg);
 void	throwError(std::string msg, std::string bName = "");
 
-int		run_server(std::vector<Socket> &socket_list, std::vector<Server> &conf);
+int		run_server(std::vector<Socket> &socket_list);
 
 #endif

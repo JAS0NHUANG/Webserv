@@ -43,12 +43,12 @@ static void add_event(int epollfd,int fd,int state){
 		throwError("epoll_ctl");
 }
 
-static int check_event_fd(int event_fd, std::vector<Socket> &socket_list) {
-	for(int i = 0;i < (int)socket_list.size();i++) {
-		if (event_fd == socket_list[i].getSockFd())
-			return (1);
-	}
-	return (0);
+static std::vector<Socket>::iterator check_event_fd(int event_fd, std::vector<Socket> &socket_list) {
+	std::vector<Socket>::iterator it = socket_list.begin();
+	for (; it != socket_list.end(); it++)
+		if (event_fd == (*it).getSockFd())
+			break;
+	return it;
 }
 
 int accept_conn(struct epoll_event ev, int epollfd) {
@@ -65,9 +65,8 @@ int accept_conn(struct epoll_event ev, int epollfd) {
 	return conn_sock;
 }
 
-int run_server(std::vector<Socket> &socket_list, std::vector<Server> &conf) {
+int run_server(std::vector<Socket> &socket_list) {
 
-	(void)conf;
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients;
@@ -90,18 +89,22 @@ int run_server(std::vector<Socket> &socket_list, std::vector<Server> &conf) {
 
 		// Loop that handle events happening on server fd and connections fds
 		for (int n = 0; n < event_fds; ++n) {
-			std::cout << MAG <<  "n :" << n << " event_fds :" << event_fds << std::endl << RESET; 
+			std::cout << MAG << "n :" << n << " event_fds :" << event_fds << std::endl << RESET; 
 			std::cout << MAG << "n :" << n << " current event fd :" << events[n].data.fd << std::endl << RESET;
-			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP){
+
+			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP) {
 				errMsgErrno("event error");
 				continue;
 			}
+
 			// Accepting a new connection
-			else if (check_event_fd(events[n].data.fd, socket_list)) {
+			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd, socket_list);
+			if (it != socket_list.end()) {
 				int conn_sock = accept_conn(events[n], epollfd);
-				Client new_client(conn_sock);
+				Client new_client(conn_sock, (*it).getConf());
 				clients[conn_sock] = new_client;
 			}
+
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				done = clients[events[n].data.fd].recv_request();
@@ -113,6 +116,7 @@ int run_server(std::vector<Socket> &socket_list, std::vector<Server> &conf) {
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_MOD)");
 				}
 			}
+
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";

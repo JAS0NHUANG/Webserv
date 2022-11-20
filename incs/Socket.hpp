@@ -7,14 +7,16 @@
 
 #include "webserv.hpp"
 
-int create_socket(void);
-
 class Socket {
 	private:
+		// put into a struct socket
 		short			_port;
 		int				_sock_fd;
 		sockaddr_in		_addr;
 		size_t			_addr_len;
+		Server			_conf;
+
+		// save configuration for this address:port
 
 	public:
 		// canonical
@@ -23,12 +25,13 @@ class Socket {
 		Socket(const Socket &toCopy);
 		Socket&			operator=(const Socket &toAssign);
 
-		Socket(int port, std::string address);
+		Socket(int port, std::string address, Server conf);
 		// getter
 		int				getPort(void);
 		int				getSockFd(void);
 		int				getAddr(void);
 		int				getAddrLen(void);
+		Server			getConf(void);
 };
 
 #endif

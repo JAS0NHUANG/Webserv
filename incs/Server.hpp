@@ -1,7 +1,7 @@
 #ifndef SERVER_CONF_HPP
 #define SERVER_CONF_HPP
 
-#include "webserv.hpp"
+#include "Location.hpp"
 
 class Server : public Location {
 	private:

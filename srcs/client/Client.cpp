@@ -2,12 +2,13 @@
 
 Client::Client() {}
 
-Client::Client(int fd) :
+Client::Client(int fd, Server conf) :
 	_process_request_line(true),
 	_host_header_received(false),
 	_process_headers(true),
 	_timeout(std::time(NULL)),
-	_fd(fd) {}
+	_fd(fd),
+	_conf(conf) {}
 
 Client::Client(const Client &src) {
 	*this = src;
@@ -17,11 +18,14 @@ Client& Client::operator=(const Client &src) {
 	_method					= src._method;
 	_path					= src._path;
 	_headers				= src._headers;
+	_body					= src._body;
+	_code					= src._code;
 	_process_request_line	= src._process_request_line;
 	_host_header_received	= src._host_header_received;
 	_process_headers		= src._process_headers;
 	_timeout				= src._timeout;
 	_fd						= src._fd;
+	_conf					= src._conf;
 	return *this;
 }
 
@@ -124,7 +128,7 @@ void Client::process_body(std::string &line) {
 	std::cout << "process_body\n";
 	// NOTE : Each time this function is called, need to check max_body_size
 
-	if (_body.size() + line.size() > _max_body_size) {
+	if (_body.size() + line.size() > _conf.get_client_max_body_size()) {
 		std::cerr << RED "ERR_CODE MAX BODY SIZE REACHED\n" RESET;
 		return;
 	}
