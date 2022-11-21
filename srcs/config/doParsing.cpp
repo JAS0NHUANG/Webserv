@@ -13,7 +13,7 @@ void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 	
 }
 
-void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
+void doListenParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
@@ -54,7 +54,7 @@ void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, in
 	eraseToken(qu, line);
 }
 
-void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
+void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
@@ -74,7 +74,7 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf
 }
 
 
-void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
+void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
@@ -111,7 +111,7 @@ void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf,
 	eraseToken(qu, line);
 }
 
-void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
+void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
@@ -262,7 +262,7 @@ void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &c
 	eraseToken(qu, line);
 }
 
-void doLocationParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line) {
+void doLocationParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 

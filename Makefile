@@ -24,7 +24,7 @@ endif
 # **************************************************************************** #
 SRCS		=	main.cpp \
 				srcs/config/Location.cpp \
-				srcs/config/Server.cpp \
+				srcs/config/Config.cpp \
 				srcs/config/configParsing.cpp \
 				srcs/config/utilsParsing.cpp \
 				srcs/config/saveFile.cpp \

@@ -2,7 +2,7 @@
 
 Client::Client() {}
 
-Client::Client(int fd, Server conf) :
+Client::Client(int fd, Config conf) :
 	_process_request_line(true),
 	_host_header_received(false),
 	_process_headers(true),

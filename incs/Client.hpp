@@ -28,7 +28,7 @@ class Client {
 		bool								_process_headers;
 		std::time_t							_timeout;
 		int									_fd;
-		Server								_conf;
+		Config								_conf;
 
 		// parsing
 		void								parse_line(std::deque<std::string> &lines);
@@ -49,7 +49,7 @@ class Client {
 
 	public:
 		Client();
-		Client(int fd, Server conf);
+		Client(int fd, Config conf);
 		Client(const Client &src);
 		Client& operator=(const Client &src);
 		~Client();

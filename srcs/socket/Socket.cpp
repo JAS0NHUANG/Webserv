@@ -1,6 +1,6 @@
 #include "../../incs/webserv.hpp"
 
-Socket::Socket(int port, std::string address, Server conf) :
+Socket::Socket(int port, std::string address, Config conf) :
 	_port(port),
 	_conf(conf) {
 
@@ -91,6 +91,6 @@ int	Socket::getSockFd(void) {
 	return (this->_sock_fd);
 }
 
-Server Socket::getConf(void) {
+Config Socket::getConf(void) {
 	return _conf;
 }

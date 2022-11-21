@@ -21,7 +21,7 @@ void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &l
 		throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
 }
 
-void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> &conf) {
+void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf) {
 
 	int line		= 1;
 	directives d	= e_neutral;
@@ -39,7 +39,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> 
 
 		if (d == e_neutral) {
 			doServerParsing(qu, line);
-			conf.push_back(Server());
+			conf.push_back(Config());
 			d = e_server;
 		}
 		
@@ -94,7 +94,7 @@ void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
 	}
 }
 
-void parseFile(char *fileName, std::vector<Server> &conf)
+void parseFile(char *fileName, std::vector<Config> &conf)
 {
 	std::queue<std::vector<std::string> >	qu;
 

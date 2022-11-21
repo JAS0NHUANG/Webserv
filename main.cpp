@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
 	}
 
 	std::vector<Socket> socket_list;
-	std::vector<Server> conf;
-	std::vector<Server>::iterator it;
+	std::vector<Config> conf;
+	std::vector<Config>::iterator it;
 
 	try {
 		// get configuration info

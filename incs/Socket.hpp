@@ -14,7 +14,7 @@ class Socket {
 		int				_sock_fd;
 		sockaddr_in		_addr;
 		size_t			_addr_len;
-		Server			_conf;
+		Config			_conf;
 
 		// save configuration for this address:port
 
@@ -25,13 +25,13 @@ class Socket {
 		Socket(const Socket &toCopy);
 		Socket&			operator=(const Socket &toAssign);
 
-		Socket(int port, std::string address, Server conf);
+		Socket(int port, std::string address, Config conf);
 		// getter
 		int				getPort(void);
 		int				getSockFd(void);
 		int				getAddr(void);
 		int				getAddrLen(void);
-		Server			getConf(void);
+		Config			getConf(void);
 };
 
 #endif

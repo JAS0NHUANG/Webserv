@@ -1,9 +1,9 @@
-#ifndef SERVER_CONF_HPP
-#define SERVER_CONF_HPP
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
 
 #include "Location.hpp"
 
-class Server : public Location {
+class Config : public Location {
 	private:
 		/* Just the address that webserv will listen for */
 		std::string	_address;
@@ -26,10 +26,10 @@ class Server : public Location {
 
 		void debug() const;
 
-		Server();
-		~Server();
-		Server(const Server &x);
-		Server& operator=(const Server &x);
+		Config();
+		~Config();
+		Config(const Config &x);
+		Config& operator=(const Config &x);
 
 		std::string					get_address() const; // Default is 0.0.0.0
 		int							get_port() const; // Default is 80

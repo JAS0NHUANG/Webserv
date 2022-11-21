@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef CONFIG_PARSING_HPP
+#define CONFIG_PARSING_HPP
 
 enum directives {
 	e_unknown,
@@ -26,17 +26,17 @@ void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu);
 
 // configParsing.cpp
 void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Server> &conf);
+void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf);
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu);
-void parseFile(char *fileName, std::vector<Server> &conf);
+void parseFile(char *fileName, std::vector<Config> &conf);
 
 // doParsing.cpp
 void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line);
-void doListenParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
-void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
-void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
-void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
-void doLocationParsing(std::queue<std::vector<std::string> > &qu, Server &conf, int &line);
+void doListenParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void doLocationParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
 void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);

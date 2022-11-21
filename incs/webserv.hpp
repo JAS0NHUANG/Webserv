@@ -21,11 +21,11 @@
 
 // Classes
 #include "Location.hpp"
-#include "Server.hpp"
+#include "Config.hpp"
 #include "Socket.hpp"
 #include "Client.hpp"
 
-#include "config.hpp"
+#include "config_parsing.hpp"
 #include "utils.hpp"
 #include "colorcodes.hpp"
 
