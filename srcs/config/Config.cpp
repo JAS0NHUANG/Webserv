@@ -1,4 +1,4 @@
-#include "../../incs/Config.hpp"
+#include "Config.hpp"
 
 void debug_print(std::map<std::string, Location> x) {
 	for (std::map<std::string, Location>::iterator it = x.begin(); it != x.end(); it++) {

@@ -1,9 +1,4 @@
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <sys/epoll.h> 
-
-#include "../../incs/webserv.hpp"
+#include "webserv.hpp"
 
 #define PORT_NUM	4242	// Notes: change it to port 80 (http)
 #define BACKLOG		5		// Notes: change it to something bigger
@@ -81,7 +76,7 @@ int run_server(std::vector<Socket> &socket_list) {
 		add_event(epollfd, socket_list[i].getSockFd(), EPOLLIN);
 	}
 
-	while (true) {
+	while (g_shutdown) {
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
 		if (event_fds == -1)
@@ -101,7 +96,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd, socket_list);
 			if (it != socket_list.end()) {
 				int conn_sock = accept_conn(events[n], epollfd);
-				Client new_client(conn_sock, (*it).getConf());
+				Client new_client(conn_sock, (*it).getConf()); 
 				clients[conn_sock] = new_client;
 			}
 

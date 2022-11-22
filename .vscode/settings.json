@@ -54,6 +54,7 @@
 		"cinttypes": "cpp",
 		"set": "cpp",
 		"fstream": "cpp",
-		"ctime": "cpp"
+		"ctime": "cpp",
+		"csignal": "cpp"
 	}
 }

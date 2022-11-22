@@ -1,4 +1,4 @@
-#include "../../incs/webserv.hpp"
+#include "webserv.hpp"
 
 void eraseToken(std::queue<std::vector<std::string> > &qu, int &line) {
 	qu.front().erase(qu.front().begin());

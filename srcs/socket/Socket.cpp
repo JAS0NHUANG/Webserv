@@ -1,4 +1,4 @@
-#include "../../incs/webserv.hpp"
+#include "webserv.hpp"
 
 Socket::Socket(int port, std::string address, Config conf) :
 	_port(port),

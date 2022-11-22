@@ -1,4 +1,4 @@
-#include "../../incs/webserv.hpp"
+#include "webserv.hpp"
 
 void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 	if (qu.front().front() != "server")

@@ -1,4 +1,4 @@
-#include "../../incs/utils.hpp"
+#include "utils.hpp"
 
 void	*ft_memset(void *s, int c, size_t n)
 {
@@ -20,4 +20,10 @@ void throwError(std::string msg, std::string bName) {
 		return;
 
 	throw std::string(binName + ": " + msg + ": " + strerror(errno));
+}
+
+void str_to_lower(std::string &str) {
+	std::string::iterator it = str.begin();
+	for (; it != str.end(); it++)
+		*it = std::tolower(*it);
 }

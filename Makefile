@@ -13,6 +13,7 @@ NAME		=	webserv
 #       FLAGS                                                                  #
 # **************************************************************************** #
 CFLAGS		=	-Wall -Wextra -Werror -std=c++98
+INCS		=	-Iincs
 RMFLAGS		=	-rf
 
 ifeq ($(VERBOSE), true)
@@ -32,7 +33,9 @@ SRCS		=	main.cpp \
 				srcs/socket/Socket.cpp \
 				srcs/server/run_server.cpp \
 				srcs/utils/utils.cpp \
-				srcs/client/Client.cpp
+				srcs/client/Client.cpp \
+				srcs/client/Client_recv.cpp \
+				srcs/client/Client_send.cpp
 
 # **************************************************************************** #
 #       RULES                                                                  #
@@ -40,10 +43,10 @@ SRCS		=	main.cpp \
 OBJS		=	$(SRCS:.cpp=.o)
 
 %.o			:	%.cpp
-				$(CPP) $(CFLAGS) -c $< -o $@
+				$(CPP) $(CFLAGS) $(INCS) -c $< -o $@
 
 $(NAME)		:	$(OBJS)
-				$(CPP) $(CFLAGS) -o $@ $(OBJS)
+				$(CPP) $(CFLAGS) $(INCS) -o $@ $(OBJS)
 
 all			:	$(NAME)
 

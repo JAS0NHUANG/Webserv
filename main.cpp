@@ -1,8 +1,16 @@
-#include "./incs/webserv.hpp"
+#include "webserv.hpp"
+
+std::sig_atomic_t g_shutdown = 1;
+
+void	signal_handler(int signal) {
+	if (signal == SIGINT)
+		g_shutdown = 0;
+}
 
 // NOTE: Use throw and catch for error (like parsing errors)
 int main(int argc, char *argv[])
 {
+	std::signal(SIGINT, signal_handler);
 	if (argc != 2) {
 		std::cerr << RED << "Configuration file is missing. Please give it as first parameter.\n" << RESET;
 		return 1;
