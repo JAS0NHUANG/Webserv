@@ -31,6 +31,8 @@ bool Client::send_client_error_response() const {
 		response = "HTTP/1.1 400 Bad Request\n";
 	else if (_code == 405)
 		response = "HTTP/1.1 405 Method Not Allowed\n";
+	else if (_code == 414)
+		response = "HTTP/1.1 414 URI Too Long";
 
 	if (send(_fd, response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
@@ -65,7 +67,7 @@ bool Client::send_response() {
 		return true;
 	}
 
-	bool close_conn;
+	bool close_conn = false;
 	if (_code >= 200 && _code <= 299)
 		close_conn = send_successful_response();
 	else if (_code >= 400 && _code <= 499)

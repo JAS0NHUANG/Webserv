@@ -17,7 +17,7 @@ Client::Client(const Client &src) {
 
 Client& Client::operator=(const Client &src) {
 	_method					= src._method;
-	_path					= src._path;
+	_request_target			= src._request_target;
 	_headers				= src._headers;
 	_body					= src._body;
 	_code					= src._code;
@@ -36,11 +36,11 @@ std::string Client::get_method() const {
 	return _method;
 }
 
-std::string Client::get_path() const {
-	return _path;
+std::string Client::get_request_target() const {
+	return _request_target;
 }
 
-std::map<std::string, std::vector<std::string> > Client::get_headers() const {
+std::map<std::string, std::string> Client::get_headers() const {
 	return _headers;
 }
 

@@ -9,17 +9,25 @@ void Client::remove_cr_char(std::deque<std::string> &lines) {
 	}
 }
 
+std::string Client::get_query_string(std::string &request_target) {
+	std::string str;
+
+	std::string::size_type i = request_target.find("?");
+	if (i != std::string::npos) {
+		str.assign(request_target.begin() + i, request_target.end());
+		request_target.erase(i, request_target.size());
+	}
+
+	return str;
+}
+
 void Client::process_request_line(std::string &line) {
 	std::cout << "process_request_line\n";
 
 	std::vector<std::string> tokens = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
-	for (; it != tokens.end() && (*it).empty(); it++) ;
 
-	if (it == tokens.end())
-		return;
-
-	// Change method to a simple string
+	// Check if method is supported
 	if (*it == "GET") {
 		if(!_conf.is_method_allowed(GET))
 			throw 405;
@@ -40,22 +48,23 @@ void Client::process_request_line(std::string &line) {
 		throw 501;
 	}
 
+	// Check if request target has been recv
 	if (++it == tokens.end())
 		throw 400;
 
-	// NOTE : if request-target is in absolute form, we need to parse it
+	// Check is uri is too long
+	if ((*it).size() > 418000)
+		throw 414;
 
-	// NOTE : TO DO 
-	// if ((*it).size() > 16000) {
-	// 	std::cerr << RED "501 Not Implemented URI Too Long";
-	// 	throw 501;
-	// }
+	// Get request target and query string if any
+	_request_target = *it;
+	_query_string =  get_query_string(_request_target);
 
-	_path = *it;
-
+	// Check if there is the http version
 	if (++it == tokens.end())
 		throw 400;
 
+	// Check if the http version is valid
 	if (*it != "HTTP/1.1")
 		throw 400;
 
@@ -72,14 +81,8 @@ bool Client::field_name_has_whitespace(std::string &field_name) const {
 	return false;
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
-
-// https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
-
-// NOTE : What to do if same header names are received ???
 void Client::process_field_line(std::string &line) {
-	std::cout << "process_headers\n";
+	std::cout << "process_field_line\n";
 	std::string					field_name;
 	std::vector<std::string>	field_values;
 
@@ -90,8 +93,7 @@ void Client::process_field_line(std::string &line) {
 			throw 400;
 		str_to_lower(field_name);
 		line.erase(0, i + 1);
-		// NOTE : TOKENIZE FIELD VALUE IN ACCORDANCE WITH RFC 9112
-		_headers[field_name] = std::vector<std::string>(); // Fill with the list of field values
+		_headers[field_name] = line;
 		return;
 	}
 	else if (line.empty()) {
@@ -115,6 +117,7 @@ void Client::process_body(std::string &line) {
 		return ;
 
 	if (line.empty()) {
+		// _request_is_complete = true;
 		_code = 201;
 		return;
 	}
@@ -138,10 +141,8 @@ void Client::parse_line(std::deque<std::string> &lines) {
 	while (!lines.empty()) {
 		if (_process_request_line)
 			process_request_line(lines.front());
-		else if (_process_headers) {
+		else if (_process_headers)
 			process_field_line(lines.front());
-			// Maybe parse the header right here to know what to do next
-		}
 		else
 			process_body(lines.front());
 

@@ -18,9 +18,10 @@ class Client {
 	protected:
 		// underlying datas
 		std::string							_method;
-		std::string							_path;
-		std::map<std::string, std::vector<std::string> >	_headers;
+		std::string							_request_target;
+		std::map<std::string, std::string>	_headers;
 		std::string							_body;
+		std::string							_query_string;
 		int									_code;
 		std::stringstream					_ss;
 		bool								_process_request_line;
@@ -33,6 +34,7 @@ class Client {
 		// parsing
 		void								parse_line(std::deque<std::string> &lines);
 		void								process_request_line(std::string &line);
+		std::string							get_query_string(std::string &request_target);
 		void								process_field_line(std::string &line);
 		bool								field_name_has_whitespace(std::string &field_name) const;
 		void								process_body(std::string &line);
@@ -67,8 +69,8 @@ class Client {
 
 		// getters
 		std::string							get_method() const;
-		std::string							get_path() const;
-		std::map<std::string, std::vector<std::string> >	get_headers() const;
+		std::string							get_request_target() const;
+		std::map<std::string, std::string>	get_headers() const;
 		int									get_fd() const;
 };
 
