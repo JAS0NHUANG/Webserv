@@ -57,6 +57,7 @@ bool Client::send_response() {
 	// Returns true if we need to close the connection
 	// If send() fails return true anyway
 	std::cout << "Sending response\n";
+	//bool close_conn = 1;
 
 	if (_code == 0) { // Temporarys statement (for test purpose)
 		std::string response("HTTP/1.1 200 OK\n\nHello world\n");
@@ -65,7 +66,7 @@ bool Client::send_response() {
 		return true;
 	}
 
-	bool close_conn;
+	bool close_conn = 1;
 	if (_code >= 200 && _code <= 299)
 		close_conn = send_successful_response();
 	else if (_code >= 400 && _code <= 499)
