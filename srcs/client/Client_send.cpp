@@ -1,5 +1,5 @@
 #include "Client.hpp"
-
+#include "../../Response.hpp"
 bool Client::send_informational_response() const {
 	return true;
 }
@@ -57,7 +57,40 @@ bool Client::send_response() {
 	// Returns true if we need to close the connection
 	// If send() fails return true anyway
 	std::cout << "Sending response\n";
-	//bool close_conn = 1;
+
+	bool close_conn = 1;
+	// if (_code >= 200 && _code <= 299)
+	// 	close_conn = send_successful_response();
+	if (_code >= 400 && _code <= 499)
+		return send_client_error_response();
+	else if (_code >= 500 && _code <= 599)
+		return send_server_error_response();
+	
+	std::cerr << "_method:" << this->_method << "\n";
+	std::cerr << "_method:" << this->_path << "\n";
+	std::cerr << "_method:" << this->_body << "\n";
+
+	close_conn = 0;
+	Response rsps(this);
+
+	//redirection???
+	//check_httpvserion();
+	// check_location(){
+	// 	if_location_exit?
+	// 	//if_method_allow?
+	// 	if_location_
+	// }
+	// if cgi{
+
+	// }else if method  get{
+	// 	if autoindex()
+
+	// } else if method post{
+
+	// } else if method deleted{
+
+	// }
+
 
 	if (_code == 0) { // Temporarys statement (for test purpose)
 		std::string response("HTTP/1.1 200 OK\n\nHello world\n");
@@ -65,14 +98,6 @@ bool Client::send_response() {
 			errMsgErrno("send failed");
 		return true;
 	}
-
-	bool close_conn = 1;
-	if (_code >= 200 && _code <= 299)
-		close_conn = send_successful_response();
-	else if (_code >= 400 && _code <= 499)
-		close_conn = send_client_error_response();
-	else if (_code >= 500 && _code <= 599)
-		close_conn = send_server_error_response();
 
 	return close_conn;
 }
