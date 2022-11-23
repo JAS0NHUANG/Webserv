@@ -235,6 +235,10 @@ void doCgiParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int
 	throwIfFileIsEmpty(qu, line);
 
 	std::string ext = qu.front().front();
+
+	if (ext[0] != '.')
+		ext = "." + ext;
+
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
