@@ -1,4 +1,5 @@
 #include "webserv.hpp"
+#include "../../Response.hpp"
 
 #define PORT_NUM	4242	// Notes: change it to port 80 (http)
 #define BACKLOG		5		// Notes: change it to something bigger
@@ -111,11 +112,12 @@ int run_server(std::vector<Socket> &socket_list) {
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_MOD)");
 				}
 			}
-
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";
-				done = clients[events[n].data.fd].send_response();
+				Response response(clients[events[n].data.fd]);
+				//done = clients[events[n].data.fd].send_response();
+				done = response.send_response();
 
 				if (done) {
 					clients.erase(events[n].data.fd);

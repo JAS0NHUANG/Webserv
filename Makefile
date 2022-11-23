@@ -35,7 +35,8 @@ SRCS		=	main.cpp \
 				srcs/utils/utils.cpp \
 				srcs/client/Client.cpp \
 				srcs/client/Client_recv.cpp \
-				srcs/client/Client_send.cpp
+				srcs/client/Client_send.cpp \
+				Response.cpp 
 
 # **************************************************************************** #
 #       RULES                                                                  #

@@ -70,6 +70,8 @@ class Client {
 		std::string							get_path() const;
 		std::map<std::string, std::vector<std::string> >	get_headers() const;
 		int									get_fd() const;
+		int 								get_code() const;
+		Config 								get_conf() const; 
 };
 
 #endif

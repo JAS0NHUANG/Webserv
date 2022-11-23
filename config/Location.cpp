@@ -20,7 +20,7 @@ void debug_print(std::vector<std::string> x) {
 void debug_print(std::map<int, std::pair<int, std::string> > x) {
 	std::map<int, std::pair<int, std::string> >::iterator it = x.begin();
 	for (; it != x.end(); it++)
-		std::cout << " cgi :[ " << it->first << " | " << it->second.first << " | " << it->second.second << "] ";
+		std::cout << "[ " << it->first << " | " << it->second.first << " | " << it->second.second << "] ";
 	std::cout << "\n";
 }
 

@@ -48,6 +48,13 @@ int Client::get_fd() const {
 	return _fd;
 }
 
+int Client::get_code() const {
+	return _code;
+}
+Config 	Client::get_conf() const{
+	return _conf;
+}
+
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
 {

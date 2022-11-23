@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "../../Response.hpp"
+
 bool Client::send_informational_response() const {
 	return true;
 }
@@ -53,7 +54,7 @@ bool Client::send_server_error_response() const {
 }
 
 bool Client::send_response() {
-	// NOTE : TO DEV
+// NOTE : TO DEV
 	// Returns true if we need to close the connection
 	// If send() fails return true anyway
 	std::cout << "Sending response\n";
@@ -71,7 +72,7 @@ bool Client::send_response() {
 	std::cerr << "_method:" << this->_body << "\n";
 
 	close_conn = 0;
-	Response rsps(this);
+	//Response rsps(this);
 
 	//redirection???
 	//check_httpvserion();

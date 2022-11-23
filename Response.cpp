@@ -1,7 +1,78 @@
 #include "Response.hpp"
 #include "incs/Client.hpp"
 
-Response::Response(Client client): this->client(client){
+
+bool Response::send_informational_response() const {
+	return true;
+}
+
+bool Response::send_successful_response() const {
+
+	std::string response;
+	// if (_code == 200)
+	// 	response = "HTTP/1.1 200 OK\n\nHello world\n";
+	// else if (_code == 201) {
+	// 	response = "HTTP/1.1 201 Created\nLocation: /\n\n";
+	// }
+	response = "HTTP/1.1 200 OK\n\nHello world\n";
+	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+	return true;
+}
+
+bool Response::send_redirection_message() const {
+	return true;
+}
+
+bool Response::send_client_error_response() const {
+	// NOTE : Search into Config if there is default
+	// error pages set.
+	std::string response;
+	std::string myline;
+
+	response = "HTTP/1.1 ";
+	response += toString(this->status_code);
+	response += " ";
+	response += this->get_code_msg(this->status_code);
+	response += "\n";
+	response += "Server: Tengine\nConnection: keep-alive\nDate: Wed, 30 Nov 2016 07:58:21 GMT\nCache-Control: no-cache\nContent-Type: text/html;charset=UTF-8\nKeep-Alive: timeout=20\nVary: Accept-Encoding\nPragma: no-cache\nX-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395\nContent-Length: 180945\n\r\n";
+	std::ifstream myfile ("tests/www/errors/404.html");
+	if (myfile.is_open()){
+		while(myfile){
+			std::getline (myfile, myline);
+			response += myline;
+		}
+	}
+	std::cerr << "hteml :" <<response << "\n";
+	// if (this->client.get_code() == 400)
+	// 	response = "HTTP/1.1 400 Bad Request\n";
+	// else if (this->client.get_code() == 404)
+	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
+	// else if (this->client.get_code() == 405)
+	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
+
+	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+	return true;
+}
+
+bool Response::send_server_error_response() const {
+
+	std::string response;
+	if (this->client.get_code() == 500)
+		response = "HTTP/1.1 500 Internal Server Error\n";
+	else if (this->client.get_code() == 501)
+		response = "HTTP/1.1 501 Not Implemented\n";
+	else if (this->client.get_code() == 505)
+		response = "HTTP/1.1 505 HTTP Version Not Supported\n";
+
+	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+			errMsgErrno("send failed");
+	return true;
+}
+
+Response::Response(Client client): client(client){
+	std::cerr << "response creet!!!\n";
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
 	this->status_code = 0;
@@ -9,9 +80,68 @@ Response::Response(Client client): this->client(client){
 Response::~Response(void){
 
 }
+bool Response::send_response(){
+	// NOTE : TO DEV
+	// Returns true if we need to close the connection
+	// If send() fails return true anyway
+	std::cout << "Sending response\n";
+	this->status_code = this->client.get_code();
 
-std::string Response::get_code_msg(int status_code){
-    return this->status_code_list[status_code];
+	bool close_conn = 1;
+	// if (_code >= 200 && _code <= 299)
+	// 	close_conn = send_successful_response();
+	if (this->status_code >= 400 && this->status_code <= 499)
+		return send_client_error_response();
+	else if (this->status_code >= 500 && this->status_code <= 599)
+		return send_server_error_response();
+	
+	close_conn = 0;
+	//redirection???
+	//check_httpvserion();
+
+	// check_location()
+	// 	if_location_exit?
+	// 	//if_method_allow?
+	// 	if_location_
+	// }
+	// if cgi{
+	Config conf = this->client.get_conf();
+	conf.debug();
+	//int if_cgi = 0;
+	std::cerr << "std::map" << this->client.get_path() << "\n";
+	std::cerr << "std::map<std::string, Location>" << conf.get_location(this->client.get_path()).first << "\n";
+	//if location exist;
+	Location check_location;
+	if (conf.get_location(this->client.get_path()).first == 0){
+		std::cerr << "INDSIE\n";
+		this->status_code = 404;
+		send_client_error_response();
+	}
+	//conf.get_location(this->client.get_path()).second;
+	std::cerr << "if cgi" <<  check_location.get_cgi().first << "\n";
+	//if (this->client->get_path()
+
+	// }else if method  get{
+	// 	if autoindex()
+
+	// } else if method post{
+
+	// } else if method deleted{
+
+	// }
+
+
+	if (this->client.get_code() == 0) { // Temporarys statement (for test purpose)
+		std::string response_ex("HTTP/1.1 200 OK\n\nHello world\n");
+		if (send(this->client.get_fd(), response_ex.c_str(), response_ex.size(), 0) < 0)
+			errMsgErrno("send failed");
+		return true;
+	}
+
+	return close_conn;
+}
+std::string Response::get_code_msg(int status_code) const{
+    return this->status_code_list.find(status_code)->second;
 }
 std::map<int, std::string> Response::init_code_msg()
 {
