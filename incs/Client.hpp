@@ -22,6 +22,7 @@ class Client {
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
 		std::string							_query_string;
+		std::string							_path;
 		int									_code;
 		std::stringstream					_ss;
 		bool								_process_request_line;
@@ -35,6 +36,8 @@ class Client {
 		void								parse_line(std::deque<std::string> &lines);
 		void								process_request_line(std::string &line);
 		std::string							get_query_string(std::string &request_target);
+		std::string							get_path(std::string request_target);
+		void								check_access(std::string request_target);
 		void								process_field_line(std::string &line);
 		bool								field_name_has_whitespace(std::string &field_name) const;
 		void								process_body(std::string &line);

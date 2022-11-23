@@ -176,6 +176,9 @@ void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, in
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
+	if ((qu.front().front().size() > 1) && *(qu.front().front().end() - 1) == '/')
+		qu.front().front().erase(qu.front().front().size() - 1);
+
 	conf.set_root(qu.front().front());
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
@@ -267,6 +270,10 @@ void doLocationParsing(std::queue<std::vector<std::string> > &qu, Config &conf, 
 	throwIfFileIsEmpty(qu, line);
 
 	std::string uri = qu.front().front();
+
+	if ((uri.size() > 1) && *(uri.end() - 1) == '/')
+		uri.erase(uri.size() - 1);
+
 	Location location(conf);
 
 	eraseToken(qu, line);

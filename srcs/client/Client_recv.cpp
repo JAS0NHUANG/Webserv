@@ -21,6 +21,46 @@ std::string Client::get_query_string(std::string &request_target) {
 	return str;
 }
 
+std::string Client::get_path(std::string request_target) {
+	std::string real_path;
+
+	if (request_target[0] != '/')
+		request_target = "/" + request_target;
+
+	std::string::iterator it = request_target.begin() + 1;
+	for (; it != request_target.end(); it++) {
+		if (*it == '/')
+			break;
+	}
+
+	std::string location(request_target.begin(), it);
+
+	request_target.erase(request_target.begin(), it);
+
+	std::pair<bool, Location> pr = _conf.get_location(location);
+	if (pr.first)
+		location = pr.second.get_root() + location + request_target;
+	else
+		location = _conf.get_root() + location + request_target;
+
+	return location;
+}
+
+void Client::check_access(std::string request_target) {
+
+	_path = get_path(request_target);
+
+	std::cout << "Final path : |" << _path << "|\n";
+
+	int code = access(_path.c_str(), 0);
+	if (code < 0) {
+		errMsgErrno("access");
+		if (errno == ENOENT)
+			throw 404; // Not Found
+		throw 500; //Internal error server
+	}
+}
+
 void Client::process_request_line(std::string &line) {
 	std::cout << "process_request_line\n";
 
@@ -57,8 +97,12 @@ void Client::process_request_line(std::string &line) {
 		throw 414;
 
 	// Get request target and query string if any
+	// and delete it from request_target
 	_request_target = *it;
 	_query_string =  get_query_string(_request_target);
+
+	// Check is the resource is accessible
+	check_access(_request_target);
 
 	// Check if there is the http version
 	if (++it == tokens.end())

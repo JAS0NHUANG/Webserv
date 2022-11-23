@@ -8,7 +8,7 @@ bool Client::send_successful_response() const {
 
 	std::string response;
 	if (_code == 200)
-		response = "HTTP/1.1 200 OK\n\nHello world\n";
+		response = "HTTP/1.1 200 OK\n\nHello world\n\n";
 	else if (_code == 201) {
 		response = "HTTP/1.1 201 Created\nLocation: /\n\n";
 	}
@@ -28,11 +28,13 @@ bool Client::send_client_error_response() const {
 	std::string response;
 
 	if (_code == 400)
-		response = "HTTP/1.1 400 Bad Request\n";
+		response = "HTTP/1.1 400 Bad Request\n\n";
+	else if (_code == 404)
+		response = "HTTP/1.1 404 Not Found\n\n";
 	else if (_code == 405)
-		response = "HTTP/1.1 405 Method Not Allowed\n";
+		response = "HTTP/1.1 405 Method Not Allowed\n\n";
 	else if (_code == 414)
-		response = "HTTP/1.1 414 URI Too Long";
+		response = "HTTP/1.1 414 URI Too Long\n\n";
 
 	if (send(_fd, response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
@@ -43,11 +45,11 @@ bool Client::send_server_error_response() const {
 
 	std::string response;
 	if (_code == 500)
-		response = "HTTP/1.1 500 Internal Server Error\n";
+		response = "HTTP/1.1 500 Internal Server Error\n\n";
 	else if (_code == 501)
-		response = "HTTP/1.1 501 Not Implemented\n";
+		response = "HTTP/1.1 501 Not Implemented\n\n";
 	else if (_code == 505)
-		response = "HTTP/1.1 505 HTTP Version Not Supported\n";
+		response = "HTTP/1.1 505 HTTP Version Not Supported\n\n";
 
 	if (send(_fd, response.c_str(), response.size(), 0) < 0)
 			errMsgErrno("send failed");
