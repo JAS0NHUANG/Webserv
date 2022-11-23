@@ -33,6 +33,10 @@ bool Client::send_client_error_response() const {
 		response = "HTTP/1.1 404 Not Found\n\n";
 	else if (_code == 405)
 		response = "HTTP/1.1 405 Method Not Allowed\n\n";
+	else if (_code == 408)
+		response = "HTTP/1.1 408 Request Timeout\n\n";
+	else if (_code == 413)
+		response = "413 Payload Too Large\n\n";
 	else if (_code == 414)
 		response = "HTTP/1.1 414 URI Too Long\n\n";
 
@@ -63,7 +67,7 @@ bool Client::send_response() {
 	std::cout << "Sending response\n";
 
 	if (_code == 0) { // Temporarys statement (for test purpose)
-		std::string response("HTTP/1.1 200 OK\n\nHello world\n");
+		std::string response("HTTP/1.1 200 OK\n\nHello world\n\n");
 		if (send(_fd, response.c_str(), response.size(), 0) < 0)
 			errMsgErrno("send failed");
 		return true;

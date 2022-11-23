@@ -28,6 +28,7 @@ class Client {
 		bool								_process_request_line;
 		bool								_process_headers;
 		bool								_process_body;
+		bool								_request_is_complete;
 		std::time_t							_timeout;
 		int									_fd;
 		Config								_conf;

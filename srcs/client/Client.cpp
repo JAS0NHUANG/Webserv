@@ -7,6 +7,7 @@ Client::Client(int fd, Config conf) :
 	_process_request_line(true),
 	_process_headers(true),
 	_process_body(true),
+	_request_is_complete(false),
 	_timeout(std::time(NULL)),
 	_fd(fd),
 	_conf(conf) {}
@@ -24,6 +25,7 @@ Client& Client::operator=(const Client &src) {
 	_process_request_line	= src._process_request_line;
 	_process_headers		= src._process_headers;
 	_process_body			= src._process_body;
+	_request_is_complete	= src._request_is_complete;
 	_timeout				= src._timeout;
 	_fd						= src._fd;
 	_conf					= src._conf;
