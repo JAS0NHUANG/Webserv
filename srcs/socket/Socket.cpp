@@ -1,8 +1,8 @@
 #include "webserv.hpp"
 
-Socket::Socket(int port, std::string address, Config conf) :
+Socket::Socket(int port, std::string address, std::vector<Config> _virtual_servers) :
 	_port(port),
-	_conf(conf) {
+	_virtual_servers(_virtual_servers) {
 
 	// create socket
 	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -75,11 +75,11 @@ Socket::Socket(const Socket &toCopy) {
 }
 
 Socket&	Socket::Socket::operator=(const Socket &toAssign) {
-	this->_port		= toAssign._port;
-	this->_sock_fd	= toAssign._sock_fd;
-	this->_addr		= toAssign._addr;
-	this->_addr_len	= toAssign._addr_len;
-	this->_conf		= toAssign._conf;
+	this->_port				= toAssign._port;
+	this->_sock_fd			= toAssign._sock_fd;
+	this->_addr				= toAssign._addr;
+	this->_addr_len			= toAssign._addr_len;
+	this->_virtual_servers	= toAssign._virtual_servers;
 	return (*this);
 }
 
@@ -91,6 +91,6 @@ int	Socket::getSockFd(void) {
 	return (this->_sock_fd);
 }
 
-Config Socket::getConf(void) {
-	return _conf;
+std::vector<Config> Socket::get_virtual_servers(void) {
+	return _virtual_servers;
 }

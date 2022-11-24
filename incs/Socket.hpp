@@ -10,11 +10,11 @@
 class Socket {
 	private:
 		// put into a struct socket
-		short			_port;
-		int				_sock_fd;
-		sockaddr_in		_addr;
-		size_t			_addr_len;
-		Config			_conf;
+		short				_port;
+		int					_sock_fd;
+		sockaddr_in			_addr;
+		size_t				_addr_len;
+		std::vector<Config>	_virtual_servers;
 
 		// save configuration for this address:port
 
@@ -25,13 +25,13 @@ class Socket {
 		Socket(const Socket &toCopy);
 		Socket&			operator=(const Socket &toAssign);
 
-		Socket(int port, std::string address, Config conf);
+		Socket(int port, std::string address, std::vector<Config> virtual_servers);
 		// getter
-		int				getPort(void);
-		int				getSockFd(void);
-		int				getAddr(void);
-		int				getAddrLen(void);
-		Config			getConf(void);
+		int					getPort(void);
+		int					getSockFd(void);
+		int					getAddr(void);
+		int					getAddrLen(void);
+		std::vector<Config>	get_virtual_servers(void);
 };
 
 #endif

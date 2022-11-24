@@ -2,7 +2,7 @@
 
 Client::Client() {}
 
-Client::Client(int fd, Config conf) :
+Client::Client(int fd, std::vector<Config> virtual_servers) :
 	_code(0),
 	_process_request_line(true),
 	_process_headers(true),
@@ -10,7 +10,7 @@ Client::Client(int fd, Config conf) :
 	_request_is_complete(false),
 	_timeout(std::time(NULL)),
 	_fd(fd),
-	_conf(conf) {}
+	_virtual_servers(virtual_servers) {}
 
 Client::Client(const Client &src) {
 	*this = src;
@@ -28,6 +28,7 @@ Client& Client::operator=(const Client &src) {
 	_request_is_complete	= src._request_is_complete;
 	_timeout				= src._timeout;
 	_fd						= src._fd;
+	_virtual_servers		= src._virtual_servers;
 	_conf					= src._conf;
 	return *this;
 }

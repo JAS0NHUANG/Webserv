@@ -46,6 +46,11 @@ std::string Client::get_path(std::string request_target) {
 	return location;
 }
 
+void Client::check_method(std::string &method) {
+	if(!_conf.is_method_allowed(method))
+		throw 405;
+}
+
 void Client::check_access(std::string request_target) {
 
 	_path = get_path(request_target);
@@ -64,24 +69,10 @@ void Client::process_request_line(std::string &line) {
 	std::vector<std::string> tokens = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
 
-	// Check if method is supported
-	if (*it == "GET") {
-		if(!_conf.is_method_allowed(GET))
-			throw 405;
-		_method = "GET";
-	}
-	else if (*it == "POST") {
-		if(!_conf.is_method_allowed(POST))
-			throw 405;
-		_method = "POST";
-	}
-	else if (*it == "DELETE") {
-		if(!_conf.is_method_allowed(DELETE))
-			throw 405;
-		_method = "DELETE";
-	}
-	else
+	// Check if method is supported by webserv
+	if (*it != "GET" && *it != "POST" && *it != "DELETE")
 		throw 501;
+	_method = *it;
 
 	// Check if request target has been recv
 	if (++it == tokens.end())
@@ -95,9 +86,6 @@ void Client::process_request_line(std::string &line) {
 	// and delete it from request_target
 	_request_target = *it;
 	_query_string =  get_query_string(_request_target);
-
-	// Check is the resource is accessible
-	check_access(_request_target);
 
 	// Check if there is the http version
 	if (++it == tokens.end())
@@ -120,6 +108,29 @@ bool Client::field_name_has_whitespace(std::string &field_name) const {
 	return false;
 }
 
+void Client::retrieve_conf(std::string host) {
+
+	std::string::size_type i = host.find(":");
+	if (i != std::string::npos)
+		host.erase(i);
+	for (i = 0; i < host.size() && isWhitespace(host[i]); i++);
+
+	if (i != 0)
+		host.assign(host.begin() + i, host.end());
+
+	_conf = *(_virtual_servers.begin());
+	std::vector<Config>::iterator it = _virtual_servers.begin();
+	for (; it != _virtual_servers.end(); it++) {
+		std::vector<std::string> serv_names = (*it).get_server_name(); 
+		for (std::vector<std::string>::size_type i = 0; i != serv_names.size(); i++) {
+			if (serv_names[i] == host) {
+				_conf = *it;
+				break;
+			}
+		}
+	}
+}
+
 void Client::process_field_line(std::string &line) {
 	std::string					field_name;
 	std::vector<std::string>	field_values;
@@ -140,6 +151,17 @@ void Client::process_field_line(std::string &line) {
 		_process_headers = false; // All headers has been received
 		if (_method != "POST")
 			_request_is_complete = true;
+
+		// Search for the configuration whose server_names match with host 
+		// by default the first server for a host:port will be
+		// the default for this host:port
+		retrieve_conf(_headers["host"]);
+
+		// Check if the method is allowed by the virtual server
+		check_method(_method);
+
+		// Check is the resource is accessible
+		check_access(_request_target);
 		return;
 	}
 	throw 400; // Malformed header

@@ -96,14 +96,25 @@ void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
 	}
 }
 
-void parseFile(char *fileName, std::vector<Config> &conf)
+void parseFile(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers)
 {
+	std::vector<Config> conf;
 	std::queue<std::vector<std::string> >	qu;
 
+	// Save the file into a queue
 	saveFile(fileName, qu);
 
 	//If debug is used, qu will be empty
 	// debugPrintQ(qu);
 
+	// Parse the file
 	configParse(qu, conf);
+
+	// Save the virtual server that have same address:port 
+	// in a unique entry in a map;
+	std::vector<Config>::iterator it = conf.begin();
+	for (; it != conf.end(); it++) {
+		std::string key = (*it).get_address() + toString((*it).get_port());
+		virtual_servers[key].push_back(*it);
+	}
 }

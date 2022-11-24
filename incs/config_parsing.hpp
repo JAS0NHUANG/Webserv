@@ -28,7 +28,7 @@ void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu);
 void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf);
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu);
-void parseFile(char *fileName, std::vector<Config> &conf);
+void parseFile(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers);
 
 // doParsing.cpp
 void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line);
@@ -53,7 +53,6 @@ directives findDirective(std::string &str);
 std::string toString(int n);
 int toInt(std::string str);
 unsigned long long toULL(std::string str);
-int methodToInt(std::string str);
 bool isValidIpAddress(std::string str);
 bool isValidPort(std::string str);
 bool isHttpErrorStatusCode(std::string str);

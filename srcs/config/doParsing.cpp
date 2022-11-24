@@ -139,13 +139,13 @@ void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &c
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
-	std::vector<int> vec;
+	std::vector<std::string> vec;
 	while (qu.size() && qu.front().front() != ";") {
 		strToUpper(qu.front().front());
 		if (isValidMethod(qu.front().front()) == false)
 			throwParsingError(std::string(qu.front().front() + " is not a valid method"), toString(line));
 
-		vec.push_back(methodToInt(qu.front().front()));
+		vec.push_back(qu.front().front());
 		eraseToken(qu, line);
 		throwIfFileIsEmpty(qu, line);
 	}

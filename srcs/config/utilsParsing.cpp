@@ -78,14 +78,6 @@ void	strToUpper(std::string &str) {
 		*it = std::toupper(*it);
 }
 
-int methodToInt(std::string str) {
-	if (str == "GET")
-		return GET;
-	if (str == "POST")
-		return POST;
-	return DELETE;
-}
-
 bool isValidIpAddress(std::string str) {
 	std::string sub;
 	int loop = 0;

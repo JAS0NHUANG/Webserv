@@ -31,6 +31,7 @@ class Client {
 		bool								_request_is_complete;
 		std::time_t							_timeout;
 		int									_fd;
+		std::vector<Config>					_virtual_servers;
 		Config								_conf;
 
 		// parsing
@@ -39,8 +40,10 @@ class Client {
 		std::string							get_query_string(std::string &request_target);
 		std::string							get_path(std::string request_target);
 		void								check_access(std::string request_target);
+		void								check_method(std::string &method);
 		void								process_field_line(std::string &line);
 		bool								field_name_has_whitespace(std::string &field_name) const;
+		void								retrieve_conf(std::string host);
 		void								process_body(std::string &line);
 
 		// parsing utils
@@ -62,7 +65,7 @@ class Client {
 
 	public:
 		Client();
-		Client(int fd, Config conf);
+		Client(int fd, std::vector<Config> virtual_servers);
 		Client(const Client &src);
 		Client& operator=(const Client &src);
 		~Client();
