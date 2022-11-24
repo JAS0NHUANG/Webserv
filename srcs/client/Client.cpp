@@ -7,6 +7,7 @@ Client::Client(int fd, Config conf) :
 	_process_request_line(true),
 	_process_headers(true),
 	_process_body(true),
+	_request_is_complete(false),
 	_timeout(std::time(NULL)),
 	_fd(fd),
 	_conf(conf) {}
@@ -17,13 +18,14 @@ Client::Client(const Client &src) {
 
 Client& Client::operator=(const Client &src) {
 	_method					= src._method;
-	_path					= src._path;
+	_request_target			= src._request_target;
 	_headers				= src._headers;
 	_body					= src._body;
 	_code					= src._code;
 	_process_request_line	= src._process_request_line;
 	_process_headers		= src._process_headers;
 	_process_body			= src._process_body;
+	_request_is_complete	= src._request_is_complete;
 	_timeout				= src._timeout;
 	_fd						= src._fd;
 	_conf					= src._conf;
@@ -36,11 +38,11 @@ std::string Client::get_method() const {
 	return _method;
 }
 
-std::string Client::get_path() const {
-	return _path;
+std::string Client::get_request_target() const {
+	return _request_target;
 }
 
-std::map<std::string, std::vector<std::string> > Client::get_headers() const {
+std::map<std::string, std::string> Client::get_headers() const {
 	return _headers;
 }
 
@@ -48,13 +50,21 @@ int Client::get_fd() const {
 	return _fd;
 }
 
-int Client::get_code() const {
-	return _code;
-}
 Config 	Client::get_conf() const{
 	return _conf;
 }
 
+int Client::get_code() const {
+	return _code;
+}
+
+std::string		Client::get_body() const{
+	return _body;
+}
+
+std::string		Client::get_query_string() const{
+	return _query_string;
+}
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
 {

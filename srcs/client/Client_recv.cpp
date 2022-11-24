@@ -9,17 +9,63 @@ void Client::remove_cr_char(std::deque<std::string> &lines) {
 	}
 }
 
+std::string Client::get_query_string(std::string &request_target) {
+	std::string str;
+
+	std::string::size_type i = request_target.find("?");
+	if (i != std::string::npos) {
+		str.assign(request_target.begin() + i, request_target.end());
+		request_target.erase(i, request_target.size());
+	}
+
+	return str;
+}
+
+std::string Client::get_path(std::string request_target) {
+	std::string real_path;
+
+	if (request_target[0] != '/')
+		request_target = "/" + request_target;
+
+	std::string::iterator it = request_target.begin() + 1;
+	for (; it != request_target.end(); it++) {
+		if (*it == '/')
+			break;
+	}
+
+	std::string location(request_target.begin(), it);
+
+	request_target.erase(request_target.begin(), it);
+
+	std::pair<bool, Location> pr = _conf.get_location(location);
+	if (pr.first)
+		location = pr.second.get_root() + location + request_target;
+	else
+		location = _conf.get_root() + location + request_target;
+
+	return location;
+}
+
+void Client::check_access(std::string request_target) {
+
+	_path = get_path(request_target);
+
+	int code = access(_path.c_str(), 0);
+	std::cerr << "access" << _path.c_str() << "\n";
+	if (code < 0) {
+		errMsgErrno("access");
+		if (errno == ENOENT)
+			throw 404; // Not Found
+		throw 500; //Internal error server
+	}
+}
+
 void Client::process_request_line(std::string &line) {
-	std::cout << "process_request_line\n";
 
 	std::vector<std::string> tokens = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
-	for (; it != tokens.end() && (*it).empty(); it++) ;
 
-	if (it == tokens.end())
-		return;
-
-	// Change method to a simple string
+	// Check if method is supported
 	if (*it == "GET") {
 		if(!_conf.is_method_allowed(GET))
 			throw 405;
@@ -35,27 +81,30 @@ void Client::process_request_line(std::string &line) {
 			throw 405;
 		_method = "DELETE";
 	}
-	else {
-		std::cerr << RED "501 NOT IMPLEMENTED\n" RESET;
+	else
 		throw 501;
-	}
 
+	// Check if request target has been recv
 	if (++it == tokens.end())
 		throw 400;
 
-	// NOTE : if request-target is in absolute form, we need to parse it
+	// Check is uri is too long
+	if ((*it).size() > 418000)
+		throw 414;
 
-	// NOTE : TO DO 
-	// if ((*it).size() > 16000) {
-	// 	std::cerr << RED "501 Not Implemented URI Too Long";
-	// 	throw 501;
-	// }
+	// Get request target and query string if any
+	// and delete it from request_target
+	_request_target = *it;
+	_query_string =  get_query_string(_request_target);
 
-	_path = *it;
+	// Check is the resource is accessible
+	check_access(_request_target);
 
+	// Check if there is the http version
 	if (++it == tokens.end())
 		throw 400;
 
+	// Check if the http version is valid
 	if (*it != "HTTP/1.1")
 		throw 400;
 
@@ -72,14 +121,7 @@ bool Client::field_name_has_whitespace(std::string &field_name) const {
 	return false;
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
-
-// https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
-
-// NOTE : What to do if same header names are received ???
 void Client::process_field_line(std::string &line) {
-	std::cout << "process_headers\n";
 	std::string					field_name;
 	std::vector<std::string>	field_values;
 
@@ -90,62 +132,64 @@ void Client::process_field_line(std::string &line) {
 			throw 400;
 		str_to_lower(field_name);
 		line.erase(0, i + 1);
-		// NOTE : TOKENIZE FIELD VALUE IN ACCORDANCE WITH RFC 9112
-		_headers[field_name] = std::vector<std::string>(); // Fill with the list of field values
+		_headers[field_name] = line;
 		return;
 	}
 	else if (line.empty()) {
 		if (_headers.count("host") == 0) // No Host received
 			throw 400;
 		_process_headers = false; // All headers has been received
+		if (_method != "POST")
+			_request_is_complete = true;
 		return;
 	}
 	throw 400; // Malformed header
 }
 
 void Client::process_body(std::string &line) {
-	std::cout << "process_body\n";
 	// The presence of a message body in a request is signaled
 	// by a Content-Length or Transfer-Encoding header field.
 
 	// NOTE : Each time this function is called, need to check max_body_size
 
+	// We dont expect receiving a body if the method is not POST
+	if (_method != "POST") {
+		_request_is_complete = true; 
+		return;
+	}
+
 	if (_headers.count("transfer-encoding") == 0 &&
-		_headers.count("content-length") == 0) // No body
+		_headers.count("content-length") == 0) { // No body
+		_request_is_complete = true;
 		return ;
+	}
 
 	if (line.empty()) {
-		_code = 201;
+		_request_is_complete = true;
 		return;
 	}
 
-	if (_body.size() + line.size() > _conf.get_client_max_body_size()) {
-		// NOTE : handle this error
-		std::cerr << RED "ERR_CODE MAX BODY SIZE REACHED\n" RESET;
-		return;
-	}
+	if (_body.size() + line.size() > _conf.get_client_max_body_size())
+		throw 413;
+
 	_body += line;
 }
 
 void Client::parse_line(std::deque<std::string> &lines) {
-	std::deque<std::string>::iterator it = lines.begin();
 
 	remove_cr_char(lines);
-
-	for (; it != lines.end(); it++)
-		std::cout << BCYN "LINE : |" << *it <<  "|\n" RESET;
 
 	while (!lines.empty()) {
 		if (_process_request_line)
 			process_request_line(lines.front());
-		else if (_process_headers) {
+		else if (_process_headers)
 			process_field_line(lines.front());
-			// Maybe parse the header right here to know what to do next
-		}
 		else
 			process_body(lines.front());
 
 		lines.pop_front();
+		if (_request_is_complete)
+			break;
 	}
 }
 
@@ -170,21 +214,15 @@ bool Client::recv_request() {
 
 	while (true) {
 		int valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
-		if (valread == 0)
-			break;
+		if (valread == 0) {
+			if (_process_request_line == true || _process_headers == true)
+				_request_is_complete = true;
+			_code = 400;
+			return true;
+		}
 		else if (valread < 0) {
-			if (errno == EAGAIN) {
-				// if all the headers has been read,
-				// Host: has been received and the method is GET
-				// then send the response
-
-				// NOTE : Create a function that check if the request is complete
-				if (_method == "GET" && _process_headers == false)
-					break;
-				return false;
-			}
 			errMsgErrno("recv");
-			throw 500; // Internal server error
+			break;
 		}
 		buffer[valread] = '\0';
 		lines = getlines(buffer);
@@ -195,9 +233,14 @@ bool Client::recv_request() {
 			catch (int error_code) {
 				std::cout << "Catched exception: " << error_code << "\n" ;
 				_code = error_code;
-				break;
+				return true;
 			}
 		}
+		if (_request_is_complete)
+			break;
+	}
+	if (!_request_is_complete) {
+		return false;
 	}
 	return true; // true if the request is finished
 }

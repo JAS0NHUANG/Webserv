@@ -32,6 +32,7 @@
 #include "colorcodes.hpp"
 
 #define BUFFER_SIZE 2056
+#define MAX_EVENTS	128
 
 extern std::sig_atomic_t g_shutdown ;
 

@@ -1,36 +1,6 @@
 #include "webserv.hpp"
 #include "../../Response.hpp"
 
-#define PORT_NUM	4242	// Notes: change it to port 80 (http)
-#define BACKLOG		5		// Notes: change it to something bigger
-#define EPOLLEVENTS 100
-#define MAX_EVENTS 128
-
-std::string response =
-	"HTTP/1.1 9876543210 crazy status code\n"
-	"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
-	"Server: Apache/2.2.3\n"
-	"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-	"ETag: \"56d-9989200-1132c580\"\n"
-	"Content-Type: text/html\n"
-	"Content-Length: 15\n"
-	"Accept-Ranges: bytes\n"
-	"42Header: Jason/WenTsu/Stone\n"
-	"\n"
-	"<h1>reponse 1</h1>";
-std::string response1 =
-	"HTTP/1.1 9876543210 crazy status code\n"
-	"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
-	"Server: Apache/2.2.3\n"
-	"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
-	"ETag: \"56d-9989200-1132c580\"\n"
-	"Content-Type: text/html\n"
-	"Content-Length: 15\n"
-	"Accept-Ranges: bytes\n"
-	"42Header: Jason/WenTsu/Stone\n"
-	"\n"
-	"<h1>reponse 2</h1>";
-
 static void add_event(int epollfd,int fd,int state){
 	struct epoll_event ev;
 	ev.events = state;
@@ -104,7 +74,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				done = clients[events[n].data.fd].recv_request();
-
+				std::cout << "JUST TRIED TO RECV\n";
 				if (done) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
@@ -112,13 +82,14 @@ int run_server(std::vector<Socket> &socket_list) {
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_MOD)");
 				}
 			}
+
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";
+				// done = clients[events[n].data.fd].send_response();
+				// std::cout << "JUST TRIED TO SEND\n";
 				Response response(clients[events[n].data.fd]);
-				//done = clients[events[n].data.fd].send_response();
 				done = response.send_response();
-
 				if (done) {
 					clients.erase(events[n].data.fd);
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)

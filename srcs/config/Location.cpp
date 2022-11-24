@@ -20,7 +20,7 @@ void debug_print(std::vector<std::string> x) {
 void debug_print(std::map<int, std::pair<int, std::string> > x) {
 	std::map<int, std::pair<int, std::string> >::iterator it = x.begin();
 	for (; it != x.end(); it++)
-		std::cout << " cgi :[ " << it->first << " | " << it->second.first << " | " << it->second.second << "] ";
+		std::cout << "cgi :[ " << it->first << " | " << it->second.first << " | " << it->second.second << "] ";
 	std::cout << "\n";
 }
 
@@ -31,6 +31,15 @@ void debug_print(std::pair<bool, std::pair<std::string, std::string> > x) {
 void debug_print(std::pair<bool, std::string> x) {
 	std::cout << "[ " << x.first << " | " << x.second << " ]\n";
 }
+
+// void debug_print(std::map<std::string, std::string> x) {
+// 	for (std::map<std::string, std::string>::iterator it = x.begin(); it != x.end(); it++)
+// 		std::cout << "[ " << it->first << " | " << it->second << " ]\n";
+// }
+// void debug_print(std::pair<bool, std::string> x) {
+// 	std::cout << "[ " << x.first << " | " << x.second << " ]\n";
+// }
+
 
 void	Location::debug() const {
 	std::cout << MAG ;
@@ -96,6 +105,12 @@ std::vector<std::string> Location::get_index() const {
 	return _index;
 }
 
+// std::pair<bool, std::string> Location::get_cgi(std::string ext) const {
+// 	if (_cgi.count(ext) == 0)
+// 		return std::pair<bool, std::string>(false, "");
+// 	std::string bin = (_cgi.find(ext)->second);
+// 	return std::pair<bool, std::string>(true, bin);
+// }
 std::pair<bool, std::pair<std::string, std::string> > Location::get_cgi() const {
 	return _cgi;
 }
@@ -126,12 +141,17 @@ void	Location::set_index(std::vector<std::string> &vec) {
 	_index.assign(vec.begin(), vec.end());
 }
 
+// void	Location::set_cgi(std::string &ext, std::string &bin) {
+// 	_cgi[ext] = bin;
+// }
+
 void	Location::set_cgi(std::string &ext, std::string &path) {
 	_cgi.first = true;
 	_cgi.second = std::make_pair(ext, path);
 }
 
 void	Location::set_upload_store(std::string &dir) {
+
 	_upload_store.first = true;
 	_upload_store.second = dir;
 }

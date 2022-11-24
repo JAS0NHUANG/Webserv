@@ -1,6 +1,6 @@
 #include "Response.hpp"
 #include "incs/Client.hpp"
-
+#include "Cgi.hpp"
 
 bool Response::send_informational_response() const {
 	return true;
@@ -87,7 +87,7 @@ bool Response::send_response(){
 	std::cout << "Sending response\n";
 	this->status_code = this->client.get_code();
 
-	bool close_conn = 1;
+	bool close_conn = false;
 	// if (_code >= 200 && _code <= 299)
 	// 	close_conn = send_successful_response();
 	if (this->status_code >= 400 && this->status_code <= 499)
@@ -95,29 +95,34 @@ bool Response::send_response(){
 	else if (this->status_code >= 500 && this->status_code <= 599)
 		return send_server_error_response();
 	
-	close_conn = 0;
 	//redirection???
 	//check_httpvserion();
-
-	// check_location()
-	// 	if_location_exit?
-	// 	//if_method_allow?
-	// 	if_location_
-	// }
-	// if cgi{
 	Config conf = this->client.get_conf();
 	conf.debug();
-	//int if_cgi = 0;
-	std::cerr << "std::map" << this->client.get_path() << "\n";
-	std::cerr << "std::map<std::string, Location>" << conf.get_location(this->client.get_path()).first << "\n";
+	std::cerr << "std::map" << this->client.get_request_target() << "\n";
+	std::cerr << "std::map<std::string, Location>" << conf.get_location(this->client.get_request_target()).first << "\n";
+	
 	//if location exist;
-	Location check_location;
-	if (conf.get_location(this->client.get_path()).first == 0){
+	Location check_location = conf.get_location(this->client.get_request_target()).second;
+	if (conf.get_location(this->client.get_request_target()).first == false){
 		std::cerr << "INDSIE\n";
 		this->status_code = 404;
-		send_client_error_response();
+		return send_client_error_response();
+	}else if(check_location.get_cgi().first == true) {
+		//location is cgi
+		std::cerr << "here is cgi\n";
+		Cgi test_cgi(this->client, conf);
+		std::string script = check_location.get_cgi().second.second;
+		std::string body = test_cgi.handler(const_cast<char*>(script.c_str()));
+
+		return true;
+	}else {
+		//if_method_allow?
+
 	}
+	//else if ()
 	//conf.get_location(this->client.get_path()).second;
+	std::cerr << "if cgi" <<  check_location.get_cgi().first << "\n";
 	std::cerr << "if cgi" <<  check_location.get_cgi().first << "\n";
 	//if (this->client->get_path()
 
