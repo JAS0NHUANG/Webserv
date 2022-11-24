@@ -236,7 +236,7 @@ bool Client::recv_request() {
 			}
 		}
 		if (_request_is_complete)
-			break;
+			break; 
 	}
 	if (!_request_is_complete) {
 		return false;

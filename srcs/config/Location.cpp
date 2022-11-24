@@ -39,7 +39,6 @@ void debug_print(std::map<std::string, std::string> x) {
 
 void	Location::debug() const {
 	std::cout << MAG ;
-	std::cout << "Debugging Location\n";
 	std::cout << "allow_method : "; debug_print(_allow_method);
 	std::cout << "return       : " << _return << "\n";
 	std::cout << "root         : " << _root	<< "\n";
