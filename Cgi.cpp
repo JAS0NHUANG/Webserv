@@ -48,20 +48,21 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["SERVER_PROTOCOL"]= "HTTP/1.1";
         this->env["PATH_INFO"] = requ.get_request_target();
         std::cerr << "requ.method:|" << requ.get_method() <<"|\n";
-        if (toInt(requ.get_method()) == 1)
-            this->env["REQUEST_METHOD"]= "GET";
-        else if (toInt(requ.get_method()) == 2)
-            this->env["REQUEST_METHOD"]= "POST";
-        else if (toInt(requ.get_method()) == 3)
-            this->env["REQUEST_METHOD"]= "DELETE";
-        else{
-            this->env["REQUEST_METHOD"]= "";
-            errMsgErrno("cgi request_method is not valid");
-        }
+        this->env["REQUEST_METHOD"]= requ.get_method();
+        // if (toInt(requ.get_method()) == 1)
+        //     this->env["REQUEST_METHOD"]= "GET";
+        // else if (toInt(requ.get_method()) == 2)
+        //     this->env["REQUEST_METHOD"]= "POST";
+        // else if (toInt(requ.get_method()) == 3)
+        //     this->env["REQUEST_METHOD"]= "DELETE";
+        // else{
+        //     this->env["REQUEST_METHOD"]= "";
+        //     errMsgErrno("cgi request_method is not valid");
+        // }
         this->env["QUERY_STRING"] = requ.get_query_string();
         this->env["REMOTE_HOST"]= headers["Host"];
         //REMOTE_ADDR
-        this->env["SCRIPT_FILENAME"] = headers["root"];
+        this->env["SCRIPT_FILENAME"] = location.get_root() + requ.get_request_target();
         //!!!!!!!!!!!!!!!!!
         this->env["SERVER_NAME"] = config.get_server_name()[0];
         this->env["SERVER_PORT"] = toString(config.get_port());
