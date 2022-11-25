@@ -79,6 +79,7 @@ class Client {
 		std::string							get_request_target() const;
 		std::map<std::string, std::string>	get_headers() const;
 		int									get_fd() const;
+		Config								get_conf() const;
 };
 
 #endif
