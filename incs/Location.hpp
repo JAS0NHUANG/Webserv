@@ -15,7 +15,7 @@
 class Location {
 	protected:
 		/* A set of defined methods */
-		std::set<int>	_allow_method;
+		std::set<std::string>	_allow_method;
 
 		/* The url to redirect */
 		std::string	_return;
@@ -45,7 +45,7 @@ class Location {
 		~Location();
 		Location& operator=(const Location &x);
 
-		bool						is_method_allowed(int method) const;
+		bool						is_method_allowed(std::string method) const;
 		std::string					get_return() const;
 		std::string					get_root() const;
 		bool						get_autoindex() const;
@@ -54,7 +54,7 @@ class Location {
 		std::pair<bool, std::pair<std::string, std::string> > get_cgi() const;
 		std::pair<bool, std::string> get_upload_store() const;
 
-		void	set_allow_method(std::vector<int> &vec);
+		void	set_allow_method(std::vector<std::string> &vec);
 		void	set_return(std::string &str);
 		void	set_root(std::string &str);
 		void	set_autoindex(bool b);

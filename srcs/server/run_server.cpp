@@ -67,7 +67,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			std::vector<Socket>::iterator it = check_event_fd(events[n].data.fd, socket_list);
 			if (it != socket_list.end()) {
 				int conn_sock = accept_conn(events[n], epollfd);
-				Client new_client(conn_sock, (*it).getConf()); 
+				Client new_client(conn_sock, (*it).get_virtual_servers());
 				clients[conn_sock] = new_client;
 			}
 

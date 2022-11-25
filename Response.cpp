@@ -85,6 +85,7 @@ bool Response::send_response(){
 	// Returns true if we need to close the connection
 	// If send() fails return true anyway
 	std::cout << "Sending response\n";
+	std::cerr << "\n";
 	this->status_code = this->client.get_code();
 
 	bool close_conn = false;

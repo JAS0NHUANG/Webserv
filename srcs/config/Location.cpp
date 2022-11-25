@@ -1,7 +1,7 @@
 #include "Location.hpp"
 
-void debug_print(std::set<int> x) {
-	for (std::set<int>::iterator it = x.begin(); it != x.end(); it++)
+void debug_print(std::set<std::string> x) {
+	for (std::set<std::string>::iterator it = x.begin(); it != x.end(); it++)
 		std::cout << *it << " ";
 	std::cout << "\n";
 }
@@ -55,9 +55,9 @@ void	Location::debug() const {
 }
 
 Location::Location() {
-	_allow_method.insert(POST);
-	_allow_method.insert(GET);
-	_allow_method.insert(DELETE);
+	_allow_method.insert("POST");
+	_allow_method.insert("GET");
+	_allow_method.insert("DELETE");
 
 	_root = "/var/www/html";
 	_autoindex = false;
@@ -83,7 +83,7 @@ Location& Location::operator=(const Location &x) {
 	return *this;
 }
 
-bool Location::is_method_allowed(int method) const {
+bool Location::is_method_allowed(std::string method) const {
 	if (_allow_method.find(method) == _allow_method.end())
 		return false;
 	return true;
@@ -119,10 +119,11 @@ std::pair<bool, std::string> Location::get_upload_store() const {
 	return _upload_store;
 }
 
-void Location::set_allow_method(std::vector<int> &vec) {
+void Location::set_allow_method(std::vector<std::string> &vec) {
 	_allow_method.clear();
 	_allow_method.insert(vec.begin(), vec.end());
 }
+
 
 void	Location::set_return(std::string &str) {
 	_return = str;

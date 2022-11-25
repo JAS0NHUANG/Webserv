@@ -10,17 +10,6 @@ void	signal_handler(int signal) {
 // NOTE: Use throw and catch for error (like parsing errors)
 int main(int argc, char *argv[])
 {
-
-	// std::string mystring;
-	// std::ifstream myfile ("index.html");
-	// if ( myfile.is_open() ) { // always check whether the file is open
-	// myfile >> mystring; 
-	// }
-
-	// std::cerr << "myfile" << myfile << "\n"; 
-	// std::cerr << "mystring:" << mystring << "\n";
-
-
 	std::signal(SIGINT, signal_handler);
 	if (argc != 2) {
 		std::cerr << RED << "Configuration file is missing. Please give it as first parameter.\n" << RESET;
@@ -28,22 +17,19 @@ int main(int argc, char *argv[])
 	}
 
 	std::vector<Socket> socket_list;
-	std::vector<Config> conf;
-	std::vector<Config>::iterator it;
+	std::map<std::string, std::vector<Config> > virtual_servers;
 
 	try {
 		// get configuration info
 		throwParsingError("", "", argv[0], argv[1]);
 		throwError("", argv[0]);
-		parseFile(argv[1], conf);
-		// for (it = conf.begin(); it != conf.end(); it++)
-		// 	(*it).debug();
-		std::cout << YEL << "Number of server : " << conf.size() << "\n" << RESET;
+		parseFile(argv[1], virtual_servers);
 
 		// create sockets
-		for (it = conf.begin(); it != conf.end(); it++) {
-			std::cout << GRN <<  "\naddress: " << (*it).get_address() << ", port: " << (*it).get_port() << "\n" RESET;
-			socket_list.push_back(Socket((*it).get_port(), (*it).get_address(), *it));
+		std::map<std::string, std::vector<Config> >::iterator it = virtual_servers.begin();
+		for (; it != virtual_servers.end(); it++) {
+			std::cout << GRN <<  "\naddress: " << it->second.front().get_address() << ", port: " << it->second.front().get_port() << "\n" RESET;
+			socket_list.push_back(Socket(it->second.front().get_port(), it->second.front().get_address(), it->second));
 		}
 		std::cout << GRN << "\nSockets created!\n" << RESET;
 
@@ -54,6 +40,5 @@ int main(int argc, char *argv[])
 		std::cerr << RED << str << "\n" << RESET;
 		return 1;
 	}
-
-	return 0;
+	return (0);
 }
