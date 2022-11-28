@@ -22,26 +22,35 @@ std::string Client::get_query_string(std::string &request_target) {
 }
 
 std::string Client::get_path(std::string request_target) {
-	std::string real_path;
 
 	if (request_target[0] != '/')
 		request_target = "/" + request_target;
 
+	std::pair<bool, Location> pr;
+	pr = _conf.get_location("/");
+	std::pair<bool , Location> pr_candidate;
+	pr_candidate.first = false;
+
+	std::string location;
 	std::string::iterator it = request_target.begin() + 1;
-	for (; it != request_target.end(); it++) {
-		if (*it == '/')
-			break;
+	while (it != request_target.end()) {
+
+		for (; it != request_target.end(); it++) {
+			if (*it == '/')
+				break;
+		}
+		location.assign(request_target.begin(), it);
+		pr_candidate = _conf.get_location(location);
+		if (pr_candidate.first == true)
+			pr = pr_candidate;
+		if (it != request_target.end())
+			++it;
 	}
 
-	std::string location(request_target.begin(), it);
-
-	request_target.erase(request_target.begin(), it);
-
-	std::pair<bool, Location> pr = _conf.get_location(location);
 	if (pr.first)
-		location = pr.second.get_root() + location + request_target;
+		location = pr.second.get_root() + location;
 	else
-		location = _conf.get_root() + location + request_target;
+		location = _conf.get_root() + location;
 
 	return location;
 }
