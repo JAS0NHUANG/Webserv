@@ -9,14 +9,40 @@ bool Response::send_informational_response() const {
 bool Response::send_successful_response() const {
 
 	std::string response;
+	std::string myline;
+	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
+ 	std::string path = location.get_root() + this->client.get_request_target();
+
+	response = "HTTP/1.1 ";
+	response += toString(this->status_code);
+	response += " ";
+	response += this->get_code_msg(this->status_code);
+	response += "\n";
+	response += "Server: Tengine\nConnection: keep-alive\nDate: Wed, 30 Nov 2016 07:58:21 GMT\nCache-Control: no-cache\nContent-Type: text/html;charset=UTF-8\nKeep-Alive: timeout=20\nVary: Accept-Encoding\nPragma: no-cache\nX-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395\nContent-Length: 180945\n\r\n";
+	std::ifstream myfile (path.c_str());
+	if (myfile.is_open()){
+		while(myfile){
+			std::getline (myfile, myline);
+			response += myline;
+		}
+	}
+	std::cerr << "hteml :" <<response << "\n";
+	// if (this->client.get_code() == 400)
+	// 	response = "HTTP/1.1 400 Bad Request\n";
+	// else if (this->client.get_code() == 404)
+	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
+	// else if (this->client.get_code() == 405)
+	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
+
+	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+	return true;
 	// if (_code == 200)
 	// 	response = "HTTP/1.1 200 OK\n\nHello world\n";
 	// else if (_code == 201) {
 	// 	response = "HTTP/1.1 201 Created\nLocation: /\n\n";
 	// }
-	response = "HTTP/1.1 200 OK\n\nHello world\n";
-	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
-		errMsgErrno("send failed");
+	// response = "HTTP/1.1 200 OK\n\nHello world\n";
 	return true;
 }
 
@@ -85,7 +111,6 @@ bool Response::send_response(){
 	// Returns true if we need to close the connection
 	// If send() fails return true anyway
 	std::cout << "Sending response\n";
-	std::cerr << "\n";
 	this->status_code = this->client.get_code();
 
 	bool close_conn = false;
@@ -99,11 +124,13 @@ bool Response::send_response(){
 	//redirection???
 	//check_httpvserion();
 	Config conf = this->client.get_conf();
-	conf.debug();
+	//conf.debug();
 	std::cerr << "std::map" << this->client.get_request_target() << "\n";
 	std::cerr << "std::map<std::string, Location>" << conf.get_location(this->client.get_request_target()).first << "\n";
 	
 	//if location exist;
+	std::cout << RED "PAATTTH : " << client.get_path2() << RESET"\n";
+	std::cout << RED"URRIIIIIIII : " << this->client.get_request_target() << RESET "\n";
 	Location check_location = conf.get_location(this->client.get_request_target()).second;
 	if (conf.get_location(this->client.get_request_target()).first == false){
 		std::cerr << "INDSIE\n";
@@ -115,9 +142,11 @@ bool Response::send_response(){
 		Cgi test_cgi(this->client, conf);
 		std::string script = check_location.get_cgi().second.second;
 		std::string body = test_cgi.handler(const_cast<char*>(script.c_str()));
-
+		if (send(this->client.get_fd(), body.c_str(), body.size(), 0) < 0)
+			errMsgErrno("send failed");
 		return true;
 	}else {
+		return send_successful_response();
 		//if_method_allow?
 
 	}

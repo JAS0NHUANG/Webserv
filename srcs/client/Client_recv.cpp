@@ -55,7 +55,8 @@ void Client::check_access(std::string request_target) {
 
 	_path = get_path(request_target);
 
-	int code = access(_path.c_str(), 0);
+	int code = 1;
+	//access(_path.c_str(), 0);
 	std::cerr << "access" << _path.c_str() << "\n";
 	if (code < 0) {
 		errMsgErrno("access");

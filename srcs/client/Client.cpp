@@ -30,6 +30,7 @@ Client& Client::operator=(const Client &src) {
 	_fd						= src._fd;
 	_virtual_servers		= src._virtual_servers;
 	_conf					= src._conf;
+	_path					= src._path;
 	return *this;
 }
 
