@@ -88,6 +88,7 @@ int run_server(std::vector<Socket> &socket_list) {
 				std::cout << "Creating a response\n";
 				// done = clients[events[n].data.fd].send_response();
 				// std::cout << "JUST TRIED TO SEND\n";
+				std::cout << RED "GET PATH 2 : " << clients[events[n].data.fd].get_path2() << "\n";
 				Response response(clients[events[n].data.fd]);
 				done = response.send_response();
 				if (done) {

@@ -132,11 +132,13 @@ bool Response::send_response(){
 	//redirection???
 	//check_httpvserion();
 	Config conf = this->client.get_conf();
-	conf.debug();
+	//conf.debug();
 	std::cerr << "std::map" << this->client.get_request_target() << "\n";
 	std::cerr << "std::map<std::string, Location>" << conf.get_location(this->client.get_request_target()).first << "\n";
 	
 	//if location exist;
+	std::cout << RED "PAATTTH : " << client.get_path2() << RESET"\n";
+	std::cout << RED"URRIIIIIIII : " << this->client.get_request_target() << RESET "\n";
 	Location check_location = conf.get_location(this->client.get_request_target()).second;
 	if (conf.get_location(this->client.get_request_target()).first == false){
 		std::cerr << "INDSIE\n";

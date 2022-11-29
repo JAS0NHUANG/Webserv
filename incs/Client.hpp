@@ -83,6 +83,9 @@ class Client {
 		Config 								get_conf() const;
 		int 								get_code() const;
 		std::string							get_body() const;
+		std::string							get_path2() const {
+			return _path;
+		}
 };
 
 #endif

@@ -21,16 +21,6 @@ Cgi::~Cgi(void){
     //std::cerr<< "delete cgi" << "\n";
 }
 
-// std::string toString_in(int n) {
-// 	std::string			str;
-// 	std::stringstream	ss;
-
-// 	ss << n;
-// 	ss >> str;
-
-// 	return str;
-// }
-
 void print_env(std::map<std::string, std::string>	env){
     for( std::map<std::string, std::string>::iterator it=env.begin(); it!=env.end(); ++it){
         std::cerr << it->first + "=" + it->second << "\n";
@@ -49,16 +39,6 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["PATH_INFO"] = requ.get_request_target();
         std::cerr << "requ.method:|" << requ.get_method() <<"|\n";
         this->env["REQUEST_METHOD"]= requ.get_method();
-        // if (toInt(requ.get_method()) == 1)
-        //     this->env["REQUEST_METHOD"]= "GET";
-        // else if (toInt(requ.get_method()) == 2)
-        //     this->env["REQUEST_METHOD"]= "POST";
-        // else if (toInt(requ.get_method()) == 3)
-        //     this->env["REQUEST_METHOD"]= "DELETE";
-        // else{
-        //     this->env["REQUEST_METHOD"]= "";
-        //     errMsgErrno("cgi request_method is not valid");
-        // }
         this->env["QUERY_STRING"] = requ.get_query_string();
         this->env["REMOTE_HOST"]= headers["Host"];
         //REMOTE_ADDR
@@ -106,13 +86,10 @@ std::string Cgi::handler(char * cgi_script){
     //std::string content ="";
     char 		*arg[] = {0};
 
-    std::cerr << "here:\n";
-    std::cerr << "cgi_script:" << cgi_script<< "\n";
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
         std::cerr << "pipe:" << strerror(errno) << std::endl;
         return NULL;
     }
-    std::cerr << "here:" << this->env["CONTENT"] << "\n";
 	if (write(fd_in[1], const_cast<char*>(this->env["CONTENT"].c_str()), this->env["CONTENT"].length() + 1) < 0){
         std::cerr << "write in cgi:" << strerror(errno) << std::endl;
         close_fd(fd_in, fd_out);
@@ -158,6 +135,5 @@ std::string Cgi::handler(char * cgi_script){
 		std::cerr << "RES:" << res << "|, body" << body << "\n" ;
 	}
 	close(fd_out[0]);
-	std::cerr <<"here\n";
     return body;
 }
