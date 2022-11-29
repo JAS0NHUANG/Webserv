@@ -14,7 +14,7 @@ std::string Client::get_query_string(std::string &request_target) {
 
 	std::string::size_type i = request_target.find("?");
 	if (i != std::string::npos) {
-		str.assign(request_target.begin() + i, request_target.end());
+		str.assign(request_target.begin() + i + 1, request_target.end());
 		request_target.erase(i, request_target.size());
 	}
 
@@ -210,8 +210,10 @@ void Client::parse_line(std::deque<std::string> &lines) {
 	remove_cr_char(lines);
 
 	while (!lines.empty()) {
-		if (_process_request_line)
+		if (_process_request_line) {
 			process_request_line(lines.front());
+			std::cout << RED "QUERY STRING : " << _query_string << "\n" RESET;
+		}
 		else if (_process_headers)
 			process_field_line(lines.front());
 		else

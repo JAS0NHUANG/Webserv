@@ -73,7 +73,6 @@ int run_server(std::vector<Socket> &socket_list) {
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				done = clients[events[n].data.fd].recv_request();
-				std::cout << "JUST TRIED TO RECV\n";
 				if (done) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
@@ -86,7 +85,6 @@ int run_server(std::vector<Socket> &socket_list) {
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";
 				done = clients[events[n].data.fd].send_response();
-				std::cout << "JUST TRIED TO SEND\n";
 				if (done) {
 					clients.erase(events[n].data.fd);
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
