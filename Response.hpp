@@ -14,6 +14,7 @@ class Response {
 		~Response(void);
         std::string get_code_msg(int status_code) const;
         bool send_response();
+        void set_header_fields();
         bool								send_client_error_response() const;
 		bool								send_server_error_response() const;
 		bool								send_successful_response() const;
@@ -27,10 +28,23 @@ class Response {
         std::string http_version;
         std::map<int, std::string> status_code_list;
         int status_code;
-        std::map<std::string, std::string> ge_header_fields;
-        std::map<std::string, std::string> re_header_fields;
-        std::map<std::string, std::string> entity_header;
+        std::map<std::string, std::string> header_fields;
+        //std::map<std::string, std::string> re_header_fields;
+        //std::map<std::string, std::string> entity_header;
         std::string entity_body;
+
+
+        //Transfer-Encoding  chunk
+        //Content-Length
+        //Content-Type
+
+
+        //date
+        //server
+        //Content-Location:   post
+        //allow 405 Method Not Allowed status code
+
+
 
 };
 
