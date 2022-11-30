@@ -14,12 +14,14 @@ class Response {
 		~Response(void);
         std::string get_code_msg(int status_code) const;
         bool send_response();
-        void set_header_fields();
+        void set_header_fields(int cont_Leng, Location check_location);
+        void check_setting_location(Location Location, Config conf);
         bool								send_client_error_response() const;
 		bool								send_server_error_response() const;
 		bool								send_successful_response() const;
 		bool								send_redirection_message() const;
 		bool								send_informational_response() const;
+        bool send_cgi_response(std::string body) const ;
 
 
     private:
@@ -28,10 +30,11 @@ class Response {
         std::string http_version;
         std::map<int, std::string> status_code_list;
         int status_code;
-        std::map<std::string, std::string> header_fields;
+        std::string header_fields;
         //std::map<std::string, std::string> re_header_fields;
         //std::map<std::string, std::string> entity_header;
-        std::string entity_body;
+        std::string body;
+        void set_header_fields();
 
 
         //Transfer-Encoding  chunk
@@ -41,7 +44,7 @@ class Response {
 
         //date
         //server
-        //Content-Location:   post
+        //Content-Location:   post ?? redicetion?
         //allow 405 Method Not Allowed status code
 
 

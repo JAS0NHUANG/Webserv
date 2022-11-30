@@ -78,41 +78,42 @@ void Cgi::env_to_char(){
     this->env_char[i] = NULL;
 }
 
-std::string Cgi::handler(char * cgi_script){
+std::pair<bool, std::string> Cgi::handler(char * cgi_script){
  
     int		fd_in[2];
     int     fd_out[2];
     pid_t	pid;
     //std::string content ="";
     char 		*arg[] = {0};
+    std::string body;
 
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
         std::cerr << "pipe:" << strerror(errno) << std::endl;
-        return NULL;
+        return std::make_pair(false, body);
     }
 	if (write(fd_in[1], const_cast<char*>(this->env["CONTENT"].c_str()), this->env["CONTENT"].length() + 1) < 0){
         std::cerr << "write in cgi:" << strerror(errno) << std::endl;
         close_fd(fd_in, fd_out);
-        return NULL;
+        return std::make_pair(false, body);
     }
 	if ((pid = fork()) < 0){
         std::cerr << "fork:" << strerror(errno) << std::endl;
         close_fd(fd_in, fd_out);
-        return NULL;
+        return std::make_pair(false, body);
     }
 	else if (pid == 0)
 	{
 		if (dup2(fd_in[0], STDIN_FILENO)< 0){
             std::cerr << "dup2 in in cgi:" << strerror(errno) << std::endl;
             close_fd(fd_in, fd_out);
-			return NULL;
+			return std::make_pair(false, body);
         }
 		close(fd_in[1]);
 	 	close(fd_in[0]);
 		if (dup2(fd_out[1], STDOUT_FILENO)< 0){
             std::cerr << "dup2 out in cgi:" << strerror(errno) << std::endl;
             close_fd(fd_in, fd_out);
-			return NULL;
+			return std::make_pair(false, body);
         }
 		close(fd_out[1]);
 	 	close(fd_out[0]);
@@ -124,8 +125,8 @@ std::string Cgi::handler(char * cgi_script){
     close(fd_out[1]);
     int status;
     waitpid(-1, &status, 0);
+    
 	char buff[1024] = {0};
-	std::string body;
 	ssize_t res = 0;
 	while ((res = read(fd_out[0], buff, 1024)) > 0)
 	{
@@ -135,5 +136,5 @@ std::string Cgi::handler(char * cgi_script){
 		std::cerr << "RES:" << res << "|, body" << body << "\n" ;
 	}
 	close(fd_out[0]);
-    return body;
+    return std::make_pair(true, body);
 }

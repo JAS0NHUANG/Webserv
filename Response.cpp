@@ -6,17 +6,36 @@ bool Response::send_informational_response() const {
 	return true;
 }
 
+bool Response::send_cgi_response(std::string body) const {
+
+	std::string response;
+
+	response = "HTTP/1.1 ";
+	response += toString(200);
+	response += " ";
+	response += this->get_code_msg(200);
+	response += "\n";
+	response += this->header_fields;
+	response += body;
+	std::cerr << "response : "<< response <<"\n";
+	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+	return true;
+}
 bool Response::send_successful_response() const {
 
 	std::string response;
 	std::string myline;
 	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
  	std::string path = location.get_root() + this->client.get_request_target();
+	std::cerr << "path" << path << ", " << this->client.get_request_target() << "\n";
 
 	response = "HTTP/1.1 ";
-	response += toString(this->status_code);
+	response += "200";
+	std::cerr << "this->status_code" << this->status_code << "\n";
 	response += " ";
-	response += this->get_code_msg(this->status_code);
+	if (this->status_code != 0)
+		response += this->get_code_msg(200);
 	response += "\n";
 	response += "Server: Tengine\nConnection: keep-alive\nDate: Wed, 30 Nov 2016 07:58:21 GMT\nCache-Control: no-cache\nContent-Type: text/html;charset=UTF-8\nKeep-Alive: timeout=20\nVary: Accept-Encoding\nPragma: no-cache\nX-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395\nContent-Length: 180945\n\r\n";
 	std::ifstream myfile (path.c_str());
@@ -114,55 +133,93 @@ Response::Response(Client client): client(client){
 Response::~Response(void){
 
 }
+void Response::check_setting_location(Location location, Config conf){
+	//check allow method
+	if (location.is_method_allowed(this->client.get_method()) == false){
+		this->status_code = 405;
+		return ;
+	}
+	//redicte https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
+	//https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
+	if (!(location.get_return().empty())){
+		std::cerr << "location.get_return().empty\n";
+		if(strcmp(this->client.get_method().c_str(),"GET") == 0)
+			this->status_code = 301;
+		else if(strcmp(this->client.get_method().c_str(),"PSOT") == 0)
+			this->status_code = 308;
+		else if (strcmp(this->client.get_method().c_str(),"DELETE") == 0)
+			this->status_code = 303;
+		else
+			this->status_code = 405;
+		return ;
+	}
+	//if location exist
+	if (conf.get_location(this->client.get_request_target()).first == false){
+		this->status_code = 404;
+		return ;
+	}
+	//if root exist check by access
+
+}
+void Response::set_header_fields(int cont_Leng, Location check_location){
+	std::map<std::string, std::string> headers;
+	headers["Content-Length"] = toString(cont_Leng);
+	if (check_location.get_cgi().first == true)
+	{
+		if(this->client.get_method() == "GET")
+			headers["Content-Type"] = "text/html; charset=utf-8";
+		else if (this->client.get_method() == "POST")
+			headers["Content-Type"] = "multipart/form-data";
+	}
+	for( std::map<std::string, std::string>::iterator it=headers.begin(); it!=headers.end(); ++it){
+		std::cerr << it->first + "=" + it->second << "\n";
+        this->header_fields += it->first;
+		this->header_fields += ":";
+		this->header_fields += it->second;
+		this->header_fields += "\n";
+    } 
+}
 bool Response::send_response(){
 	// NOTE : TO DEV
 	// Returns true if we need to close the connection
 	// If send() fails return true anyway
+	Config conf = this->client.get_conf();
+	Location check_location = conf.get_location(this->client.get_request_target()).second;
+
 	std::cout << "Sending response\n";
 	this->status_code = this->client.get_code();
-
-	bool close_conn = false;
-	// if (_code >= 200 && _code <= 299)
-	// 	close_conn = send_successful_response();
+	this->check_setting_location(check_location, conf);
 	if (this->status_code >= 400 && this->status_code <= 499)
 		return send_client_error_response();
 	else if (this->status_code >= 500 && this->status_code <= 599)
 		return send_server_error_response();
 	
-	//redirection???
-	//check_httpvserion();
-	Config conf = this->client.get_conf();
 	//conf.debug();
-	std::cerr << "std::map" << this->client.get_request_target() << "\n";
-	std::cerr << "std::map<std::string, Location>" << conf.get_location(this->client.get_request_target()).first << "\n";
-	
-	//if location exist;
-	std::cout << RED "PAATTTH : " << client.get_path2() << RESET"\n";
-	std::cout << RED"URRIIIIIIII : " << this->client.get_request_target() << RESET "\n";
-	Location check_location = conf.get_location(this->client.get_request_target()).second;
-	if (conf.get_location(this->client.get_request_target()).first == false){
-		std::cerr << "INDSIE\n";
-		this->status_code = 404;
-		return send_client_error_response();
-	}else if(check_location.get_cgi().first == true) {
-		//location is cgi
+	if(check_location.get_cgi().first == true) {
+		std::pair<bool, std::string> cgi_body;
+		std::string reponse;
+
+		//location is cgi;
 		std::cerr << "here is cgi\n";
 		Cgi test_cgi(this->client, conf);
 		std::string script = check_location.get_cgi().second.second;
-		set_header_fields(std::string accept, )
-		std::string body = test_cgi.handler(const_cast<char*>(script.c_str()));
-		if (send(this->client.get_fd(), body.c_str(), body.size(), 0) < 0)
-			errMsgErrno("send failed");
-		return true;
-	}else {
+		cgi_body = test_cgi.handler(const_cast<char*>(script.c_str()));
+		if (cgi_body.first == false){
+			this->status_code = 500;
+		}else {
+			std::cerr << "cgi_body.second" << cgi_body.second << "\n";
+			set_header_fields(cgi_body.second.size(), check_location);
+			return send_cgi_response(cgi_body.second);
+		}
+	} else {
+		//method get
+		//
+		//if autoindex?
+		//
 		return send_successful_response();
-		//if_method_allow?
-
-	}
+	 }
 	//else if ()
 	//conf.get_location(this->client.get_path()).second;
-	std::cerr << "if cgi" <<  check_location.get_cgi().first << "\n";
-	std::cerr << "if cgi" <<  check_location.get_cgi().first << "\n";
 	//if (this->client->get_path()
 
 	// }else if method  get{
@@ -182,7 +239,7 @@ bool Response::send_response(){
 		return true;
 	}
 
-	return close_conn;
+	return true; ///when return false? keep connection alive
 }
 std::string Response::get_code_msg(int status_code) const{
     return this->status_code_list.find(status_code)->second;

@@ -14,7 +14,7 @@ std::string Client::get_query_string(std::string &request_target) {
 
 	std::string::size_type i = request_target.find("?");
 	if (i != std::string::npos) {
-		str.assign(request_target.begin() + i, request_target.end());
+		str.assign(request_target.begin() + i + 1, request_target.end());
 		request_target.erase(i, request_target.size());
 	}
 
@@ -22,29 +22,45 @@ std::string Client::get_query_string(std::string &request_target) {
 }
 
 std::string Client::get_path(std::string request_target) {
-	std::string real_path;
-
 	if (request_target[0] != '/')
 		request_target = "/" + request_target;
 
+	std::pair<bool, Location> pr;
+	pr = _conf.get_location("/");
+	std::pair<bool , Location> pr_candidate;
+	pr_candidate.first = false;
+
+	std::string location;
 	std::string::iterator it = request_target.begin() + 1;
-	for (; it != request_target.end(); it++) {
-		if (*it == '/')
-			break;
+	while (it != request_target.end()){
+		for (; it != request_target.end(); it++) {
+			if (*it == '/')
+				break;
+		}
+		location.assign(request_target.begin(), it);
+		pr_candidate = _conf.get_location(location);
+		if (pr_candidate.first == true)
+			pr = pr_candidate;
+		if (it != request_target.end())
+			++it;
 	}
-
-	std::string location(request_target.begin(), it);
-
-	request_target.erase(request_target.begin(), it);
-
-	std::pair<bool, Location> pr = _conf.get_location(location);
 	if (pr.first)
-		location = pr.second.get_root() + location + request_target;
+		location = pr.second.get_root() + location;
 	else
-		location = _conf.get_root() + location + request_target;
-
+		location = _conf.get_root() + location;
 	return location;
 }
+
+    
+          
+            
+    
+
+          
+    
+    
+  
+
 
 void Client::check_method(std::string &method) {
 	if(!_conf.is_method_allowed(method))
@@ -56,7 +72,7 @@ void Client::check_access(std::string request_target) {
 	_path = get_path(request_target);
 
 	int code = 1;
-	//access(_path.c_str(), 0);
+	access(_path.c_str(), 0);
 	std::cerr << "access" << _path.c_str() << "\n";
 	if (code < 0) {
 		errMsgErrno("access");
@@ -200,8 +216,10 @@ void Client::parse_line(std::deque<std::string> &lines) {
 	remove_cr_char(lines);
 
 	while (!lines.empty()) {
-		if (_process_request_line)
+		if (_process_request_line){
 			process_request_line(lines.front());
+			std::cout << RED "QUERY STRING : " << _query_string << "\n" RESET;
+		}
 		else if (_process_headers)
 			process_field_line(lines.front());
 		else
