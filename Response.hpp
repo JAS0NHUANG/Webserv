@@ -37,6 +37,7 @@ class Response {
         std::string body;
         void set_header_fields();
         void set_body();
+        bool delete_file();
 
 
         //Transfer-Encoding  chunk

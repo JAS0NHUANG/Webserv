@@ -28,7 +28,7 @@ bool Response::send_successful_response() const {
 	std::string response;
 
 	response = "HTTP/1.1 ";
-	response += this->status_code;
+	response += toString(this->status_code);
 	response += " ";
 	response += this->get_code_msg(this->status_code);
 	response += "\r\n";
@@ -68,7 +68,7 @@ void Response::set_body(){
 			this->body += myline;
 		}
 	}else {
-		this->status_code == 404;
+		this->status_code = 404;
 		std::cerr << "Error opening file\n";
 	}
 	//std::cerr << "body :" <<this->body << "\n";
@@ -209,6 +209,34 @@ void Response::set_header_fields(int cont_Leng, Location check_location){
 		this->header_fields += "\n";
     } 
 }
+
+bool Response::delete_file(){
+	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
+	std::string path = location.get_root() + this->client.get_request_target();
+	
+	struct stat sb;
+
+	if (stat(path.c_str() , &sb) == -1){
+		perror("stat");
+		this->status_code = 404;
+		return false;
+	}
+	if (sb.st_mode & S_IFDIR){
+		this->status_code = 406;
+		std::cerr << " this is a directory not a file\n";
+		return false;
+	} else if (sb.st_mode & S_IFREG){
+		if (remove(path.c_str()) !=  0){
+			perror( "Error deleting file" );
+			return false;
+		}
+  		else{
+    		std::cout << "File successfully deleted\n";
+			this->body = "<!DOCTYPE html><html><body><p>File successfully deleted.</p></body></html>";
+		}
+	}
+	return true;
+}
 bool Response::send_response(){
 	// NOTE : TO DEV
 	// Returns true if we need to close the connection
@@ -234,19 +262,22 @@ bool Response::send_response(){
 			set_header_fields(cgi_body.second.size(), check_location);
 			return send_cgi_response(cgi_body.second);
 		}
-	} else if (this->status_code == 0){
-		if (this->client.get_method() == "GET"){
+	}else if(this->client.get_method() == "GET"){
 			set_body();
 			set_header_fields(this->body.size(), check_location);
-			this->status_code = 200;
-		}
-		return send_successful_response();
+			if (!this->status_code)
+				this->status_code = 200;
+	}else if (this->client.get_method() == "DELETE"){
+			if (delete_file() == false && this->status_code == 0)
+				this->status_code = 501;
+			else if (!this->status_code)
+				this->status_code = 202;
 	}
 	if (this->status_code >= 400 && this->status_code <= 499)
 		return send_client_error_response();
 	else if (this->status_code >= 500 && this->status_code <= 599)
 		return send_server_error_response();
-
+	return send_successful_response();
 	// }else if method  get{
 	// 	if autoindex()
 
