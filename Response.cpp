@@ -14,8 +14,9 @@ bool Response::send_cgi_response(std::string body) const {
 	response += toString(200);
 	response += " ";
 	response += this->get_code_msg(200);
-	response += "\n";
+	response += "\r\n";
 	response += this->header_fields;
+	response += "\r\n";
 	response += body;
 	std::cerr << "response : "<< response <<"\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
@@ -25,34 +26,16 @@ bool Response::send_cgi_response(std::string body) const {
 bool Response::send_successful_response() const {
 
 	std::string response;
-	std::string myline;
-	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
- 	std::string path = location.get_root() + this->client.get_request_target();
-	std::cerr << "path" << path << ", " << this->client.get_request_target() << "\n";
 
 	response = "HTTP/1.1 ";
-	response += "200";
-	std::cerr << "this->status_code" << this->status_code << "\n";
+	response += this->status_code;
 	response += " ";
-	if (this->status_code != 0)
-		response += this->get_code_msg(200);
-	response += "\n";
-	response += "Server: Tengine\nConnection: keep-alive\nDate: Wed, 30 Nov 2016 07:58:21 GMT\nCache-Control: no-cache\nContent-Type: text/html;charset=UTF-8\nKeep-Alive: timeout=20\nVary: Accept-Encoding\nPragma: no-cache\nX-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395\nContent-Length: 180945\n\r\n";
-	std::ifstream myfile (path.c_str());
-	if (myfile.is_open()){
-		while(myfile){
-			std::getline (myfile, myline);
-			response += myline;
-		}
-	}
-	std::cerr << "hteml :" <<response << "\n";
-	// if (this->client.get_code() == 400)
-	// 	response = "HTTP/1.1 400 Bad Request\n";
-	// else if (this->client.get_code() == 404)
-	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
-	// else if (this->client.get_code() == 405)
-	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
-
+	response += this->get_code_msg(this->status_code);
+	response += "\r\n";
+	response += this->header_fields;
+	response += "\r\n";
+	response += this->body;
+	std::cerr << "RESponse :" << response <<"\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -61,15 +44,39 @@ bool Response::send_successful_response() const {
 	// else if (_code == 201) {
 	// 	response = "HTTP/1.1 201 Created\nLocation: /\n\n";
 	// }
-	// response = "HTTP/1.1 200 OK\n\nHello world\n";
-	return true;
 }
 
 bool Response::send_redirection_message() const {
 	return true;
 }
 
+void Response::set_body(){
+	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
+	std::string path = location.get_root() + this->client.get_request_target();
+	//std::cerr << "path" << path << ", " << this->client.get_request_target() << "\n";
+	std::string myline;
+
+	if (this->client.get_request_target().compare("/") == 0 ){
+		if (!location.get_index().empty())
+			path += location.get_index()[0];
+	}
+	std::cerr << "path.c_str():" << path.c_str() << "\n";
+	std::ifstream myfile (path.c_str());
+	if (myfile.is_open()){
+		while(myfile){
+			std::getline (myfile, myline);
+			this->body += myline;
+		}
+	}else {
+		this->status_code == 404;
+		std::cerr << "Error opening file\n";
+	}
+	//std::cerr << "body :" <<this->body << "\n";
+}
+
 bool Response::send_client_error_response() const {
+
+	//manque header
 	// NOTE : Search into Config if there is default
 	// error pages set.
 	std::string response;
@@ -81,7 +88,7 @@ bool Response::send_client_error_response() const {
 	response += this->get_code_msg(this->status_code);
 	response += "\n";
 	std::ifstream myfile;
-	//response += "Server: Tengine\nConnection: keep-alive\nDate: Wed, 30 Nov 2016 07:58:21 GMT\nCache-Control: no-cache\nContent-Type: text/html;charset=UTF-8\nKeep-Alive: timeout=20\nVary: Accept-Encoding\nPragma: no-cache\nX-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395\nContent-Length: 180945\n\r\n";
+	//response += "Connection: keep-alive\nCache-Control: no-cache\nContent-Type: text/html;charset=UTF-8\nKeep-Alive: timeout=20\nVary: Accept-Encoding\nPragma: no-cache\nX-NWS-LOG-UUID: bd27210a-24e5-4740-8f6c-25dbafa9c395\nContent-Length: 180945\n\r\n";
 	if (this->status_code == 403)
 		std::ifstream myfile ("tests/www/errors/403.html");
 	else if (this->status_code == 405)
@@ -96,14 +103,7 @@ bool Response::send_client_error_response() const {
 			response += myline;
 		}
 	}
-	std::cerr << "hteml :" <<response << "\n";
-	// if (this->client.get_code() == 400)
-	// 	response = "HTTP/1.1 400 Bad Request\n";
-	// else if (this->client.get_code() == 404)
-	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
-	// else if (this->client.get_code() == 405)
-	// 	response = "HTTP/1.1 405 Method Not Allowed\n";
-
+	std::cerr << "ERROR response :" <<response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -125,7 +125,9 @@ bool Response::send_server_error_response() const {
 }
 
 Response::Response(Client client): client(client){
-	std::cerr << "response creet!!!\n";
+
+	std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
+	std::cerr << "get_path2 :" << client.get_path2()<< "\n";
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
 	this->status_code = 0;
@@ -133,6 +135,7 @@ Response::Response(Client client): client(client){
 Response::~Response(void){
 
 }
+
 void Response::check_setting_location(Location location, Config conf){
 	//check allow method
 	if (location.is_method_allowed(this->client.get_method()) == false){
@@ -163,14 +166,41 @@ void Response::check_setting_location(Location location, Config conf){
 }
 void Response::set_header_fields(int cont_Leng, Location check_location){
 	std::map<std::string, std::string> headers;
+
 	headers["Content-Length"] = toString(cont_Leng);
-	if (check_location.get_cgi().first == true)
+	if (this->status_code >= 400 && this->status_code < 600){
+		if(this->status_code == 405){
+			std::string tmp;
+			if(check_location.is_method_allowed("GET") == true)
+				tmp = "GET, ";
+			if(check_location.is_method_allowed("POST") == true)
+				tmp += "POST, ";
+			if(check_location.is_method_allowed("DELETE") == true)
+				tmp += "DELETE, ";
+			tmp = tmp.substr(0, tmp.size() - 2);
+			headers["Allow"] = tmp; 
+		}
+		headers["Content-Type"] = "text/html; charset=utf-8";
+	}
+	else if (check_location.get_cgi().first == true)
 	{
 		if(this->client.get_method() == "GET")
 			headers["Content-Type"] = "text/html; charset=utf-8";
 		else if (this->client.get_method() == "POST")
-			headers["Content-Type"] = "multipart/form-data";
+			headers["Content-Type"] = "application/x-www-form-urlencoded";
 	}
+	else{
+		if(this->client.get_method() == "GET")
+			headers["Content-Type"] = "text/html; charset=utf-8";
+		else if (this->client.get_method() == "POST")
+			headers["Content-Type"] = "multipart/form-data";//?
+		//method delete does not need content-type
+		//if multipart/form-data; boundary=something
+	}
+	if (this->status_code >= 300 && this->status_code < 400)
+		headers["Location"] = check_location.get_return();
+	//Transfer-Encoding  chunk
+	//Keep-Alive
 	for( std::map<std::string, std::string>::iterator it=headers.begin(); it!=headers.end(); ++it){
 		std::cerr << it->first + "=" + it->second << "\n";
         this->header_fields += it->first;
@@ -189,38 +219,33 @@ bool Response::send_response(){
 	std::cout << "Sending response\n";
 	this->status_code = this->client.get_code();
 	this->check_setting_location(check_location, conf);
-	if (this->status_code >= 400 && this->status_code <= 499)
-		return send_client_error_response();
-	else if (this->status_code >= 500 && this->status_code <= 599)
-		return send_server_error_response();
 	
 	//conf.debug();
 	if(check_location.get_cgi().first == true) {
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
-
 		//location is cgi;
-		std::cerr << "here is cgi\n";
 		Cgi test_cgi(this->client, conf);
 		std::string script = check_location.get_cgi().second.second;
 		cgi_body = test_cgi.handler(const_cast<char*>(script.c_str()));
 		if (cgi_body.first == false){
 			this->status_code = 500;
 		}else {
-			std::cerr << "cgi_body.second" << cgi_body.second << "\n";
 			set_header_fields(cgi_body.second.size(), check_location);
 			return send_cgi_response(cgi_body.second);
 		}
-	} else {
-		//method get
-		//
-		//if autoindex?
-		//
+	} else if (this->status_code == 0){
+		if (this->client.get_method() == "GET"){
+			set_body();
+			set_header_fields(this->body.size(), check_location);
+			this->status_code = 200;
+		}
 		return send_successful_response();
-	 }
-	//else if ()
-	//conf.get_location(this->client.get_path()).second;
-	//if (this->client->get_path()
+	}
+	if (this->status_code >= 400 && this->status_code <= 499)
+		return send_client_error_response();
+	else if (this->status_code >= 500 && this->status_code <= 599)
+		return send_server_error_response();
 
 	// }else if method  get{
 	// 	if autoindex()

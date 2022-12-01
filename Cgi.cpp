@@ -48,14 +48,11 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["SERVER_PORT"] = toString(config.get_port());
         this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
         this->env["REDIRECT_STATUS"]="200"; //php
-        print_env(this->env);
-        std::cerr << "env_size" << this->env.size() << "\n";
+        //print_env(this->env);
     }else{
         errMsgErrno("cgi location is not valid");
         return ;
     }
-    
-
 }
 
 void close_fd(int fd_in[], int fd_out[]){
@@ -135,6 +132,8 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
 		body += buff;
 		std::cerr << "RES:" << res << "|, body" << body << "\n" ;
 	}
+    std::size_t found = body.find("\r\n\r\n");
+    body = body.substr(found);
 	close(fd_out[0]);
     return std::make_pair(true, body);
 }

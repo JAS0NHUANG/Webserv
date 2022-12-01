@@ -26,6 +26,7 @@ class Response {
 
     private:
         Client client;
+        std::string extension;
         std::map<int, std::string> init_code_msg();
         std::string http_version;
         std::map<int, std::string> status_code_list;
@@ -35,6 +36,7 @@ class Response {
         //std::map<std::string, std::string> entity_header;
         std::string body;
         void set_header_fields();
+        void set_body();
 
 
         //Transfer-Encoding  chunk
