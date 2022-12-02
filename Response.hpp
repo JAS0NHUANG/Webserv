@@ -14,13 +14,12 @@ class Response {
 		~Response(void);
         std::string get_code_msg(int status_code) const;
         bool send_response();
-        void set_header_fields(int cont_Leng, Location check_location);
+        void set_header_fields(int cont_Leng, Location check_location) ;
         void check_setting_location(Location Location, Config conf);
-        bool								send_client_error_response() const;
-		bool								send_server_error_response() const;
-		bool								send_successful_response() const;
-		bool								send_redirection_message() const;
-		bool								send_informational_response() const;
+        bool								send_error_response(Location check_location);
+		bool								send_successful_response() ;
+		bool								send_redirection_message() ;
+		bool								send_informational_response() ;
         bool send_cgi_response(std::string body) const ;
 
 
@@ -35,7 +34,6 @@ class Response {
         //std::map<std::string, std::string> re_header_fields;
         //std::map<std::string, std::string> entity_header;
         std::string body;
-        void set_header_fields();
         void set_body();
         bool delete_file();
 

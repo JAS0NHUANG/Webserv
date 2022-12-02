@@ -144,10 +144,6 @@ std::time_t Client::get_timeout() const {
 	return std::time(NULL) - _timeout;
 }
 
-Config Client::get_conf() const {
-	return _conf;
-}
-
 void Client::clear() {
 	*this = Client();
 }

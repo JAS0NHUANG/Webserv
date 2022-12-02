@@ -32,7 +32,6 @@ void debug_print(std::pair<bool, std::string> x) {
 	std::cout << "[ " << x.first << " | " << x.second << " ]\n";
 }
 
-<<<<<<< HEAD
 // void debug_print(std::map<std::string, std::string> x) {
 // 	for (std::map<std::string, std::string>::iterator it = x.begin(); it != x.end(); it++)
 // 		std::cout << "[ " << it->first << " | " << it->second << " ]\n";
@@ -41,12 +40,10 @@ void debug_print(std::pair<bool, std::string> x) {
 // 	std::cout << "[ " << x.first << " | " << x.second << " ]\n";
 // }
 
-=======
 void debug_print(std::map<std::string, std::string> x) {
 	for (std::map<std::string, std::string>::iterator it = x.begin(); it != x.end(); it++)
 		std::cout << "[ " << it->first << " | " << it->second << " ]\n";
 }
->>>>>>> origin/request
 
 void	Location::debug() const {
 	std::cout << MAG ;
@@ -68,6 +65,7 @@ Location::Location() {
 	_root = "/var/www/html";
 	_autoindex = false;
 	_index.push_back("index.html");
+	_cgi.first = false;
 	_upload_store.first = false;
 }
 
@@ -110,7 +108,6 @@ std::vector<std::string> Location::get_index() const {
 	return _index;
 }
 
-<<<<<<< HEAD
 // std::pair<bool, std::string> Location::get_cgi(std::string ext) const {
 // 	if (_cgi.count(ext) == 0)
 // 		return std::pair<bool, std::string>(false, "");
@@ -119,15 +116,7 @@ std::vector<std::string> Location::get_index() const {
 // }
 std::pair<bool, std::pair<std::string, std::string> > Location::get_cgi() const {
 	return _cgi;
-=======
-std::pair<bool, std::string> Location::get_cgi(std::string ext) const {
-	if (_cgi.count(ext) == 0)
-		return std::pair<bool, std::string>(false, "");
-	std::string bin = (_cgi.find(ext)->second);
-	return std::pair<bool, std::string>(true, bin);
->>>>>>> origin/request
 }
-
 std::pair<bool, std::string> Location::get_upload_store() const {
 	return _upload_store;
 }
@@ -155,7 +144,6 @@ void	Location::set_index(std::vector<std::string> &vec) {
 	_index.assign(vec.begin(), vec.end());
 }
 
-<<<<<<< HEAD
 // void	Location::set_cgi(std::string &ext, std::string &bin) {
 // 	_cgi[ext] = bin;
 // }
@@ -163,10 +151,6 @@ void	Location::set_index(std::vector<std::string> &vec) {
 void	Location::set_cgi(std::string &ext, std::string &path) {
 	_cgi.first = true;
 	_cgi.second = std::make_pair(ext, path);
-=======
-void	Location::set_cgi(std::string &ext, std::string &bin) {
-	_cgi[ext] = bin;
->>>>>>> origin/request
 }
 
 void	Location::set_upload_store(std::string &dir) {

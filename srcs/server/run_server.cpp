@@ -1,8 +1,5 @@
 #include "webserv.hpp"
-<<<<<<< HEAD
 #include "../../Response.hpp"
-=======
->>>>>>> origin/request
 
 static void add_event(int epollfd,int fd,int state){
 	struct epoll_event ev;
@@ -77,10 +74,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				done = clients[events[n].data.fd].recv_request();
-<<<<<<< HEAD
 				std::cout << "JUST TRIED TO RECV\n";
-=======
->>>>>>> origin/request
 				if (done) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
@@ -92,14 +86,10 @@ int run_server(std::vector<Socket> &socket_list) {
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
 				std::cout << "Creating a response\n";
-<<<<<<< HEAD
 				// done = clients[events[n].data.fd].send_response();
 				// std::cout << "JUST TRIED TO SEND\n";
 				Response response(clients[events[n].data.fd]);
 				done = response.send_response();
-=======
-				done = clients[events[n].data.fd].send_response();
->>>>>>> origin/request
 				if (done) {
 					clients.erase(events[n].data.fd);
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
@@ -116,5 +106,6 @@ int run_server(std::vector<Socket> &socket_list) {
 	}
 	if (close(epollfd) == -1)
 		errMsgErrno("close");
+		
 	return 0;
 }

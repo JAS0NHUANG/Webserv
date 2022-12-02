@@ -22,10 +22,6 @@ std::string Client::get_query_string(std::string &request_target) {
 }
 
 std::string Client::get_path(std::string request_target) {
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/request
 	if (request_target[0] != '/')
 		request_target = "/" + request_target;
 
@@ -36,12 +32,7 @@ std::string Client::get_path(std::string request_target) {
 
 	std::string location;
 	std::string::iterator it = request_target.begin() + 1;
-<<<<<<< HEAD
 	while (it != request_target.end()){
-=======
-	while (it != request_target.end()) {
-
->>>>>>> origin/request
 		for (; it != request_target.end(); it++) {
 			if (*it == '/')
 				break;
@@ -53,35 +44,13 @@ std::string Client::get_path(std::string request_target) {
 		if (it != request_target.end())
 			++it;
 	}
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/request
 	if (pr.first)
 		location = pr.second.get_root() + location;
 	else
 		location = _conf.get_root() + location;
-<<<<<<< HEAD
 	return location;
 }
 
-    
-          
-            
-    
-
-          
-    
-    
-  
-
-
-=======
-
-	return location;
-}
-
->>>>>>> origin/request
 void Client::check_method(std::string &method) {
 	if(!_conf.is_method_allowed(method))
 		throw 405;
@@ -91,13 +60,9 @@ void Client::check_access(std::string request_target) {
 
 	_path = get_path(request_target);
 
-<<<<<<< HEAD
 	int code = 1;
 	access(_path.c_str(), 0);
 	std::cerr << "access" << _path.c_str() << "\n";
-=======
-	int code = access(_path.c_str(), 0);
->>>>>>> origin/request
 	if (code < 0) {
 		errMsgErrno("access");
 		if (errno == ENOENT)
@@ -149,10 +114,6 @@ bool Client::field_name_has_whitespace(std::string &field_name) const {
 		return true;
 	return false;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/request
 void Client::retrieve_conf(std::string host) {
 
 	std::string::size_type i = host.find(":");
@@ -175,10 +136,6 @@ void Client::retrieve_conf(std::string host) {
 		}
 	}
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/request
 void Client::process_field_line(std::string &line) {
 	std::string					field_name;
 	std::vector<std::string>	field_values;
@@ -199,10 +156,6 @@ void Client::process_field_line(std::string &line) {
 		_process_headers = false; // All headers has been received
 		if (_method != "POST")
 			_request_is_complete = true;
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/request
 		// Search for the configuration whose server_names match with host 
 		// by default the first server for a host:port will be
 		// the default for this host:port
@@ -252,11 +205,7 @@ void Client::parse_line(std::deque<std::string> &lines) {
 	remove_cr_char(lines);
 
 	while (!lines.empty()) {
-<<<<<<< HEAD
 		if (_process_request_line){
-=======
-		if (_process_request_line) {
->>>>>>> origin/request
 			process_request_line(lines.front());
 			std::cout << RED "QUERY STRING : " << _query_string << "\n" RESET;
 		}
@@ -315,11 +264,7 @@ bool Client::recv_request() {
 			}
 		}
 		if (_request_is_complete)
-<<<<<<< HEAD
 			break;
-=======
-			break; 
->>>>>>> origin/request
 	}
 	if (!_request_is_complete) {
 		return false;
