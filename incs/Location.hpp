@@ -31,7 +31,7 @@ class Location {
 
 		// std::map<std::string, std::string>	_cgi;
 		/* [ is_set/is_not_set | (extension | path_to_cgi_bin) ] */
-		std::pair<bool, std::pair<std::string, std::string> >	_cgi;
+		std::map<std::string, std::string>	_cgi;
 
 		/* [ is_on/is_off | directory ] */
 		std::pair<bool, std::string>	_upload_store;

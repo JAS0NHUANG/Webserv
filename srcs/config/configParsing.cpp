@@ -74,7 +74,6 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> 
 				callDoers(qu, c, line);
 			
 			d = e_server;
-
 		}
 	}
 

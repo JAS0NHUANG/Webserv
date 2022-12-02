@@ -21,6 +21,8 @@ Client& Client::operator=(const Client &src) {
 	_request_target			= src._request_target;
 	_headers				= src._headers;
 	_body					= src._body;
+	_query_string			= src._query_string;
+	_path					= src._path;
 	_code					= src._code;
 	_process_request_line	= src._process_request_line;
 	_process_headers		= src._process_headers;
@@ -140,6 +142,10 @@ void Client::start_timeout() {
 
 std::time_t Client::get_timeout() const {
 	return std::time(NULL) - _timeout;
+}
+
+Config Client::get_conf() const {
+	return _conf;
 }
 
 void Client::clear() {
