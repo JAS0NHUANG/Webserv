@@ -49,6 +49,7 @@ void	Location::debug() const {
 	std::cout << MAG ;
 	std::cout << "allow_method : "; debug_print(_allow_method);
 	std::cout << "return       : " << _return << "\n";
+	std::cout << "return status: " << _return_status << "\n";
 	std::cout << "root         : " << _root	<< "\n";
 	std::cout << "autoindex    : " << _autoindex << "\n";
 	std::cout << "index        : "; debug_print(_index);
@@ -78,6 +79,7 @@ Location::~Location() {}
 Location& Location::operator=(const Location &x) {
 	_allow_method	= x._allow_method;
 	_return			= x._return;
+	_return_status	= x._return_status;
 	_root			= x._root;
 	_autoindex		= x._autoindex;
 	_index			= x._index;
@@ -94,6 +96,10 @@ bool Location::is_method_allowed(std::string method) const {
 
 std::string Location::get_return() const {
 	return _return;
+}
+
+std::string Location::get_return_status() const {
+	return _return_status;
 }
 
 std::string Location::get_root() const {
@@ -126,10 +132,14 @@ void Location::set_allow_method(std::vector<std::string> &vec) {
 	_allow_method.insert(vec.begin(), vec.end());
 }
 
+void	Location::set_return_status(std::string &str) {
+	_return_status = str;
+}
 
 void	Location::set_return(std::string &str) {
 	_return = str;
 }
+
 
 void	Location::set_root(std::string &str) {
 	_root = str;

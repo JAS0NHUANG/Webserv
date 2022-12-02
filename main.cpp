@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 		for (; it != virtual_servers.end(); it++) {
 			std::cout << GRN <<  "\naddress: " << it->second.front().get_address() << ", port: " << it->second.front().get_port() << "\n" RESET;
 			socket_list.push_back(Socket(it->second.front().get_port(), it->second.front().get_address(), it->second));
+			// it->second.front().debug();
 		}
 		std::cout << GRN << "\nSockets created!\n" << RESET;
 

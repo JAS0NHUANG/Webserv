@@ -10,7 +10,6 @@ void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line) {
 		throwParsingError("expected '{'", toString(line));
 
 	eraseToken(qu, line);
-	
 }
 
 void doListenParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
@@ -27,7 +26,7 @@ void doListenParsing(std::queue<std::vector<std::string> > &qu, Config &conf, in
 
 	address = str.substr(0, i);
 	port = str.substr(i + 1, str.size() - i);
- 
+
 	if (address == "localhost")
 		conf.set_address("127.0.0.1");
 	else if (address == "*")
@@ -167,6 +166,11 @@ void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, 
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
+	if (!qu.empty() && (qu.front().front().find_first_not_of("0123456789") == std::string::npos)) {
+		conf.set_return_status(qu.front().front());
+		eraseToken(qu, line);
+		throwIfFileIsEmpty(qu, line);
+	}
 	conf.set_return(qu.front().front());
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
@@ -295,7 +299,6 @@ void doLocationParsing(std::queue<std::vector<std::string> > &qu, Config &conf, 
 	eraseToken(qu, line);
 	throwIfFileIsEmpty(qu, line);
 
-
 	while (qu.size() && qu.front().front() != "}")
 		callDoers(qu, location, line);
 
@@ -303,6 +306,6 @@ void doLocationParsing(std::queue<std::vector<std::string> > &qu, Config &conf, 
 
 	if (qu.empty() || qu.front().front() != "}")
 		throwParsingError("expected '}'", toString(line));
-	
+
 	eraseToken(qu, line);
 }

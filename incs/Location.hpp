@@ -19,6 +19,7 @@ class Location {
 
 		/* The url to redirect */
 		std::string	_return;
+		std::string _return_status;
 
 		/* Just the path where webserv will considered as its root to search files, etc... */
 		std::string	_root;
@@ -47,6 +48,7 @@ class Location {
 
 		bool						is_method_allowed(std::string method) const;
 		std::string					get_return() const;
+		std::string					get_return_status() const;
 		std::string					get_root() const;
 		bool						get_autoindex() const;
 		std::vector<std::string>	get_index() const;
@@ -56,6 +58,7 @@ class Location {
 
 		void	set_allow_method(std::vector<std::string> &vec);
 		void	set_return(std::string &str);
+		void	set_return_status(std::string &str);
 		void	set_root(std::string &str);
 		void	set_autoindex(bool b);
 		void	set_index(std::vector<std::string> &vec);

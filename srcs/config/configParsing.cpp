@@ -44,7 +44,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> 
 			// conf.push_back(Config());
 			d = e_server;
 		}
-		
+
 		if (d == e_server) {
 			if (qu.empty())
 				throwParsingError("expected '}'", toString(line));
@@ -59,7 +59,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> 
 			d = findDirective(qu.front().front());
 			if (d == e_unknown)
 				throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
-			
+
 			if (d == e_listen)
 				doListenParsing(qu, c, line);
 			else if (d == e_server_name)
@@ -72,7 +72,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> 
 				doLocationParsing(qu, c, line);
 			else
 				callDoers(qu, c, line);
-			
+
 			d = e_server;
 		}
 	}
