@@ -24,7 +24,7 @@ void Response::check_setting_location(Location location, Config conf){
 	}
 	//if location exist
 	if (conf.get_location(this->client.get_request_target()).first == false){
-		this->status_code = 404;
+		this->status_code = 401;
 		return ;
 	}
 	//if root exist check by access
@@ -104,10 +104,6 @@ bool Response::delete_file(){
 	return true;
 }
 
-bool Response::send_informational_response()  {
-	return true;
-}
-
 bool Response::send_cgi_response(std::string body) const  {
 
 	std::string response;
@@ -148,11 +144,7 @@ bool Response::send_successful_response()  {
 	// }
 }
 
-bool Response::send_redirection_message()  {
-	return true;
-}
-
-void Response::set_body(){
+bool Response::set_body(){
 	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
 	std::string path = location.get_root() + this->client.get_request_target();
 	//std::cerr << "path" << path << ", " << this->client.get_request_target() << "\n";
@@ -171,9 +163,43 @@ void Response::set_body(){
 		}
 	}else {
 		std::cerr << "Error opening file\n";
-
+		this->status_code = 500;
+		return false;
 	}
+	return true;
 	//std::cerr << "body :" <<this->body << "\n";
+}
+
+bool Response::set_autoindex_body(){
+	std::cout << "set_autoindex_body\n";
+	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
+	std::string path = location.get_root() + this->client.get_request_target();
+	DIR *dir;
+  	struct dirent *entry;
+	std::vector<std::string> files;
+	if (((dir = opendir(path.c_str())) != NULL)){
+		while((entry = readdir(dir)) != NULL){
+			if (std::string(entry->d_name) != "." && std::string(entry->d_name) != ".."){
+				files.push_back(std::string(entry->d_name));
+				std::cout<<  "entry->d_name :" << entry->d_name << "\n";
+			}
+		}
+		closedir(dir);
+	} else{
+		std::cerr << "Error opendir\n";
+		this->status_code = 500;
+		return false;
+	}
+	body = "<!DOCTYPE html><html><body>";
+	for(std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it){
+		body += "<h5> <a href=\"";
+		body += (*it);
+		body += "\">";
+		body += (*it);
+		body += "</a></h5>";
+	}
+	body += "</body></html>";
+	return true;
 }
 
 bool Response::send_error_response(Location location) {
@@ -242,10 +268,15 @@ bool Response::send_response(){
 			return send_cgi_response(cgi_body.second);
 		}
 	}else if(this->client.get_method() == "GET" && this->status_code == 0){
+		if (check_location.get_autoindex() == true){
+			set_autoindex_body();
+		} else {
 			set_body();
+		}
+		if (!this->status_code){
 			set_header_fields(this->body.size(), check_location);
-			if (!this->status_code)
-				this->status_code = 200;
+			this->status_code = 200;
+		}
 	}else if (this->client.get_method() == "DELETE" && this->status_code == 0){
 			if (delete_file() == false && this->status_code == 0)
 				this->status_code = 501;

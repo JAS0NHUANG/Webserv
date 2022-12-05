@@ -18,8 +18,6 @@ class Response {
         void check_setting_location(Location Location, Config conf);
         bool								send_error_response(Location check_location);
 		bool								send_successful_response() ;
-		bool								send_redirection_message() ;
-		bool								send_informational_response() ;
         bool send_cgi_response(std::string body) const ;
 
 
@@ -34,7 +32,8 @@ class Response {
         //std::map<std::string, std::string> re_header_fields;
         //std::map<std::string, std::string> entity_header;
         std::string body;
-        void set_body();
+        bool set_body();
+        bool set_autoindex_body();
         bool delete_file();
 
 
