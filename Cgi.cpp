@@ -125,15 +125,18 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     
 	char buff[1024] = {0};
 	ssize_t res = 0;
+    std::cerr << "RES:" << "\n" ;
 	while ((res = read(fd_out[0], buff, 1024)) > 0)
 	{
 		
 		buff[res] = '\0';
 		body += buff;
-		std::cerr << "RES:" << res << "|, body" << body << "\n" ;
 	}
+    std::cerr << "RES:" << res << "|, body" << body << "|\n" ;
     std::size_t found = body.find("\r\n\r\n");
-    body = body.substr(found);
+    if (found!=std::string::npos){
+        body = body.substr(found);
+    }
 	close(fd_out[0]);
     return std::make_pair(true, body);
 }

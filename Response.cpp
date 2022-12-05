@@ -12,7 +12,9 @@ void Response::check_setting_location(Location location, Config conf){
 	//https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
 	if (!(location.get_return().empty())){
 		std::cerr << "location.get_return().empty\n";
-		if(strcmp(this->client.get_method().c_str(),"GET") == 0)
+		if (!(location.get_return_status()).empty())
+			this->status_code = toInt(location.get_return_status());
+		else if(strcmp(this->client.get_method().c_str(),"GET") == 0)
 			this->status_code = 301;
 		else if(strcmp(this->client.get_method().c_str(),"PSOT") == 0)
 			this->status_code = 308;
@@ -24,11 +26,15 @@ void Response::check_setting_location(Location location, Config conf){
 	}
 	//if location exist
 	if (conf.get_location(this->client.get_request_target()).first == false){
-		this->status_code = 401;
+		this->status_code = 404;
 		return ;
 	}
 	//if root exist check by access
-
+	//check_cgi 
+	if (!this->extension.empty() && this->extension.compare(".html") != 0){
+		if (location.get_cgi(this->extension).first == false)
+			this->status_code = 401;
+	}
 }
 void Response::set_header_fields(int cont_Leng, Location check_location) {
 	std::map<std::string, std::string> headers;
@@ -48,7 +54,7 @@ void Response::set_header_fields(int cont_Leng, Location check_location) {
 		}
 		headers["Content-Type"] = "text/html; charset=utf-8";
 	}
-	else if (check_location.get_cgi().first == true)
+	else if (!this->extension.empty() && this->extension.compare("html") != 0 && check_location.get_cgi(this->extension). first == true)
 	{
 		if(this->client.get_method() == "GET")
 			headers["Content-Type"] = "text/html; charset=utf-8";
@@ -234,6 +240,12 @@ Response::Response(Client client): client(client){
 
 	std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
 	std::cerr << "get_path2 :" << client.get_path2()<< "\n";
+	std::size_t found = client.get_request_target().find(".");
+	if (found!=std::string::npos){
+		this->extension = client.get_request_target();
+		this->extension = this->extension.substr(found);
+		std::cout << "this->extension :|" << this->extension << "|\n";
+	}
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
 	this->status_code = 0;
@@ -249,17 +261,17 @@ bool Response::send_response(){
 	Config conf = this->client.get_conf();
 	Location check_location = conf.get_location(this->client.get_request_target()).second;
 
-	std::cout << "Sending response\n";
+	std::cout << "Sending response \n";
 	this->status_code = this->client.get_code();
 	this->check_setting_location(check_location, conf);
 	
 	//conf.debug();
-	if(check_location.get_cgi().first == true && this->status_code == 0) {
+	if(!this->extension.empty() && this->extension.compare(".html") != 0 && this->status_code == 0) {
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
 		//location is cgi;
 		Cgi test_cgi(this->client, conf);
-		std::string script = check_location.get_cgi().second.second;
+		std::string script = check_location.get_cgi(this->extension).second;
 		cgi_body = test_cgi.handler(const_cast<char*>(script.c_str()));
 		if (cgi_body.first == false){
 			this->status_code = 500;
@@ -283,8 +295,7 @@ bool Response::send_response(){
 			else if (!this->status_code)
 				this->status_code = 202;
 	}
-	//redicetion teste??
-	if (this->status_code >= 400 && this->status_code <= 599)
+	if (this->status_code >= 300&& this->status_code <= 599)
 		return send_error_response(check_location);
 	return send_successful_response();
 	// }else if method  get{
