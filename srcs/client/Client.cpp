@@ -71,6 +71,15 @@ std::string		Client::get_body() const{
 std::string		Client::get_query_string() const{
 	return _query_string;
 }
+
+std::string		Client::get_path2() const {
+	return _path;
+}
+
+bool			Client::get_request_is_complete() const {
+	return _request_is_complete;
+}
+
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
 {

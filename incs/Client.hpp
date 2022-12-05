@@ -33,9 +33,11 @@ class Client {
 		int									_fd;
 		std::vector<Config>					_virtual_servers;
 		Config								_conf;
+		// add body boundary
+		std::string							_body_boundary;
 
 		// parsing
-		void								parse_line(std::deque<std::string> &lines);
+		void								parse_line(std::deque<std::string> &lines, std::string &raw_request);
 		void								process_request_line(std::string &line);
 		std::string							get_query_string(std::string &request_target);
 		std::string							get_path(std::string request_target);
@@ -44,7 +46,7 @@ class Client {
 		void								process_field_line(std::string &line);
 		bool								field_name_has_whitespace(std::string &field_name) const;
 		void								retrieve_conf(std::string host);
-		void								process_body(std::string &line);
+		void								process_body(std::string &raw_request);
 
 		// parsing utils
 		void								remove_cr_char(std::deque<std::string> &lines);
@@ -71,8 +73,9 @@ class Client {
 		~Client();
 
 		// received from client / send to client
-		bool recv_request();
-		bool send_response();
+		std::string							recv_request();
+		bool								handle_request(std::string &raw_request);
+		bool								send_response();
 
 		// getters
 		std::string							get_method() const;
@@ -83,9 +86,8 @@ class Client {
 		Config 								get_conf() const;
 		int 								get_code() const;
 		std::string							get_body() const;
-		std::string							get_path2() const {
-			return _path;
-		}
+		std::string							get_path2() const;
+		bool								get_request_is_complete() const;
 };
 
 #endif

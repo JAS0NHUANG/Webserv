@@ -148,6 +148,17 @@ void Client::process_field_line(std::string &line) {
 		str_to_lower(field_name);
 		line.erase(0, i + 1);
 		_headers[field_name] = line;
+
+		// std::cout << "field: " << field_name << "\n";
+		// std::cout << "content: " << _headers[field_name] << "\n";
+		if (field_name == "content-type") {
+			std::string::size_type boundary_index = line.find("boundary");
+			// std::cout << "boundary indx" << boundary_index << "\n";
+			if (boundary_index != std::string::npos) {
+				_body_boundary = line.erase(0, boundary_index + 9);
+				// std::cout << "bd bound: " << _body_boundary << "\n";
+			}
+		}
 		return;
 	}
 	else if (line.empty()) {
@@ -171,7 +182,7 @@ void Client::process_field_line(std::string &line) {
 	throw 400; // Malformed header
 }
 
-void Client::process_body(std::string &line) {
+void Client::process_body(std::string &raw_request) {
 	// The presence of a message body in a request is signaled
 	// by a Content-Length or Transfer-Encoding header field.
 
@@ -179,7 +190,7 @@ void Client::process_body(std::string &line) {
 
 	// We dont expect receiving a body if the method is not POST
 	if (_method != "POST") {
-		_request_is_complete = true; 
+		_request_is_complete = true;
 		return;
 	}
 
@@ -189,18 +200,26 @@ void Client::process_body(std::string &line) {
 		return ;
 	}
 
-	if (line.empty()) {
-		_request_is_complete = true;
-		return;
-	}
-
-	if (_body.size() + line.size() > _conf.get_client_max_body_size())
+	if (_body.size() + raw_request.size() > _conf.get_client_max_body_size())
 		throw 413;
 
-	_body += line;
+	// put the complete raw_request inside _body;
+	_body.append(raw_request);
+	// saving the MULTIPART data might be done in response class by retriving the _body
+	if (_headers["content-type"].find("boundary") != std::string::npos) {
+		std::cout << _body_boundary << "   here boud\n\n";
+		std::ofstream temp_file("temp");
+		temp_file << _body;
+		temp_file.close();
+	} else {
+		std::string::size_type i = _body.find("\n\r");
+		_body.erase(0, i + 1);
+	}
+	_request_is_complete = true;
+	return ;
 }
 
-void Client::parse_line(std::deque<std::string> &lines) {
+void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request) {
 
 	remove_cr_char(lines);
 
@@ -208,13 +227,19 @@ void Client::parse_line(std::deque<std::string> &lines) {
 		if (_process_request_line){
 			process_request_line(lines.front());
 			std::cout << RED "QUERY STRING : " << _query_string << "\n" RESET;
+			lines.pop_front();
 		}
 		else if (_process_headers)
+		{
 			process_field_line(lines.front());
-		else
-			process_body(lines.front());
+			lines.pop_front();
+		}
+		else {
+			process_body(raw_request);
+			lines.clear();
+			//std::cout << YEL "the body here: " << _body << "\n\n" RESET;
+		}
 
-		lines.pop_front();
 		if (_request_is_complete)
 			break;
 	}
@@ -225,49 +250,63 @@ std::deque<std::string> Client::getlines(std::string buf) {
 	_ss << buf;
 
 	std::string::size_type i = buf.find("\n");
-	while (i != std::string::npos) {
+	while (!buf.empty()) {
 		std::string inter;
 		std::getline(_ss, inter);
 		lines.push_back(inter);
 		buf.erase(0, i + 1);
 		i = buf.find("\n");
+		if (i == std::string::npos) {
+			i = buf.size();
+		}
 	}
 	return lines;
 }
 
-bool Client::recv_request() {
+bool Client::handle_request(std::string &raw_request) {
+	// set status code too 400 when no raw_request recieved
+	if (raw_request.empty()) {
+		_request_is_complete = true;
+		_code = 400;
+	}
 	std::deque<std::string>	lines;
-	char buffer[BUFFER_SIZE] = {0};
-
-	while (true) {
-		int valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
-		if (valread == 0) {
-			if (_process_request_line == true || _process_headers == true)
-				_request_is_complete = true;
-			_code = 400;
+	lines = getlines(raw_request);
+	if (!lines.empty()) {
+		try { // This will catch any bad request 
+			parse_line(lines, raw_request);
+		}
+		catch (int error_code) {
+			std::cout << "Catched exception: " << error_code << "\n" ;
+			_code = error_code;
 			return true;
 		}
-		else if (valread < 0) {
-			errMsgErrno("recv");
-			break;
-		}
+	}
+
+	return _request_is_complete;
+}
+
+std::string Client::recv_request() {
+	char buffer[BUFFER_SIZE] = {};
+	int valread;
+	std::string raw_request;
+
+	while ((valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0)) > 0) {
 		buffer[valread] = '\0';
-		lines = getlines(buffer);
-		if (!lines.empty()) {
-			try { // This will catch any bad request 
-				parse_line(lines);
-			}
-			catch (int error_code) {
-				std::cout << "Catched exception: " << error_code << "\n" ;
-				_code = error_code;
-				return true;
-			}
-		}
-		if (_request_is_complete)
-			break;
+		raw_request.append(buffer, valread);
 	}
-	if (!_request_is_complete) {
-		return false;
+	if (valread == 0) {
+		// change the condition from || to &&, dont know if it's logic?
+		if (_process_request_line == false && _process_headers == false)
+			_request_is_complete = true;
+		// put this condition under handle_request()
+		// _code = 400;
+		return raw_request;
 	}
-	return true; // true if the request is finished
+	if (valread < 0) {
+		// Still don't know why sometimes will have "Resource temporarily unavailable" error...
+		// Is something blocking the recv?
+		errMsgErrno("recv");
+	}
+
+	return raw_request;
 }
