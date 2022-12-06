@@ -1,4 +1,5 @@
 #include "webserv.hpp"
+#include "../../Response.hpp"
 
 static void add_event(int epollfd,int fd,int state){
 	struct epoll_event ev;

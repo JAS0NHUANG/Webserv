@@ -5,9 +5,8 @@
 #include <fstream>
 #include <string>   ///read file
 #include "webserv.hpp"
-#include "Client.hpp"
-
-class Client;
+#include "incs/webserv.hpp"
+#include "Cgi.hpp"
 
 class Response {
     public:

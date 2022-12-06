@@ -5,8 +5,8 @@
 #include <string>
 #include <fcntl.h>
 #include "webserv.hpp"
+#include "Client.hpp"
 
-class Client ;
 class Cgi{
     public:
         Cgi(Client &requ, Config &config);	

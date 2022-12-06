@@ -1,5 +1,5 @@
-#ifndef REQUEST_HPP
-#define REQUEST_HPP
+#ifndef CLIENT_HPP
+ #define CLIENT_HPP
 
 #include "webserv.hpp"
 

@@ -35,8 +35,8 @@
 #include "config_parsing.hpp"
 #include "utils.hpp"
 #include "colorcodes.hpp"
-#include "Cgi.hpp"
-#include "Response.hpp"
+// #include "Cgi.hpp"
+// #include "Response.hpp"
 
 #define BUFFER_SIZE 2056
 #define MAX_EVENTS	128
