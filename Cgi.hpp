@@ -5,7 +5,7 @@
 #include <string>
 #include <fcntl.h>
 #include "webserv.hpp"
-#include "Client.hpp"
+#include "incs/Client.hpp"
 
 class Cgi{
     public:
@@ -19,6 +19,7 @@ class Cgi{
         char **env_char;
         void    set_env(Client &requ, Config &config);
         void    env_to_char(void);
+        Client request;
         //char 		*arg[];
 };
 #endif

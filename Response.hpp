@@ -36,6 +36,7 @@ class Response {
         bool set_body();
         bool set_autoindex_body();
         bool delete_file();
+        bool post_body();
 
 
         //Transfer-Encoding  chunk

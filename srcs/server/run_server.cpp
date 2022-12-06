@@ -74,6 +74,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				std::string raw_request  = clients[events[n].data.fd].recv_request();
+				std::cout << "raw request: " << raw_request << "\n";
 				done = clients[events[n].data.fd].handle_request(raw_request);
 				if (done) {
 					ev.events = EPOLLOUT;

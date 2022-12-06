@@ -14,7 +14,7 @@ void Response::check_setting_location(Location location, Config conf){
 			this->status_code = toInt(location.get_return_status());
 		else if(strcmp(this->client.get_method().c_str(),"GET") == 0)
 			this->status_code = 301;
-		else if(strcmp(this->client.get_method().c_str(),"PSOT") == 0)
+		else if(strcmp(this->client.get_method().c_str(),"POST") == 0)
 			this->status_code = 308;
 		else if (strcmp(this->client.get_method().c_str(),"DELETE") == 0)
 			this->status_code = 303;
@@ -54,10 +54,10 @@ void Response::set_header_fields(int cont_Leng, Location check_location) {
 	}
 	else if (!this->extension.empty() && this->extension.compare("html") != 0 && check_location.get_cgi(this->extension). first == true)
 	{
-		if(this->client.get_method() == "GET")
+		//if(this->client.get_method() == "GET")
 			headers["Content-Type"] = "text/html; charset=utf-8";
-		else if (this->client.get_method() == "POST")
-			headers["Content-Type"] = "application/x-www-form-urlencoded";
+		// else if (this->client.get_method() == "POST")
+		// 	headers["Content-Type"] = "application/x-www-form-urlencoded";
 	}
 	else{
 		if(this->client.get_method() == "GET")
@@ -78,6 +78,28 @@ void Response::set_header_fields(int cont_Leng, Location check_location) {
 		this->header_fields += it->second;
 		this->header_fields += "\n";
     } 
+}
+
+bool Response::post_body(){
+	std::string response;
+
+    std::cout << "File successfully saved\n";
+	this->body = "<!DOCTYPE html><html><body><p>SAVE THE BODY</P><P>";
+	//this->body += this->client.get_body();
+	this->body += "</p></body></html>";
+	response = "HTTP/1.1 ";
+	response += toString(201);
+	response += " ";
+	response += this->get_code_msg(201);
+	response += "\r\n";
+	response += "Content-Length:" + toString(this->body.size()) + "\n"; 
+	response += "Content-Type:text/html; charset=utf-8 \n";
+	response += "\r\n";
+	response += this->body;
+	std::cerr << "Response :"<< response <<"\n";
+	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+		errMsgErrno("send failed");
+	return true;
 }
 
 bool Response::delete_file(){
@@ -289,6 +311,9 @@ bool Response::send_response(){
 		//location is cgi;
 		Cgi test_cgi(this->client, conf);
 		std::string script = check_location.get_cgi(this->extension).second;
+		if (script.empty())
+			this->status_code = 500;
+		//std::cerr << "here\n";
 		cgi_body = test_cgi.handler(const_cast<char*>(script.c_str()));
 		if (cgi_body.first == false){
 			this->status_code = 500;
@@ -311,6 +336,10 @@ bool Response::send_response(){
 				this->status_code = 501;
 			else if (!this->status_code)
 				this->status_code = 202;
+	}else if (this->client.get_method() == "POST" && this->status_code == 0){
+			this->status_code = 201;
+			return post_body();
+
 	}
 	if (this->status_code >= 300&& this->status_code <= 599)
 		return send_error_response(check_location);

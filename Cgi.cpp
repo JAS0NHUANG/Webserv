@@ -6,6 +6,7 @@
 //ref:http://www.wijata.com/cgi/cgispec.html#6.0
 Cgi::Cgi(Client &requ, Config &config){
     this->env_char = NULL;
+    this->request =  requ;
     set_env(requ, config);
     env_to_char();
     
@@ -30,15 +31,17 @@ void Cgi::set_env(Client &requ, Config &config){
     std::map<std::string, std::string>	headers = requ.get_headers();
     if (config.get_location(requ.get_request_target()).first == true){
         Location location = config.get_location(requ.get_request_target()).second;
-        this->env["CONTENT_LENGTH"] = toString(requ.get_body().length());
-        this->env["CONTENT_TYPE"] = headers["Content-Type"];
+        if (requ.get_method() == "POST"){
+            this->env["CONTENT_LENGTH"] = toString(requ.get_body().size());
+            this->env["CONTENT_TYPE"] = headers["content-type"];
+        } else if (requ.get_method() == "GET")
+            this->env["QUERY_STRING"] = requ.get_query_string();
         this->env["CONTENT"] = requ.get_body();
         this->env["GATEWAY_INTERFAC"] = "CGI/1.1";
         this->env["SERVER_PROTOCOL"]= "HTTP/1.1";
         this->env["PATH_INFO"] = requ.get_request_target();
         std::cerr << "requ.method:|" << requ.get_method() <<"|\n";
         this->env["REQUEST_METHOD"]= requ.get_method();
-        this->env["QUERY_STRING"] = requ.get_query_string();
         this->env["REMOTE_HOST"]= headers["Host"];
         //REMOTE_ADDR
         this->env["SCRIPT_FILENAME"] = location.get_root() + requ.get_request_target();
@@ -47,7 +50,7 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["SERVER_PORT"] = toString(config.get_port());
         this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
         this->env["REDIRECT_STATUS"]="200"; //php
-        //print_env(this->env);
+        print_env(this->env);
     }else{
         errMsgErrno("cgi location is not valid");
         return ;
@@ -87,7 +90,8 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
         std::cerr << "pipe:" << strerror(errno) << std::endl;
         return std::make_pair(false, body);
     }
-	if (write(fd_in[1], const_cast<char*>(this->env["CONTENT"].c_str()), this->env["CONTENT"].length() + 1) < 0){
+    std::cerr << "this->env[\"CONTENT\"]:|" << this->request.get_body() << "|\n";
+	if (write(fd_in[1], this->request.get_body().c_str(), this->request.get_body().size()) < 0){
         std::cerr << "write in cgi:" << strerror(errno) << std::endl;
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
@@ -96,23 +100,21 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
         std::cerr << "fork:" << strerror(errno) << std::endl;
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
-    }
-	else if (pid == 0)
-	{
+    }else if (pid == 0){
+        close(fd_in[1]);
 		if (dup2(fd_in[0], STDIN_FILENO)< 0){
             std::cerr << "dup2 in in cgi:" << strerror(errno) << std::endl;
             close_fd(fd_in, fd_out);
 			return std::make_pair(false, body);
         }
-		close(fd_in[1]);
 	 	close(fd_in[0]);
+        close(fd_out[0]);
 		if (dup2(fd_out[1], STDOUT_FILENO)< 0){
             std::cerr << "dup2 out in cgi:" << strerror(errno) << std::endl;
             close_fd(fd_in, fd_out);
 			return std::make_pair(false, body);
         }
 		close(fd_out[1]);
-	 	close(fd_out[0]);
 		execve(cgi_script, arg, this->env_char);
 		std::cerr << "execve in cgi:" << strerror(errno) << std::endl;
     }
