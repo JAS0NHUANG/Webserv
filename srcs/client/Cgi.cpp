@@ -1,8 +1,7 @@
-#include "Cgi.hpp"
 #include <sstream>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "incs/webserv.hpp"
+#include "Cgi.hpp"
 
 //ref:http://www.wijata.com/cgi/cgispec.html#6.0
 Cgi::Cgi(Client &requ, Config &config){

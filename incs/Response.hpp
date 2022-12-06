@@ -1,11 +1,13 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
-#include "incs/webserv.hpp"
-#include "incs/Client.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <string>   ///read file
+#include "webserv.hpp"
+#include "Client.hpp"
+
+class Client;
 
 class Response {
     public:

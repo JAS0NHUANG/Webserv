@@ -1,6 +1,4 @@
 #include "Response.hpp"
-#include "incs/Client.hpp"
-#include "Cgi.hpp"
 
 void Response::check_setting_location(Location location, Config conf){
 	//check allow method
@@ -167,6 +165,7 @@ bool Response::set_body(){
 			std::getline (myfile, myline);
 			this->body += myline;
 		}
+	myfile.close();
 	}else {
 		std::cerr << "Error opening file\n";
 		this->status_code = 500;
@@ -212,6 +211,8 @@ bool Response::send_error_response(Location location) {
 
 	std::string response;
 	std::string body;
+	std::string path;
+
 
 	response = "HTTP/1.1 ";
 	response += toString(this->status_code);
@@ -219,12 +220,27 @@ bool Response::send_error_response(Location location) {
 	response += this->get_code_msg(this->status_code);
 	response += "\r\n";
 
-	body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
-	body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
-	body += "</title></head><body><center><h1>";
-	body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
-	body +="</h1></center></body></html>";
-
+	std::cout <<"this->client"  << this->client.get_conf().get_error_page(600)<< "\n";
+	std::cout <<"this->client"  << this->client.get_conf().get_error_page(400)<< "\n";
+	if (!this->client.get_conf().get_error_page(this->status_code).empty())
+		path = this->client.get_conf().get_error_page(this->status_code) + "/" + toString(this->status_code) + ".html";
+	std::cerr << "PATH ERROR :" << path << "\n";
+	std::ifstream myfile (path.c_str());
+	if (myfile.is_open()){
+		std::string myline;
+		while(myfile){
+	 		std::getline (myfile, myline);
+	 		body += myline;
+	 	}
+		std::cerr << "PATH Open??\n";
+		myfile.close();
+	}else{
+		body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
+		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
+		body += "</title></head><body><center><h1>";
+		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
+		body +="</h1></center></body></html>";
+	}
 	set_header_fields(body.size(), location);
 	response += this->header_fields;
 	response += "\r\n";
@@ -262,7 +278,8 @@ bool Response::send_response(){
 	Location check_location = conf.get_location(this->client.get_request_target()).second;
 
 	std::cout << "Sending response \n";
-	this->status_code = this->client.get_code();
+	std::cout <<"this->client"  << this->client.get_conf().get_error_page(600)<< "\n";
+	std::cout <<"this->client"  << this->client.get_conf().get_error_page(400)<< "\n";
 	this->check_setting_location(check_location, conf);
 	
 	//conf.debug();
