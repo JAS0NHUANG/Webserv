@@ -2,8 +2,6 @@ import datetime
 
 # FORMAT PRINTED:
 # "Date: Mon, 27 Jul 2009 12:28:53 GMT"
-print("Content-Type: text/html\r\n\r\n")
-print("Hello World")
 
 def formatDate(date):
   formated = "Date: " + date.strftime("%a") + ", "
@@ -17,4 +15,8 @@ def formatDate(date):
 def printFormatedCurrentDate():
   current_time = datetime.datetime.now()
   print(formatDate(current_time))
-printFormatedCurrentDate()
+
+
+if __name__ == '__main__':
+  print("Hello World")
+  printFormatedCurrentDate()

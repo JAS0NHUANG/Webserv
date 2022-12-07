@@ -54,10 +54,7 @@ void Response::set_header_fields(int cont_Leng, Location check_location) {
 	}
 	else if (!this->extension.empty() && this->extension.compare("html") != 0 && check_location.get_cgi(this->extension). first == true)
 	{
-		//if(this->client.get_method() == "GET")
-			headers["Content-Type"] = "text/html; charset=utf-8";
-		// else if (this->client.get_method() == "POST")
-		// 	headers["Content-Type"] = "application/x-www-form-urlencoded";
+		headers["Content-Type"] = "text/html; charset=utf-8";
 	}
 	else{
 		if(this->client.get_method() == "GET")
@@ -115,7 +112,7 @@ bool Response::delete_file(){
 	}
 	if (sb.st_mode & S_IFDIR){
 		this->status_code = 406;
-		std::cerr << " this is a directory not a file\n";
+		std::cerr << "this is a directory not a file\n";
 		return false;
 	} else if (sb.st_mode & S_IFREG){
 		if (remove(path.c_str()) !=  0){
@@ -163,11 +160,6 @@ bool Response::send_successful_response()  {
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
-	// if (_code == 200)
-	// 	response = "HTTP/1.1 200 OK\n\nHello world\n";
-	// else if (_code == 201) {
-	// 	response = "HTTP/1.1 201 Created\nLocation: /\n\n";
-	// }
 }
 
 bool Response::set_body(){
@@ -300,8 +292,6 @@ bool Response::send_response(){
 	Location check_location = conf.get_location(this->client.get_request_target()).second;
 
 	std::cout << "Sending response \n";
-	std::cout <<"this->client"  << this->client.get_conf().get_error_page(600)<< "\n";
-	std::cout <<"this->client"  << this->client.get_conf().get_error_page(400)<< "\n";
 	this->check_setting_location(check_location, conf);
 	
 	//conf.debug();
@@ -339,29 +329,11 @@ bool Response::send_response(){
 	}else if (this->client.get_method() == "POST" && this->status_code == 0){
 			this->status_code = 201;
 			return post_body();
-
 	}
 	if (this->status_code >= 300&& this->status_code <= 599)
 		return send_error_response(check_location);
 	return send_successful_response();
-	// }else if method  get{
-	// 	if autoindex()
-
-	// } else if method post{
-
-	// } else if method deleted{
-
-	// }
-
-
-	if (this->client.get_code() == 0) { // Temporarys statement (for test purpose)
-		std::string response_ex("HTTP/1.1 200 OK\n\nHello world\n");
-		if (send(this->client.get_fd(), response_ex.c_str(), response_ex.size(), 0) < 0)
-			errMsgErrno("send failed");
-		return true;
-	}
-
-	return true; ///when return false? keep connection alive
+	//return true; when return false? keep connection alive
 }
 std::string Response::get_code_msg(int status_code) const{
     return this->status_code_list.find(status_code)->second;
