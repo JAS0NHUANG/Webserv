@@ -82,43 +82,48 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     int     fd_out[2];
     pid_t	pid;
     //std::string content ="";
-    char 		*arg[] = {0};
+    char 		*arg[] = {
+        cgi_script,
+        const_cast<char*>(this->env["SCRIPT_FILENAME"].c_str()),
+        NULL
+    };
     std::string body;
     std::string get_request_body;
+    std::cerr << "cgi_script: |" << cgi_script << "|\n";
     if (!this->request.get_body().empty()){
         get_request_body = this->request.get_body().substr(2);
     }
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
-        std::cerr << "pipe:" << strerror(errno) << std::endl;
+        std::cerr << "pipe: cgi"  << std::endl;
         return std::make_pair(false, body);
     }
     std::cerr << "this->env[\"CONTENT\"]:|" << get_request_body << "|\n";
     if (write(fd_in[1], get_request_body.c_str(), get_request_body.size()) < 0){
-        std::cerr << "write in cgi:" << strerror(errno) << std::endl;
+        std::cerr << "write in cgi"  << std::endl;
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
     }
 	if ((pid = fork()) < 0){
-        std::cerr << "fork:" << strerror(errno) << std::endl;
+        std::cerr << "fork: cgi" << std::endl;
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
     }else if (pid == 0){
         close(fd_in[1]);
 		if (dup2(fd_in[0], STDIN_FILENO)< 0){
-            std::cerr << "dup2 in in cgi:" << strerror(errno) << std::endl;
+            std::cerr << "dup2 in in cgi"  << std::endl;
             close_fd(fd_in, fd_out);
 			return std::make_pair(false, body);
         }
 	 	close(fd_in[0]);
         close(fd_out[0]);
 		if (dup2(fd_out[1], STDOUT_FILENO)< 0){
-            std::cerr << "dup2 out in cgi:" << strerror(errno) << std::endl;
+            std::cerr << "dup2 out in cgi" << std::endl;
             close_fd(fd_in, fd_out);
 			return std::make_pair(false, body);
         }
 		close(fd_out[1]);
 		execve(cgi_script, arg, this->env_char);
-		std::cerr << "execve in cgi:" << strerror(errno) << std::endl;
+		std::cerr << "execve in cgi"<< std::endl;
     }
     close(fd_in[1]);
 	close(fd_in[0]);
@@ -128,11 +133,11 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
 
 	char buff[1024] = {0};
 	ssize_t res = 0;
-    std::cerr << "RES:" << "\n" ;
 	while ((res = read(fd_out[0], buff, 1024)) > 0)
 	{
 		buff[res] = '\0';
 		body += buff;
+        std::cerr << "RES000:" << res << "|, body" << body << "|\n" ;
 	}
     std::cerr << "RES:" << res << "|, body" << body << "|\n" ;
     std::size_t found = body.find("\r\n\r\n");
