@@ -33,7 +33,7 @@ void Cgi::set_env(Client &requ, Config &config){
         Location location = config.get_location(requ.get_request_target()).second;
         if (requ.get_method() == "POST"){
             this->env["CONTENT_LENGTH"] = toString(requ.get_body().size());
-            this->env["CONTENT_TYPE"] = headers["content-type"];
+            this->env["CONTENT_TYPE"] = headers["content-type"].substr(1);
         } else if (requ.get_method() == "GET")
             this->env["QUERY_STRING"] = requ.get_query_string();
         this->env["CONTENT"] = requ.get_body();
@@ -85,13 +85,16 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     //std::string content ="";
     char 		*arg[] = {0};
     std::string body;
-
+    std::string get_request_body;
+    if (!this->request.get_body().empty()){
+        get_request_body = this->request.get_body().substr(2);
+    }
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
         std::cerr << "pipe:" << strerror(errno) << std::endl;
         return std::make_pair(false, body);
     }
-    std::cerr << "this->env[\"CONTENT\"]:|" << this->request.get_body() << "|\n";
-	if (write(fd_in[1], this->request.get_body().c_str(), this->request.get_body().size()) < 0){
+    std::cerr << "this->env[\"CONTENT\"]:|" << get_request_body << "|\n";
+    if (write(fd_in[1], get_request_body.c_str(), get_request_body.size()) < 0){
         std::cerr << "write in cgi:" << strerror(errno) << std::endl;
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
@@ -118,7 +121,7 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
 		execve(cgi_script, arg, this->env_char);
 		std::cerr << "execve in cgi:" << strerror(errno) << std::endl;
     }
-	close(fd_in[1]);
+    close(fd_in[1]);
 	close(fd_in[0]);
     close(fd_out[1]);
     int status;
