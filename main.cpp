@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
 			socket_list.push_back(Socket(it->second.front().get_port(), it->second.front().get_address(), it->second));
 			// it->second.front().debug();
 		}
-		std::cout << GRN << "\nSockets created!\n" << RESET;
 
 		// run server
 		run_server(socket_list);

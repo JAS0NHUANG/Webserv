@@ -9,7 +9,6 @@ Cgi::Cgi(Client &requ, Config &config){
     this->request =  requ;
     set_env(requ, config);
     env_to_char();
-    
 }
 
 Cgi::~Cgi(void){
@@ -24,7 +23,7 @@ Cgi::~Cgi(void){
 void print_env(std::map<std::string, std::string>	env){
     for( std::map<std::string, std::string>::iterator it=env.begin(); it!=env.end(); ++it){
         std::cerr << it->first + "=" + it->second << "\n";
-    }  
+    }
 }
 
 void Cgi::set_env(Client &requ, Config &config){
@@ -126,13 +125,12 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     close(fd_out[1]);
     int status;
     waitpid(-1, &status, 0);
-    
+
 	char buff[1024] = {0};
 	ssize_t res = 0;
     std::cerr << "RES:" << "\n" ;
 	while ((res = read(fd_out[0], buff, 1024)) > 0)
 	{
-		
 		buff[res] = '\0';
 		body += buff;
 	}

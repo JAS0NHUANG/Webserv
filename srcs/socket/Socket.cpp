@@ -17,8 +17,6 @@ Socket::Socket(int port, std::string address, std::vector<Config> _virtual_serve
 	sock_addr.sin_addr.s_addr = inet_addr(address.c_str());
 	sock_addr.sin_port = htons(this->_port);
 
-	//std::cout << "\n";
-	//std::cout << BLU << "socket object:\naddress str: " << address << ", s_addr: " << sock_addr.sin_addr.s_addr << "\n";
 
 	// this will make addr reusable?!
 	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
@@ -28,12 +26,10 @@ Socket::Socket(int port, std::string address, std::vector<Config> _virtual_serve
 	// bind
 	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0)
 		throwError("bind");
-	//std::cout << "binding ok on sock addr: " << sock_addr.sin_addr.s_addr << "\n";
 
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
 		throwError("listen");
-	//std::cout << "Listening on socket fd " << _sock_fd << " \n";
 }
 
 Socket::Socket() {
@@ -65,7 +61,6 @@ Socket::Socket() {
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
 		throwError("listen");
-	//std::cout << "Listening on socket fd " << _sock_fd << " \n";
 }
 
 Socket::~Socket() {}

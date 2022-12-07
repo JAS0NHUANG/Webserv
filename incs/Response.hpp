@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>   ///read file
 #include "webserv.hpp"
-#include "incs/webserv.hpp"
 #include "Cgi.hpp"
 
 class Response {

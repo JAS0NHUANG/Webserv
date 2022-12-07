@@ -303,7 +303,7 @@ bool Response::send_response(){
 	std::cout <<"this->client"  << this->client.get_conf().get_error_page(600)<< "\n";
 	std::cout <<"this->client"  << this->client.get_conf().get_error_page(400)<< "\n";
 	this->check_setting_location(check_location, conf);
-	
+
 	//conf.debug();
 	if(!this->extension.empty() && this->extension.compare(".html") != 0 && this->status_code == 0) {
 		std::pair<bool, std::string> cgi_body;

@@ -1,5 +1,5 @@
 #include "webserv.hpp"
-#include "../../Response.hpp"
+#include "Response.hpp"
 
 static void add_event(int epollfd,int fd,int state){
 	struct epoll_event ev;
@@ -43,7 +43,6 @@ int run_server(std::vector<Socket> &socket_list) {
 	if (epollfd == -1)
 		throwError("epoll_create");
 	for(int i = 0;i < (int)socket_list.size();i++) {
-		std::cout << "socket fd: " << socket_list[i].getSockFd() << "\n";
 		add_event(epollfd, socket_list[i].getSockFd(), EPOLLIN);
 	}
 
@@ -55,8 +54,6 @@ int run_server(std::vector<Socket> &socket_list) {
 
 		// Loop that handle events happening on server fd and connections fds
 		for (int n = 0; n < event_fds; ++n) {
-			std::cout << MAG << "n :" << n << " event_fds :" << event_fds << std::endl << RESET; 
-			std::cout << MAG << "n :" << n << " current event fd :" << events[n].data.fd << std::endl << RESET;
 
 			if (events[n].events & EPOLLRDHUP || events[n].events & EPOLLERR || events[n].events & EPOLLHUP) {
 				errMsgErrno("event error");

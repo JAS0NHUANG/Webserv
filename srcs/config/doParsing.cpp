@@ -58,16 +58,13 @@ void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Config &conf
 	throwIfFileIsEmpty(qu, line);
 
 	std::vector<std::string> names;
-	std::cout << RED "START DEBUG\n" RESET;
 	while (qu.size() && qu.front().front() != ";") {
 		if (qu.front().front() == "}" || qu.front().front() == "{")
 			throwParsingError("expected ';'", toString(line));
-		std::cout << "name : " << qu.front().front() << "\n";
 		names.push_back(qu.front().front());
 		eraseToken(qu, line);
 		throwIfFileIsEmpty(qu, line);
 	}
-	std::cout << RED "END DEBUG\n" RESET;
 
 	conf.set_server_name(names);
 

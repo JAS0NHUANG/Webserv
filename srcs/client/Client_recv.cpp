@@ -149,14 +149,10 @@ void Client::process_field_line(std::string &line) {
 		line.erase(0, i + 1);
 		_headers[field_name] = line;
 
-		// std::cout << "field: " << field_name << "\n";
-		// std::cout << "content: " << _headers[field_name] << "\n";
 		if (field_name == "content-type") {
 			std::string::size_type boundary_index = line.find("boundary");
-			// std::cout << "boundary indx" << boundary_index << "\n";
 			if (boundary_index != std::string::npos) {
 				_body_boundary = line.erase(0, boundary_index + 9);
-				// std::cout << "bd bound: " << _body_boundary << "\n";
 			}
 		}
 		return;
@@ -226,7 +222,6 @@ void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request
 	while (!lines.empty()) {
 		if (_process_request_line){
 			process_request_line(lines.front());
-			std::cout << RED "QUERY STRING : " << _query_string << "\n" RESET;
 			lines.pop_front();
 		}
 		else if (_process_headers)

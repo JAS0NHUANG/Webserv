@@ -5,7 +5,7 @@
 #include <string>
 #include <fcntl.h>
 #include "webserv.hpp"
-#include "incs/Client.hpp"
+#include "Client.hpp"
 
 class Cgi{
     public:
