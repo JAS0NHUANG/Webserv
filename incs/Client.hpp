@@ -35,6 +35,7 @@ class Client {
 		Config								_conf;
 		// add body boundary
 		std::string							_body_boundary;
+		bool								_is_upload_ok;
 
 		// parsing
 		void								parse_line(std::deque<std::string> &lines, std::string &raw_request);
@@ -47,6 +48,8 @@ class Client {
 		bool								field_name_has_whitespace(std::string &field_name) const;
 		void								retrieve_conf(std::string host);
 		void								process_body(std::string &raw_request);
+		bool								upload_file(std::string &raw_request);
+		bool								check_boundary(std::string &raw_request);
 
 		// parsing utils
 		void								remove_cr_char(std::deque<std::string> &lines);

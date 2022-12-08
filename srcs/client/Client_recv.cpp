@@ -114,6 +114,7 @@ bool Client::field_name_has_whitespace(std::string &field_name) const {
 		return true;
 	return false;
 }
+
 void Client::retrieve_conf(std::string host) {
 
 	std::string::size_type i = host.find(":");
@@ -178,43 +179,6 @@ void Client::process_field_line(std::string &line) {
 	throw 400; // Malformed header
 }
 
-void Client::process_body(std::string &raw_request) {
-	// The presence of a message body in a request is signaled
-	// by a Content-Length or Transfer-Encoding header field.
-
-	// NOTE : Each time this function is called, need to check max_body_size
-
-	// We dont expect receiving a body if the method is not POST
-	if (_method != "POST") {
-		_request_is_complete = true;
-		return;
-	}
-
-	if (_headers.count("transfer-encoding") == 0 &&
-		_headers.count("content-length") == 0) { // No body
-		_request_is_complete = true;
-		return ;
-	}
-
-	if (_body.size() + raw_request.size() > _conf.get_client_max_body_size())
-		throw 413;
-
-	// put the complete raw_request inside _body;
-	_body.append(raw_request);
-	// saving the MULTIPART data might be done in response class by retriving the _body
-	if (_headers["content-type"].find("boundary") != std::string::npos) {
-		std::cout << _body_boundary << "   here boud\n\n";
-		std::ofstream temp_file("temp");
-		temp_file << _body;
-		temp_file.close();
-	} else {
-		std::string::size_type i = _body.find("\n\r");
-		_body.erase(0, i + 1);
-	}
-	_request_is_complete = true;
-	return ;
-}
-
 void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request) {
 
 	remove_cr_char(lines);
@@ -232,12 +196,12 @@ void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request
 		else {
 			process_body(raw_request);
 			lines.clear();
-			//std::cout << YEL "the body here: " << _body << "\n\n" RESET;
 		}
 
 		if (_request_is_complete)
 			break;
 	}
+	return ;
 }
 
 std::deque<std::string> Client::getlines(std::string buf) {
@@ -293,9 +257,6 @@ std::string Client::recv_request() {
 		// change the condition from || to &&, dont know if it's logic?
 		if (_process_request_line == false && _process_headers == false)
 			_request_is_complete = true;
-		// put this condition under handle_request()
-		// _code = 400;
-		return raw_request;
 	}
 	if (valread < 0) {
 		// Still don't know why sometimes will have "Resource temporarily unavailable" error...

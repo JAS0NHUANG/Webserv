@@ -71,7 +71,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
 				std::string raw_request  = clients[events[n].data.fd].recv_request();
-				std::cout << "raw request: " << raw_request << "\n";
+				// std::cout << "raw request: " << raw_request << "\n";
 				done = clients[events[n].data.fd].handle_request(raw_request);
 				if (done) {
 					ev.events = EPOLLOUT;
@@ -86,7 +86,6 @@ int run_server(std::vector<Socket> &socket_list) {
 				std::cout << "Creating a response\n";
 				// done = clients[events[n].data.fd].send_response();
 				// std::cout << "JUST TRIED TO SEND\n";
-				std::cout << GRN "body saved: " << clients[events[n].data.fd].get_body() << "\n" RESET;
 				Response response(clients[events[n].data.fd]);
 				done = response.send_response();
 				if (done) {
