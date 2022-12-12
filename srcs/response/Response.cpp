@@ -1,22 +1,17 @@
 #include "Response.hpp"
 
-void Response::check_setting_location(Location location, Config conf){
+void Response::check_setting_location(Config conf){
 	//if location exist or 
-	if (if_location == false){
-		if (conf.get_root().empty()){
+	std::string path = conf.get_root() + this->client.get_request_target();
+	std::cerr << "Path" << path << "\n";
+	if (access(path.c_str(), F_OK)  == -1){
+		this->status_code = 404;
+		return ;
+	}
+	if (this->client.get_request_target().compare("/") == 0){
+		if (conf.get_autoindex == false){
 			this->status_code = 404;
 			return ;
-		}
-		std::string path = conf.get_root() + this->client.get_request_target();
-		if (access(path.c_str(), F_OK)  == -1){
-			this->status_code = 404;
-			return ;
-		}
-		if (this->client.get_request_target().compare("/") == 0){
-			if (conf.get_autoindex == false){
-				this->status_code = 404;
-				return ;
-			}
 		}
 	}
 	//check allow method
@@ -261,11 +256,8 @@ bool Response::send_error_response(Location location) {
 	response += this->get_code_msg(this->status_code);
 	response += "\r\n";
 
-	std::cout <<"this->client"  << this->client.get_conf().get_error_page(600)<< "\n";
-	std::cout <<"this->client"  << this->client.get_conf().get_error_page(400)<< "\n";
 	if (!this->client.get_conf().get_error_page(this->status_code).empty())
 		path = this->client.get_conf().get_error_page(this->status_code) + "/" + toString(this->status_code) + ".html";
-	std::cerr << "PATH ERROR :" << path << "\n";
 	std::ifstream myfile (path.c_str());
 	if (myfile.is_open()){
 		std::string myline;
@@ -273,7 +265,6 @@ bool Response::send_error_response(Location location) {
 	 		std::getline (myfile, myline);
 	 		body += myline;
 	 	}
-		std::cerr << "PATH Open??\n";
 		myfile.close();
 	}else{
 		body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
@@ -307,24 +298,28 @@ Response::Response(Client client): client(client){
 	this->http_version = "HTTP/1.1";
 	this->status_code = 0;
 	Config conf = this->client.get_conf();
-	if (conf.get_location(this->client.get_request_target()).first == false)
-		this->if_location = false;
+	if (conf.get_location(this->client.get_request_target()).first == false){
+		this->location.set_return(conf.get_return());
+		this->location.set_return_status(conf.get_return_status());
+		this->location.set_root(conf.get_root());
+		this->location.set_autoindex(conf.get_autoindex());
+		this->location.set_index(conf.get_index());
+		this->location.set_upload_store(conf.get_upload_store());
+		//if (conf.is_method_allowed("GET") == true)
+		//cgi
+	}
 	else
-		this->if_location = true; 
+		this->location = conf.get_location(this->client.get_request_target()).second;
 }
 Response::~Response(void){
 
 }
 
 bool Response::send_response(){
-	// NOTE : TO DEV
-	// Returns true if we need to close the connection
-	// If send() fails return true anyway
 	Config conf = this->client.get_conf();
-	Location check_location = conf.get_location(this->client.get_request_target()).second;
-	std::cout << "Sending response \n";
-	this->check_setting_location(check_location, conf);
 
+	std::cout << "Sending response \n";
+	this->check_setting_location(conf);
 	//conf.debug();
 	if(!this->extension.empty() && this->extension.compare(".html") != 0 && this->status_code == 0) {
 		std::pair<bool, std::string> cgi_body;
