@@ -1,6 +1,24 @@
 #include "Response.hpp"
 
 void Response::check_setting_location(Location location, Config conf){
+	//if location exist or 
+	if (if_location == false){
+		if (conf.get_root().empty()){
+			this->status_code = 404;
+			return ;
+		}
+		std::string path = conf.get_root() + this->client.get_request_target();
+		if (access(path.c_str(), F_OK)  == -1){
+			this->status_code = 404;
+			return ;
+		}
+		if (this->client.get_request_target().compare("/") == 0){
+			if (conf.get_autoindex == false){
+				this->status_code = 404;
+				return ;
+			}
+		}
+	}
 	//check allow method
 	if (location.is_method_allowed(this->client.get_method()) == false){
 		this->status_code = 405;
@@ -22,11 +40,6 @@ void Response::check_setting_location(Location location, Config conf){
 			this->status_code = 405;
 		return ;
 	}
-	//if location exist
-	if (conf.get_location(this->client.get_request_target()).first == false){
-		this->status_code = 404;
-		return ;
-	}
 	//if root exist check by access
 	//check_cgi 
 	if (!this->extension.empty() && this->extension.compare(".html") != 0){
@@ -35,20 +48,24 @@ void Response::check_setting_location(Location location, Config conf){
 	}
 }
 void Response::set_header_fields(int cont_Leng, Location check_location) {
+	Config conf = this->client.get_conf();
 	std::map<std::string, std::string> headers;
 
 	headers["Content-Length"] = toString(cont_Leng);
 	if (this->status_code >= 400 && this->status_code < 600){
 		if(this->status_code == 405){
 			std::string tmp;
-			if(check_location.is_method_allowed("GET") == true)
-				tmp = "GET, ";
-			if(check_location.is_method_allowed("POST") == true)
-				tmp += "POST, ";
-			if(check_location.is_method_allowed("DELETE") == true)
-				tmp += "DELETE, ";
-			tmp = tmp.substr(0, tmp.size() - 2);
-			headers["Allow"] = tmp; 
+			if (if_location == true){
+				if(check_location.is_method_allowed("GET") == true)
+					tmp = "GET, ";
+				if(check_location.is_method_allowed("POST") == true)
+					tmp += "POST, ";
+				if(check_location.is_method_allowed("DELETE") == true)
+					tmp += "DELETE, ";
+				tmp = tmp.substr(0, tmp.size() - 2);
+				headers["Allow"] = tmp;
+			} else
+				if() 
 		}
 		headers["Content-Type"] = "text/html; charset=utf-8";
 	}
@@ -101,7 +118,11 @@ bool Response::post_body(){
 
 bool Response::delete_file(){
 	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
-	std::string path = location.get_root() + this->client.get_request_target();
+	std::string path;
+	if (this->path.empty())
+		path = location.get_root() + this->client.get_request_target();
+	else
+		path = this->path;
 	
 	struct stat sb;
 
@@ -164,7 +185,13 @@ bool Response::send_successful_response()  {
 
 bool Response::set_body(){
 	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
-	std::string path = location.get_root() + this->client.get_request_target();
+	std::string path;
+	std::cerr << "this->path" << this->path << "\n";
+	if (this->path.empty())
+		path = location.get_root() + this->client.get_request_target();
+	else
+		path = this->path;
+	std::cerr << "this->path" << this->path << "\n";
 	//std::cerr << "path" << path << ", " << this->client.get_request_target() << "\n";
 	std::string myline;
 
@@ -172,7 +199,7 @@ bool Response::set_body(){
 		if (!location.get_index().empty())
 			path += location.get_index()[0];
 	}
-	std::cerr << "path.c_str():" << path.c_str() << "\n";
+	std::cerr << "path.c_str()222:" << path.c_str() << "\n";
 	std::ifstream myfile (path.c_str());
 	if (myfile.is_open()){
 		while(myfile){
@@ -279,6 +306,11 @@ Response::Response(Client client): client(client){
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
 	this->status_code = 0;
+	Config conf = this->client.get_conf();
+	if (conf.get_location(this->client.get_request_target()).first == false)
+		this->if_location = false;
+	else
+		this->if_location = true; 
 }
 Response::~Response(void){
 
@@ -290,7 +322,6 @@ bool Response::send_response(){
 	// If send() fails return true anyway
 	Config conf = this->client.get_conf();
 	Location check_location = conf.get_location(this->client.get_request_target()).second;
-
 	std::cout << "Sending response \n";
 	this->check_setting_location(check_location, conf);
 
@@ -300,7 +331,11 @@ bool Response::send_response(){
 		std::string reponse;
 		//location is cgi;
 		Cgi test_cgi(this->client, conf);
-		std::string script = check_location.get_cgi(this->extension).second;
+		std::string script;
+		if (if_location == true)
+			script = check_location.get_cgi(this->extension).second;
+		else 
+			script = conf.get_cgi(this->extension).second;
 		if (script.empty())
 			this->status_code = 500;
 		//std::cerr << "here\n";

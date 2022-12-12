@@ -26,30 +26,15 @@ class Response {
         std::string extension;
         std::map<int, std::string> init_code_msg();
         std::string http_version;
+        bool    if_location;
         std::map<int, std::string> status_code_list;
         int status_code;
         std::string header_fields;
-        //std::map<std::string, std::string> re_header_fields;
-        //std::map<std::string, std::string> entity_header;
         std::string body;
         bool set_body();
         bool set_autoindex_body();
         bool delete_file();
         bool post_body();
-
-
-        //Transfer-Encoding  chunk
-        //Content-Length
-        //Content-Type
-
-
-        //date
-        //server
-        //Content-Location:   post ?? redicetion?
-        //allow 405 Method Not Allowed status code
-
-
-
 };
 
 
