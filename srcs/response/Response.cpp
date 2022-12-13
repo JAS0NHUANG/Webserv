@@ -191,17 +191,21 @@ std::string get_file_content(std::string content)
 bool Response::set_body()
 {
 	std::string path = client.get_path();
-	std ::cout << BLU << "path : " << path << RESET << "\n";
 
 	struct stat s;
 
 	if (stat(path.c_str(), &s) == 0) {
-		if (s.st_mode & S_IFREG) {
-			std::cout << BLU << "L'element est un fichier.\n" << RESET;
+		if (s.st_mode & S_IFREG) // ELement is a regular file.
 			this->body = get_file_content(path);
-		} else if (s.st_mode & S_IFDIR) {
-			std::cout << BLU << "L'element est un repertoire.\n" << RESET;
-			set_autoindex_body();
+		else if (s.st_mode & S_IFDIR ) { // Element is a directory
+			if (if_location && location.get_autoindex() == true)
+				set_autoindex_body();
+			else if (client.get_conf().get_autoindex() == true)
+				set_autoindex_body();
+			else {
+				status_code = 403;
+				send_error_response();
+			}
 		}
 	}
 
@@ -241,7 +245,6 @@ bool Response::set_autoindex_body()
 			"</style>\n<div>\n";
 	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
 	{
-		std::cout << "request target : " << client.get_request_target() << "\n";
 		body += "<a href=\"";
 		body += client.get_request_target();
 		if (client.get_request_target() != "/")
@@ -332,13 +335,11 @@ bool Response::send_response()
 
 	std::cout << "Sending response \n";
 	this->check_setting_location(conf);
-	// conf.debug();
 	if (!this->extension.empty() && this->status_code == 0 &&
 		(location.get_cgi(this->extension).first == true || conf.get_cgi(this->extension).first == true))
 	{
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
-		// location is cgi;
 		Cgi test_cgi(this->client, conf);
 		std::string script;
 		if (if_location == true)
@@ -347,7 +348,6 @@ bool Response::send_response()
 			script = conf.get_cgi(this->extension).second;
 		if (script.empty())
 			this->status_code = 500;
-		// std::cerr << "here\n";
 		cgi_body = test_cgi.handler(const_cast<char *>(script.c_str()));
 		if (cgi_body.first == false)
 		{
