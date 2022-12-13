@@ -39,7 +39,6 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["GATEWAY_INTERFAC"] = "CGI/1.1";
         this->env["SERVER_PROTOCOL"]= "HTTP/1.1";
         this->env["PATH_INFO"] = requ.get_request_target();
-        std::cerr << "requ.method:|" << requ.get_method() <<"|\n";
         this->env["REQUEST_METHOD"]= requ.get_method();
         this->env["REMOTE_HOST"]= headers["Host"];
         //REMOTE_ADDR
@@ -49,7 +48,7 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["SERVER_PORT"] = toString(config.get_port());
         this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
         this->env["REDIRECT_STATUS"]="200"; //php
-        print_env(this->env);
+        //print_env(this->env);
     }else{
         errMsgErrno("cgi location is not valid");
         return ;
@@ -89,15 +88,14 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     };
     std::string body;
     std::string get_request_body;
-    std::cerr << "cgi_script: |" << cgi_script << "|\n";
     if (!this->request.get_body().empty()){
-        get_request_body = this->request.get_body().substr(2);
+        get_request_body = this->request.get_body();
     }
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
         std::cerr << "pipe: cgi"  << std::endl;
         return std::make_pair(false, body);
     }
-    std::cerr << "this->env[\"CONTENT\"]:|" << get_request_body << "|\n";
+    //std::cerr << "this->env[\"CONTENT\"]:|" << get_request_body << "|\n";
     if (write(fd_in[1], get_request_body.c_str(), get_request_body.size()) < 0){
         std::cerr << "write in cgi"  << std::endl;
         close_fd(fd_in, fd_out);
@@ -137,9 +135,7 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
 	{
 		buff[res] = '\0';
 		body += buff;
-        std::cerr << "RES000:" << res << "|, body" << body << "|\n" ;
 	}
-    std::cerr << "RES:" << res << "|, body" << body << "|\n" ;
     std::size_t found = body.find("\r\n\r\n");
     if (found!=std::string::npos){
         body = body.substr(found);

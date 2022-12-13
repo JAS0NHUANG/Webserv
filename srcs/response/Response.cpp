@@ -46,13 +46,16 @@ void Response::set_header_fields(int cont_Leng) {
 			}
 		}
 	}
-	headers["Content-Type"] = "text/html; charset=utf-8";
+	if (!this->extension.empty() && this->extension.compare(".php") &&  this->extension.compare(".py") )
+		headers["Content-Type"] = content_mime_type(this->extension);
+	else
+		headers["Content-Type"] = "text/html; charset=utf-8";
 	if (this->status_code >= 300 && this->status_code < 400 && if_location == true)
 		headers["Location"] = this->location.get_return();
 	else if(this->status_code >= 300 && this->status_code < 400 && if_location == false)
 		headers["Location"] = conf.get_return();
 	for( std::map<std::string, std::string>::iterator it=headers.begin(); it!=headers.end(); ++it){
-		std::cerr << it->first + "=" + it->second << "\n";
+		//std::cerr << it->first + "=" + it->second << "\n";
         this->header_fields += it->first;
 		this->header_fields += ":";
 		this->header_fields += it->second;
@@ -263,13 +266,13 @@ bool Response::send_error_response() {
 
 Response::Response(Client client): client(client){
 
-	std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
-	std::cerr << "get_path2 :" << client.get_path2()<< "\n";
+	// std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
+	// std::cerr << "get_path2 :" << client.get_path2()<< "\n";
 	std::size_t found = client.get_request_target().find(".");
 	if (found!=std::string::npos){
 		this->extension = client.get_request_target();
 		this->extension = this->extension.substr(found);
-		std::cout << "this->extension :|" << this->extension << "|\n";
+		//std::cout << "this->extension :|" << this->extension << "|\n";
 	}
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
@@ -405,4 +408,91 @@ std::map<int, std::string> Response::init_code_msg()
 	status[510] = "Not Extended";
 	status[511] = "Network Authentication Required";
 	return status;
+}
+
+std::string Response::content_mime_type(std::string extension){
+	std::map<std::string, std::string> type;
+	type[".acc"] = "audio/aac";
+	type[".abw"] = "application/x-abiword";
+	type[".arc"] = "application/x-freearc";
+	type[".avif"] = "image/avif";
+	type[".avi"] = "video/x-msvideo";
+	type[".azw"] = "application/vnd.amazon.ebook";
+	type[".bin"] = "application/octet-stream";
+	type[".bmp"] = "image/bmp";
+	type[".bz"] = "application/x-bzip";
+	type[".bz2"] = "application/x-bzip2";
+	type[".cda"] = "application/x-cdf";
+	type[".csh"] = "application/x-csh";
+	type[".css"] = "text/css";
+	type[".csv"] = "text/csv";
+	type[".doc"] = "application/msword";
+	type[".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+	type[".eot"] = "application/vnd.ms-fontobject";
+	type[".epub"] = "application/epub+zip";
+	type[".gz"] = "application/gzip";
+	type[".gif"] = "image/gif";
+	type[".htm"] = "text/html";
+	type[".html"] = "text/html";
+	type[".ico"] = "image/vnd.microsoft.icon";
+	type[".ics"] = "text/calendar";
+	type[".jar"] = "application/java-archive";
+	type[".jpeg"] = "image/jpeg";
+	type[".jpg"] = "image/jpeg";
+	type[".js"] = "text/javascript";
+	type[".json"] = "application/json";
+	type[".jsonld"] = "application/ld+json";
+	type[".mid"] = "audio/midi";
+	type[".midi"] = "audio/x-midi";
+	type[".mjs"] = "text/javascript";
+	type[".mp3"] = "audio/mpeg";
+	type[".mp4"] = "video/mp4";
+	type[".mpeg"] = "video/mpeg";
+	type[".mpkg"] = "application/vnd.apple.installer+xml";
+	type[".odp"] = "application/vnd.oasis.opendocument.presentation";
+	type[".ods"] = "application/vnd.oasis.opendocument.spreadsheet";
+	type[".odt"] = "application/vnd.oasis.opendocument.text";
+	type[".oga"] = "audio/ogg";
+	type[".ogv"] = "video/ogg";
+	type[".ogx"] = "application/ogg";
+	type[".opus"] = "audio/opus";
+	type[".otf"] = "font/otf";
+	type[".png"] = "image/png";
+	type[".pdf"] = "application/pdf";
+	type[".php"] = "application/x-httpd-php";
+	type[".ppt"] = "application/vnd.ms-powerpoint";
+	type[".pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+	type[".rar"] = "application/vnd.rar";
+	type[".rtf"] = "application/rtf";
+	type[".sh"] = "application/x-sh";
+	type[".svg"] = "image/svg+xml";
+	type[".tar"] = "application/x-tar";
+	type[".tif"] = "image/tiff";
+	type[".tiff"] = "image/tiff";
+	type[".ts"] = "video/mp2t";
+	type[".ttf"] = "font/ttf";
+	type[".txt"] = "text/plain";
+	type[".vsd"] = "application/vnd.visio";
+	type[".wav"] = "audio/wav";
+	type[".weba"] = "audio/webm";
+	type[".webm"] = "video/webm";
+	type[".webp"] = "image/webp";
+	type[".woff"] = "font/woff";
+	type[".woff2"] = "font/woff2";
+	type[".xhtml"] = "application/xhtml+xml";
+	type[".xls"] = "application/vnd.ms-excel";
+	type[".xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+	type[".xml"] = "application/xml";
+	type[".xul"] = "application/vnd.mozilla.xul+xml";
+	type[".zip"] = "application/zip";
+	type[".3gp"] = "video/3gpp";
+	type[".3g2"] = "video/3gpp2;";
+	type[".7z"] = "application/x-7z-compressed";
+
+	for( std::map<std::string, std::string>::iterator it=type.begin(); it!=type.end(); ++it){
+		if (it->first.compare(extension) == 0 )
+			return it->second;
+    }
+	return NULL;
+
 }
