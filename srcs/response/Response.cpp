@@ -232,20 +232,26 @@ bool Response::set_autoindex_body()
 		this->status_code = 403;
 		return false;
 	}
-	body = "<!DOCTYPE html><html><body>";
+	body =	"<!DOCTYPE html><html><body>\n"
+			"<style>"
+			" body {background-color: #353535;}"
+			"div {border: solid 1px black; box-sizing: border-box; width: 50%;  height: auto; margin: 0 auto; border-radius: 10px; background-color: #2b2a33 }"
+			"p {width:50%;}"
+			"a {display: block; padding: 5px 10px; color: #6565af;}"
+			"</style>\n<div>\n";
 	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
 	{
 		std::cout << "request target : " << client.get_request_target() << "\n";
-		body += "<h5> <a href=\"";
+		body += "<a href=\"";
 		body += client.get_request_target();
 		if (client.get_request_target() != "/")
 			body += "/";
 		body += (*it);
 		body += "\">";
 		body += (*it);
-		body += "</a></h5>";
+		body += "</a>";
 	}
-	body += "</body></html>";
+	body += "</div></body></html>";
 	return true;
 }
 
