@@ -65,8 +65,10 @@ void Response::set_header_fields(int cont_Leng)
 			}
 		}
 	}
-	if (!this->extension.empty() && this->extension.compare(".php") && this->extension.compare(".py"))
+	if (!this->extension.empty() && this->extension.compare(".php") && this->extension.compare(".py")) {
+		std::cout << BLU << "extension : " << extension << RESET << std::endl;
 		headers["Content-Type"] = content_mime_type(this->extension);
+	}
 	else
 		headers["Content-Type"] = "text/html; charset=utf-8";
 	if (this->status_code >= 300 && this->status_code < 400 && if_location == true)
@@ -160,6 +162,7 @@ bool Response::send_cgi_response(std::string body) const
 		errMsgErrno("send failed");
 	return true;
 }
+
 bool Response::send_successful_response()
 {
 
@@ -304,12 +307,14 @@ bool Response::send_error_response()
 
 Response::Response(Client client) : client(client)
 {
-
-	std::size_t found = client.get_request_target().find(".");
-	if (found != std::string::npos)
+	std::string tmp = client.get_request_target();
+	std::size_t found = tmp.find(".");
+	while (found != std::string::npos)
 	{
-		this->extension = client.get_request_target();
-		this->extension = this->extension.substr(found);
+		// this->tmp = this->tmp.substr(found);
+		tmp.erase(0, found + 1);
+		extension = "." + tmp;
+		found = tmp.find(".");
 	}
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
@@ -325,6 +330,7 @@ Response::Response(Client client) : client(client)
 		this->if_location = true;
 	}
 }
+
 Response::~Response(void)
 {
 }
@@ -385,10 +391,12 @@ bool Response::send_response()
 	return send_successful_response();
 	// return true; when return false? keep connection alive
 }
+
 std::string Response::get_code_msg(int status_code) const
 {
 	return this->status_code_list.find(status_code)->second;
 }
+
 std::map<int, std::string> Response::init_code_msg()
 {
 	std::map<int, std::string> status;
@@ -540,5 +548,5 @@ std::string Response::content_mime_type(std::string extension)
 		if (it->first.compare(extension) == 0)
 			return it->second;
 	}
-	return NULL;
+	return std::string();
 }
