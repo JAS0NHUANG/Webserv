@@ -1,133 +1,152 @@
 #include "Response.hpp"
 
-void Response::check_setting_location(Config conf){
-	//location
+void Response::check_setting_location(Config conf)
+{
+	// location
 	std::string path;
 	if (if_location == true)
 		path = location.get_root() + this->client.get_request_target();
 	else
 		path = conf.get_root() + this->client.get_request_target();
 	struct stat info;
-	if (stat(path.c_str(), &info ) != 0){
+	if (stat(path.c_str(), &info) != 0)
+	{
 		this->status_code = 404;
-		return ;
+		return;
 	}
-	//check allow method
-	if (location.is_method_allowed(this->client.get_method()) == false || \
-		(if_location == false && conf.is_method_allowed(this->client.get_method()) == false)){
+	// check allow method
+	if (location.is_method_allowed(this->client.get_method()) == false ||
+		(if_location == false && conf.is_method_allowed(this->client.get_method()) == false))
+	{
 		this->status_code = 405;
-		return ;
+		return;
 	}
-	//redicte https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
-	//https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
-	if (!(location.get_return().empty()) || (if_location == false && !conf.get_return().empty())){
+	// redicte https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
+	// https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
+	if (!(location.get_return().empty()) || (if_location == false && !conf.get_return().empty()))
+	{
 		if (!(location.get_return_status()).empty())
 			this->status_code = toInt(location.get_return_status());
 		else if (!conf.get_return_status().empty())
 			this->status_code = toInt(conf.get_return_status());
-		else if(strcmp(this->client.get_method().c_str(),"GET") == 0)
+		else if (strcmp(this->client.get_method().c_str(), "GET") == 0)
 			this->status_code = 301;
-		else if(strcmp(this->client.get_method().c_str(),"POST") == 0)
+		else if (strcmp(this->client.get_method().c_str(), "POST") == 0)
 			this->status_code = 308;
-		else if (strcmp(this->client.get_method().c_str(),"DELETE") == 0)
+		else if (strcmp(this->client.get_method().c_str(), "DELETE") == 0)
 			this->status_code = 303;
 		else
 			this->status_code = 405;
-		return ;
+		return;
 	}
-	//if root exist check by access
+	// if root exist check by access
 }
-void Response::set_header_fields(int cont_Leng) {
+void Response::set_header_fields(int cont_Leng)
+{
 	Config conf = this->client.get_conf();
 	std::map<std::string, std::string> headers;
 
 	headers["Content-Length"] = toString(cont_Leng);
-	if (this->status_code >= 400 && this->status_code < 600){
-		if(this->status_code == 405){
+	if (this->status_code >= 400 && this->status_code < 600)
+	{
+		if (this->status_code == 405)
+		{
 			std::string tmp;
-			if (if_location == true){
-				if(this->location.is_method_allowed("GET") == true || (if_location == false && conf.is_method_allowed("GET") == true))
+			if (if_location == true)
+			{
+				if (this->location.is_method_allowed("GET") == true || (if_location == false && conf.is_method_allowed("GET") == true))
 					tmp = "GET, ";
-				if(this->location.is_method_allowed("POST") == true || (if_location == false && conf.is_method_allowed("POST") == true))
+				if (this->location.is_method_allowed("POST") == true || (if_location == false && conf.is_method_allowed("POST") == true))
 					tmp += "POST, ";
-				if(this->location.is_method_allowed("DELETE") == true || (if_location == false && conf.is_method_allowed("DELETE") == true))
+				if (this->location.is_method_allowed("DELETE") == true || (if_location == false && conf.is_method_allowed("DELETE") == true))
 					tmp += "DELETE, ";
 				tmp = tmp.substr(0, tmp.size() - 2);
 				headers["Allow"] = tmp;
 			}
 		}
 	}
-	if (!this->extension.empty() && this->extension.compare(".php") &&  this->extension.compare(".py") )
+	if (!this->extension.empty() && this->extension.compare(".php") && this->extension.compare(".py"))
 		headers["Content-Type"] = content_mime_type(this->extension);
 	else
 		headers["Content-Type"] = "text/html; charset=utf-8";
 	if (this->status_code >= 300 && this->status_code < 400 && if_location == true)
 		headers["Location"] = this->location.get_return();
-	else if(this->status_code >= 300 && this->status_code < 400 && if_location == false)
+	else if (this->status_code >= 300 && this->status_code < 400 && if_location == false)
 		headers["Location"] = conf.get_return();
-	for( std::map<std::string, std::string>::iterator it=headers.begin(); it!=headers.end(); ++it){
-		//std::cerr << it->first + "=" + it->second << "\n";
-        this->header_fields += it->first;
+	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
+	{
+		// std::cerr << it->first + "=" + it->second << "\n";
+		this->header_fields += it->first;
 		this->header_fields += ":";
 		this->header_fields += it->second;
 		this->header_fields += "\n";
-    }
+	}
 }
 
-bool Response::post_body(){
+bool Response::post_body()
+{
 	std::string response;
 
-    std::cout << "File successfully saved\n";
+	std::cout << "File successfully saved\n";
 	this->body = "<!DOCTYPE html><html><body><p>File/data successfully saved</P><P>";
-	//this->body += this->client.get_body();
+	// this->body += this->client.get_body();
 	this->body += "</p></body></html>";
 	response = "HTTP/1.1 ";
 	response += toString(201);
 	response += " ";
 	response += this->get_code_msg(201);
 	response += "\r\n";
-	response += "Content-Length:" + toString(this->body.size()) + "\n"; 
+	response += "Content-Length:" + toString(this->body.size()) + "\n";
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += this->body;
-	std::cerr << "Response :"<< response <<"\n";
+	std::cerr << "Response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
 
-bool Response::delete_file(){
+bool Response::delete_file()
+{
 	Config conf = this->client.get_conf();
 	std::string path;
 	if (if_location == true)
 		path = location.get_root() + this->client.get_request_target();
 	else
 		path = conf.get_root() + this->client.get_request_target();
-	
+
 	struct stat sb;
-	if (stat(path.c_str() , &sb) == -1){
-		std::cerr << "stat" << "\n";
+	if (stat(path.c_str(), &sb) == -1)
+	{
+		std::cerr << "stat"
+				  << "\n";
 		this->status_code = 404;
 		return false;
 	}
-	if (sb.st_mode & S_IFDIR){
+	if (sb.st_mode & S_IFDIR)
+	{
 		this->status_code = 406;
 		std::cerr << "this is a directory not a file\n";
 		return false;
-	} else if (sb.st_mode & S_IFREG){
-		if (remove(path.c_str()) !=  0){
-			std::cerr <<"Error deleting file\n";
+	}
+	else if (sb.st_mode & S_IFREG)
+	{
+		if (remove(path.c_str()) != 0)
+		{
+			std::cerr << "Error deleting file\n";
 			return false;
 		}
-  		else{
-    		std::cout << "File successfully deleted\n";
+		else
+		{
+			std::cout << "File successfully deleted\n";
 			this->body = "<!DOCTYPE html><html><body><p>File successfully deleted.</p></body></html>";
 		}
 	}
 	return true;
 }
 
-bool Response::send_cgi_response(std::string body) const  {
+bool Response::send_cgi_response(std::string body) const
+{
 
 	std::string response;
 
@@ -139,12 +158,13 @@ bool Response::send_cgi_response(std::string body) const  {
 	response += this->header_fields;
 	response += "\r\n";
 	response += body;
-	std::cerr << "Response :"<< response <<"\n";
+	std::cerr << "Response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
-bool Response::send_successful_response()  {
+bool Response::send_successful_response()
+{
 
 	std::string response;
 
@@ -156,7 +176,7 @@ bool Response::send_successful_response()  {
 	response += this->header_fields;
 	response += "\r\n";
 	response += this->body;
-	std::cerr << "Response :" << response <<"\n";
+	std::cerr << "Response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -164,13 +184,15 @@ bool Response::send_successful_response()  {
 
 std::string get_file_content(std::string content)
 {
-    std::ifstream input_file(content.c_str());
-    if (!input_file.is_open()){
+	std::ifstream input_file(content.c_str());
+	if (!input_file.is_open())
+	{
 		return NULL;
 	}
-    return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
 }
-bool Response::set_body(){
+bool Response::set_body()
+{
 	Config conf = this->client.get_conf();
 	std::string path;
 	if (if_location == true)
@@ -181,12 +203,14 @@ bool Response::set_body(){
 	std::cerr << "path:" << path << "\n";
 	std::string myline;
 
-	if (this->client.get_request_target().compare("/") == 0 ){
+	if (this->client.get_request_target().compare("/") == 0)
+	{
 		if (!location.get_index().empty())
 			path += location.get_index()[0];
 		else if (!conf.get_index().empty())
 			path += conf.get_index()[0];
-		else{
+		else
+		{
 			this->status_code = 404;
 			return false;
 		}
@@ -204,12 +228,13 @@ bool Response::set_body(){
 	// 	this->status_code = 500;
 	// 	return false;
 	// }
-	this->body =  get_file_content(path);
+	this->body = get_file_content(path);
 	return true;
-	//std::cerr << "body :" <<this->body << "\n";
+	// std::cerr << "body :" <<this->body << "\n";
 }
 
-bool Response::set_autoindex_body(){
+bool Response::set_autoindex_body()
+{
 	Config conf = this->client.get_conf();
 	std::string path;
 	if (if_location == true)
@@ -217,22 +242,28 @@ bool Response::set_autoindex_body(){
 	else
 		path = conf.get_root() + this->client.get_request_target();
 	DIR *dir;
-  	struct dirent *entry;
+	struct dirent *entry;
 	std::vector<std::string> files;
-	if (((dir = opendir(path.c_str())) != NULL)){
-		while((entry = readdir(dir)) != NULL){
-			if (std::string(entry->d_name) != "." && std::string(entry->d_name) != ".."){
+	if (((dir = opendir(path.c_str())) != NULL))
+	{
+		while ((entry = readdir(dir)) != NULL)
+		{
+			if (std::string(entry->d_name) != "." && std::string(entry->d_name) != "..")
+			{
 				files.push_back(std::string(entry->d_name));
 			}
 		}
 		closedir(dir);
-	} else{
+	}
+	else
+	{
 		std::cerr << "Error opendir\n";
 		this->status_code = 403;
 		return false;
 	}
 	body = "<!DOCTYPE html><html><body>";
-	for(std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it){
+	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
+	{
 		body += "<h5> <a href=\"";
 		body += (*it);
 		body += "\">";
@@ -243,12 +274,12 @@ bool Response::set_autoindex_body(){
 	return true;
 }
 
-bool Response::send_error_response() {
+bool Response::send_error_response()
+{
 
 	std::string response;
 	std::string body;
 	std::string path;
-
 
 	response = "HTTP/1.1 ";
 	response += toString(this->status_code);
@@ -258,116 +289,140 @@ bool Response::send_error_response() {
 
 	if (!this->client.get_conf().get_error_page(this->status_code).empty())
 		path = this->client.get_conf().get_error_page(this->status_code) + "/" + toString(this->status_code) + ".html";
-	std::ifstream myfile (path.c_str());
-	if (myfile.is_open()){
+	std::ifstream myfile(path.c_str());
+	if (myfile.is_open())
+	{
 		std::string myline;
-		while(myfile){
-	 		std::getline (myfile, myline);
-	 		body += myline;
-	 	}
+		while (myfile)
+		{
+			std::getline(myfile, myline);
+			body += myline;
+		}
 		myfile.close();
-	}else{
+	}
+	else
+	{
 		body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
 		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
 		body += "</title></head><body><center><h1>";
 		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
-		body +="</h1></center></body></html>";
+		body += "</h1></center></body></html>";
 	}
 	set_header_fields(body.size());
 	response += this->header_fields;
 	response += "\r\n";
 	response += body;
 
-	std::cerr << "ERROR response :" <<response << "\n";
+	std::cerr << "ERROR response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
 
-Response::Response(Client client): client(client){
+Response::Response(Client client) : client(client)
+{
 
 	// std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
 	// std::cerr << "get_path2 :" << client.get_path2()<< "\n";
 	std::size_t found = client.get_request_target().find(".");
-	if (found!=std::string::npos){
+	if (found != std::string::npos)
+	{
 		this->extension = client.get_request_target();
 		this->extension = this->extension.substr(found);
-		//std::cout << "this->extension :|" << this->extension << "|\n";
+		// std::cout << "this->extension :|" << this->extension << "|\n";
 	}
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
 	this->status_code = 0;
 	Config conf = this->client.get_conf();
-	if (conf.get_location(this->client.get_request_target()).first == false){
+	if (conf.get_location(this->client.get_request_target()).first == false)
+	{
 		this->if_location = false;
 	}
-	else{
+	else
+	{
 		this->location = conf.get_location(this->client.get_request_target()).second;
 		this->if_location = true;
 	}
 }
-Response::~Response(void){
-
+Response::~Response(void)
+{
 }
 
-bool Response::send_response(){
+bool Response::send_response()
+{
 	Config conf = this->client.get_conf();
 
 	std::cout << "Sending response \n";
 	this->check_setting_location(conf);
-	//conf.debug();
-	if(!this->extension.empty() && this->status_code == 0 && \
-		(location.get_cgi(this->extension).first == true || conf.get_cgi(this->extension).first == true)) {
+	// conf.debug();
+	if (!this->extension.empty() && this->status_code == 0 &&
+		(location.get_cgi(this->extension).first == true || conf.get_cgi(this->extension).first == true))
+	{
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
-		//location is cgi;
+		// location is cgi;
 		Cgi test_cgi(this->client, conf);
 		std::string script;
 		if (if_location == true)
 			script = location.get_cgi(this->extension).second;
-		else 
+		else
 			script = conf.get_cgi(this->extension).second;
 		if (script.empty())
 			this->status_code = 500;
-		//std::cerr << "here\n";
-		cgi_body = test_cgi.handler(const_cast<char*>(script.c_str()));
-		if (cgi_body.first == false){
+		// std::cerr << "here\n";
+		cgi_body = test_cgi.handler(const_cast<char *>(script.c_str()));
+		if (cgi_body.first == false)
+		{
 			this->status_code = 500;
-		}else {
+		}
+		else
+		{
 			set_header_fields(cgi_body.second.size());
 			return send_cgi_response(cgi_body.second);
 		}
-	}else if(this->client.get_method() == "GET" && this->status_code == 0){
-		if (this->location.get_autoindex() == true || (if_location == false && conf.get_autoindex() == true)){
+	}
+	else if (this->client.get_method() == "GET" && this->status_code == 0)
+	{
+		if (this->location.get_autoindex() == true || (if_location == false && conf.get_autoindex() == true))
+		{
 			set_autoindex_body();
-		} else {
+		}
+		else
+		{
 			set_body();
 		}
-		if (!this->status_code){
+		if (!this->status_code)
+		{
 			set_header_fields(this->body.size());
 			this->status_code = 200;
 		}
-	}else if (this->client.get_method() == "DELETE" && this->status_code == 0){
-			if (delete_file() == false && this->status_code == 0)
-				this->status_code = 501;
-			else if (!this->status_code)
-				this->status_code = 202;
-	}else if (this->client.get_method() == "POST" && this->status_code == 0){
-			this->status_code = 201;
-			return post_body();
 	}
-	if (this->status_code >= 300&& this->status_code <= 599)
+	else if (this->client.get_method() == "DELETE" && this->status_code == 0)
+	{
+		if (delete_file() == false && this->status_code == 0)
+			this->status_code = 501;
+		else if (!this->status_code)
+			this->status_code = 202;
+	}
+	else if (this->client.get_method() == "POST" && this->status_code == 0)
+	{
+		this->status_code = 201;
+		return post_body();
+	}
+	if (this->status_code >= 300 && this->status_code <= 599)
 		return send_error_response();
 	return send_successful_response();
-	//return true; when return false? keep connection alive
+	// return true; when return false? keep connection alive
 }
-std::string Response::get_code_msg(int status_code) const{
-    return this->status_code_list.find(status_code)->second;
+std::string Response::get_code_msg(int status_code) const
+{
+	return this->status_code_list.find(status_code)->second;
 }
 std::map<int, std::string> Response::init_code_msg()
 {
 	std::map<int, std::string> status;
-	
+
 	status[200] = "OK";
 	status[201] = "Created";
 	status[202] = "Accepted";
@@ -405,7 +460,7 @@ std::map<int, std::string> Response::init_code_msg()
 	status[415] = "Unsupported Media Type";
 	status[416] = "Range Not Satisfiable";
 	status[417] = "Expectation Failed";
-	status[418] = "I\'m a teapot"; 
+	status[418] = "I\'m a teapot";
 	status[421] = "Misdirected Request";
 	status[422] = "Unprocessable Entity";
 	status[423] = "Locked";
@@ -430,7 +485,8 @@ std::map<int, std::string> Response::init_code_msg()
 	return status;
 }
 
-std::string Response::content_mime_type(std::string extension){
+std::string Response::content_mime_type(std::string extension)
+{
 	std::map<std::string, std::string> type;
 	type[".acc"] = "audio/aac";
 	type[".abw"] = "application/x-abiword";
@@ -509,10 +565,10 @@ std::string Response::content_mime_type(std::string extension){
 	type[".3g2"] = "video/3gpp2;";
 	type[".7z"] = "application/x-7z-compressed";
 
-	for( std::map<std::string, std::string>::iterator it=type.begin(); it!=type.end(); ++it){
-		if (it->first.compare(extension) == 0 )
+	for (std::map<std::string, std::string>::iterator it = type.begin(); it != type.end(); ++it)
+	{
+		if (it->first.compare(extension) == 0)
 			return it->second;
-    }
+	}
 	return NULL;
-
 }

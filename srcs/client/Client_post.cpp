@@ -59,9 +59,9 @@ void Client::process_body(std::string &raw_request) {
 	}
 
 	// check if there's boundary
-	int has_boundary = false;
-	if (_headers["content-type"].find("boundary") != std::string::npos)
-		has_boundary = true;
+	// int has_boundary = false; // -> variable ‘has_boundary’ set but not used 
+	// if (_headers["content-type"].find("boundary") != std::string::npos)
+	// 	has_boundary = true;
 
 	// seperate body from headers
 	if (raw_request.find("\r\n\r\n") != std::string::npos) {
