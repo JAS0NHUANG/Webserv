@@ -1,24 +1,6 @@
 #include "Response.hpp"
 
 void Response::check_setting_location(Config conf){
-	//if location not exist
-	// if (if_location==  false){
-
-	// 		std::string path = conf.get_root() + this->client.get_request_target();
-	// std::cerr << "Path" << path << "\n";
-	// if (access(path.c_str(), F_OK)  == -1){
-	// 	this->status_code = 404;
-	// 	return ;
-	// }
-	// if (this->client.get_request_target().compare("/") == 0){
-	// 	if (conf.get_autoindex() == false){
-	// 		this->status_code = 404;
-	// 		return ;
-	// 	}
-	// }
-
-	// }
-
 	//check allow method
 	if (location.is_method_allowed(this->client.get_method()) == false || \
 		(if_location == false && conf.is_method_allowed(this->client.get_method()) == false)){
