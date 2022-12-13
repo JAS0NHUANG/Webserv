@@ -25,11 +25,6 @@ void Response::check_setting_location(Config conf){
 		return ;
 	}
 	//if root exist check by access
-	//check_cgi 
-	if (!this->extension.empty() && this->extension.compare(".html") != 0){
-		if (location.get_cgi(this->extension).first == false || (if_location == false && conf.get_cgi(this->extension).first == false))
-			this->status_code = 401;
-	}
 }
 void Response::set_header_fields(int cont_Leng) {
 	Config conf = this->client.get_conf();
@@ -210,7 +205,7 @@ bool Response::set_autoindex_body(){
 		closedir(dir);
 	} else{
 		std::cerr << "Error opendir\n";
-		this->status_code = 500;
+		this->status_code = 403;
 		return false;
 	}
 	body = "<!DOCTYPE html><html><body>";
@@ -298,7 +293,8 @@ bool Response::send_response(){
 	std::cout << "Sending response \n";
 	this->check_setting_location(conf);
 	conf.debug();
-	if(!this->extension.empty() && this->extension.compare(".html") != 0 && this->status_code == 0) {
+	if(!this->extension.empty() && this->status_code == 0 && \
+		(location.get_cgi(this->extension).first == true || conf.get_cgi(this->extension).first == true)) {
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
 		//location is cgi;
