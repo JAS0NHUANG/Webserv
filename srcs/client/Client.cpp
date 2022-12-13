@@ -72,7 +72,7 @@ std::string		Client::get_query_string() const{
 	return _query_string;
 }
 
-std::string		Client::get_path2() const {
+std::string		Client::get_path() const {
 	return _path;
 }
 

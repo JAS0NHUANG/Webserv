@@ -21,7 +21,7 @@ std::string Client::get_query_string(std::string &request_target) {
 	return str;
 }
 
-std::string Client::get_path(std::string request_target) {
+std::string Client::create_path(std::string request_target) {
 	if (request_target[0] != '/')
 		request_target = "/" + request_target;
 
@@ -58,7 +58,7 @@ void Client::check_method(std::string &method) {
 
 void Client::check_access(std::string request_target) {
 
-	_path = get_path(request_target);
+	_path = create_path(request_target);
 
 	int code = 1;
 	access(_path.c_str(), 0);
