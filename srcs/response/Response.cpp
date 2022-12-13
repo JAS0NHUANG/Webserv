@@ -192,20 +192,12 @@ bool Response::set_body(){
 		}
 	}
 	std::cerr << "set body path:" << path.c_str() << "\n";
-	// std::ifstream myfile (path.c_str());
-	// if (myfile.is_open()){
-	// 	while(myfile){
-	// 		std::getline (myfile, myline);
-	// 		this->body += myline;
-	// 	}
-	// myfile.close();
-	// }else {
-	// 	std::cerr << "Error opening file\n";
-	// 	this->status_code = 500;
-	// 	return false;
-	// }
 	this->body =  get_file_content(path);
-	return true;
+	if (!this->body.empty())
+		return true;
+	std::cerr << "Error opening file\n";
+	this->status_code = 500;
+	return false;
 	//std::cerr << "body :" <<this->body << "\n";
 }
 
