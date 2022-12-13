@@ -75,7 +75,6 @@ void Response::set_header_fields(int cont_Leng)
 		headers["Location"] = conf.get_return();
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
-		// std::cerr << it->first + "=" + it->second << "\n";
 		this->header_fields += it->first;
 		this->header_fields += ":";
 		this->header_fields += it->second;
@@ -100,7 +99,6 @@ bool Response::post_body()
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += this->body;
-	std::cerr << "Response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -158,7 +156,6 @@ bool Response::send_cgi_response(std::string body) const
 	response += this->header_fields;
 	response += "\r\n";
 	response += body;
-	std::cerr << "Response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -176,7 +173,6 @@ bool Response::send_successful_response()
 	response += this->header_fields;
 	response += "\r\n";
 	response += this->body;
-	std::cerr << "Response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -193,54 +189,28 @@ std::string get_file_content(std::string content)
 }
 bool Response::set_body()
 {
-	Config conf = this->client.get_conf();
-	std::string path;
-	if (if_location == true)
-		path = location.get_root() + this->client.get_request_target();
-	else
-		path = conf.get_root() + this->client.get_request_target();
+	std::string path = client.get_path();
+	std ::cout << BLU << "path : " << path << RESET << "\n";
 
-	std::cerr << "path:" << path << "\n";
-	std::string myline;
+	struct stat s;
 
-	if (this->client.get_request_target().compare("/") == 0)
-	{
-		if (!location.get_index().empty())
-			path += location.get_index()[0];
-		else if (!conf.get_index().empty())
-			path += conf.get_index()[0];
-		else
-		{
-			this->status_code = 404;
-			return false;
+	if (stat(path.c_str(), &s) == 0) {
+		if (s.st_mode & S_IFREG) {
+			std::cout << BLU << "L'element est un fichier.\n" << RESET;
+			this->body = get_file_content(path);
+		} else if (s.st_mode & S_IFDIR) {
+			std::cout << BLU << "L'element est un repertoire.\n" << RESET;
+			set_autoindex_body();
 		}
 	}
-	std::cerr << "set body path:" << path.c_str() << "\n";
-	// std::ifstream myfile (path.c_str());
-	// if (myfile.is_open()){
-	// 	while(myfile){
-	// 		std::getline (myfile, myline);
-	// 		this->body += myline;
-	// 	}
-	// myfile.close();
-	// }else {
-	// 	std::cerr << "Error opening file\n";
-	// 	this->status_code = 500;
-	// 	return false;
-	// }
-	this->body = get_file_content(path);
+
 	return true;
-	// std::cerr << "body :" <<this->body << "\n";
 }
 
 bool Response::set_autoindex_body()
 {
-	Config conf = this->client.get_conf();
-	std::string path;
-	if (if_location == true)
-		path = location.get_root() + this->client.get_request_target();
-	else
-		path = conf.get_root() + this->client.get_request_target();
+	std::string path = client.get_path();
+
 	DIR *dir;
 	struct dirent *entry;
 	std::vector<std::string> files;
@@ -313,7 +283,6 @@ bool Response::send_error_response()
 	response += "\r\n";
 	response += body;
 
-	std::cerr << "ERROR response :" << response << "\n";
 	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
@@ -381,14 +350,7 @@ bool Response::send_response()
 	}
 	else if (this->client.get_method() == "GET" && this->status_code == 0)
 	{
-		if (this->location.get_autoindex() == true || (if_location == false && conf.get_autoindex() == true))
-		{
-			set_autoindex_body();
-		}
-		else
-		{
-			set_body();
-		}
+		set_body();
 		if (!this->status_code)
 		{
 			set_header_fields(this->body.size());
