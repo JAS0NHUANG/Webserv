@@ -187,6 +187,7 @@ std::string get_file_content(std::string content)
 	}
 	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
 }
+
 bool Response::set_body()
 {
 	std::string path = client.get_path();
@@ -234,7 +235,11 @@ bool Response::set_autoindex_body()
 	body = "<!DOCTYPE html><html><body>";
 	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
 	{
+		std::cout << "request target : " << client.get_request_target() << "\n";
 		body += "<h5> <a href=\"";
+		body += client.get_request_target();
+		if (client.get_request_target() != "/")
+			body += "/";
 		body += (*it);
 		body += "\">";
 		body += (*it);
