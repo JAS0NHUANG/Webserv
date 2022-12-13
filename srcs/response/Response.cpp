@@ -322,14 +322,11 @@ bool Response::send_error_response()
 Response::Response(Client client) : client(client)
 {
 
-	// std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
-	// std::cerr << "get_path :" << client.get_path()<< "\n";
 	std::size_t found = client.get_request_target().find(".");
 	if (found != std::string::npos)
 	{
 		this->extension = client.get_request_target();
 		this->extension = this->extension.substr(found);
-		// std::cout << "this->extension :|" << this->extension << "|\n";
 	}
 	this->status_code_list = init_code_msg();
 	this->http_version = "HTTP/1.1";
@@ -565,7 +562,7 @@ std::string Response::content_mime_type(std::string extension)
 	type[".3g2"] = "video/3gpp2;";
 	type[".7z"] = "application/x-7z-compressed";
 
-	for (std::map<std::string, std::string>::iterator it = type.begin(); it != type.end(); ++it)
+	for (std::map<std::string, std::string>::iterator it = type.begin(); it != type.end(); it++)
 	{
 		if (it->first.compare(extension) == 0)
 			return it->second;
