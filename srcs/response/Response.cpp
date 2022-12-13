@@ -280,7 +280,7 @@ Response::Response(Client client): client(client){
 
 	// std::cerr << "get_request_target :" << client.get_request_target()<< "\n";
 	// std::cerr << "get_path2 :" << client.get_path2()<< "\n";
-	std::size_t found = client.get_request_target().find(".");
+	std::size_t found = client.get_request_target().find_last_of(".");
 	if (found!=std::string::npos){
 		this->extension = client.get_request_target();
 		this->extension = this->extension.substr(found);
