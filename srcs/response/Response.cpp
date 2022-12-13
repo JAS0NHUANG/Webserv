@@ -1,30 +1,37 @@
 #include "Response.hpp"
 
 void Response::check_setting_location(Config conf){
-	//if location exist or 
-	std::string path = conf.get_root() + this->client.get_request_target();
-	std::cerr << "Path" << path << "\n";
-	if (access(path.c_str(), F_OK)  == -1){
-		this->status_code = 404;
-		return ;
-	}
-	if (this->client.get_request_target().compare("/") == 0){
-		if (conf.get_autoindex == false){
-			this->status_code = 404;
-			return ;
-		}
-	}
+	//if location not exist
+	// if (if_location==  false){
+
+	// 		std::string path = conf.get_root() + this->client.get_request_target();
+	// std::cerr << "Path" << path << "\n";
+	// if (access(path.c_str(), F_OK)  == -1){
+	// 	this->status_code = 404;
+	// 	return ;
+	// }
+	// if (this->client.get_request_target().compare("/") == 0){
+	// 	if (conf.get_autoindex() == false){
+	// 		this->status_code = 404;
+	// 		return ;
+	// 	}
+	// }
+
+	// }
+
 	//check allow method
-	if (location.is_method_allowed(this->client.get_method()) == false){
+	if (location.is_method_allowed(this->client.get_method()) == false || \
+		(if_location == false && conf.is_method_allowed(this->client.get_method()) == false)){
 		this->status_code = 405;
 		return ;
 	}
 	//redicte https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
 	//https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
-	if (!(location.get_return().empty())){
-		std::cerr << "location.get_return().empty\n";
+	if (!(location.get_return().empty()) || (if_location == false && !conf.get_return().empty())){
 		if (!(location.get_return_status()).empty())
 			this->status_code = toInt(location.get_return_status());
+		else if (!conf.get_return_status().empty())
+			this->status_code = toInt(conf.get_return_status());
 		else if(strcmp(this->client.get_method().c_str(),"GET") == 0)
 			this->status_code = 301;
 		else if(strcmp(this->client.get_method().c_str(),"POST") == 0)
@@ -38,11 +45,11 @@ void Response::check_setting_location(Config conf){
 	//if root exist check by access
 	//check_cgi 
 	if (!this->extension.empty() && this->extension.compare(".html") != 0){
-		if (location.get_cgi(this->extension).first == false)
+		if (location.get_cgi(this->extension).first == false || (if_location == false && conf.get_cgi(this->extension).first == false))
 			this->status_code = 401;
 	}
 }
-void Response::set_header_fields(int cont_Leng, Location check_location) {
+void Response::set_header_fields(int cont_Leng) {
 	Config conf = this->client.get_conf();
 	std::map<std::string, std::string> headers;
 
@@ -51,49 +58,36 @@ void Response::set_header_fields(int cont_Leng, Location check_location) {
 		if(this->status_code == 405){
 			std::string tmp;
 			if (if_location == true){
-				if(check_location.is_method_allowed("GET") == true)
+				if(this->location.is_method_allowed("GET") == true || (if_location == false && conf.is_method_allowed("GET") == true))
 					tmp = "GET, ";
-				if(check_location.is_method_allowed("POST") == true)
+				if(this->location.is_method_allowed("POST") == true || (if_location == false && conf.is_method_allowed("POST") == true))
 					tmp += "POST, ";
-				if(check_location.is_method_allowed("DELETE") == true)
+				if(this->location.is_method_allowed("DELETE") == true || (if_location == false && conf.is_method_allowed("DELETE") == true))
 					tmp += "DELETE, ";
 				tmp = tmp.substr(0, tmp.size() - 2);
 				headers["Allow"] = tmp;
-			} else
-				if() 
+			}
 		}
-		headers["Content-Type"] = "text/html; charset=utf-8";
 	}
-	else if (!this->extension.empty() && this->extension.compare("html") != 0 && check_location.get_cgi(this->extension). first == true)
-	{
-		headers["Content-Type"] = "text/html; charset=utf-8";
-	}
-	else{
-		if(this->client.get_method() == "GET")
-			headers["Content-Type"] = "text/html; charset=utf-8";
-		else if (this->client.get_method() == "POST")
-			headers["Content-Type"] = "multipart/form-data";//?
-		//method delete does not need content-type
-		//if multipart/form-data; boundary=something
-	}
-	if (this->status_code >= 300 && this->status_code < 400)
-		headers["Location"] = check_location.get_return();
-	//Transfer-Encoding  chunk
-	//Keep-Alive
+	headers["Content-Type"] = "text/html; charset=utf-8";
+	if (this->status_code >= 300 && this->status_code < 400 && if_location == true)
+		headers["Location"] = this->location.get_return();
+	else if(this->status_code >= 300 && this->status_code < 400 && if_location == false)
+		headers["Location"] = conf.get_return();
 	for( std::map<std::string, std::string>::iterator it=headers.begin(); it!=headers.end(); ++it){
 		std::cerr << it->first + "=" + it->second << "\n";
         this->header_fields += it->first;
 		this->header_fields += ":";
 		this->header_fields += it->second;
 		this->header_fields += "\n";
-    } 
+    }
 }
 
 bool Response::post_body(){
 	std::string response;
 
     std::cout << "File successfully saved\n";
-	this->body = "<!DOCTYPE html><html><body><p>SAVE THE BODY</P><P>";
+	this->body = "<!DOCTYPE html><html><body><p>File/data successfully saved</P><P>";
 	//this->body += this->client.get_body();
 	this->body += "</p></body></html>";
 	response = "HTTP/1.1 ";
@@ -112,17 +106,16 @@ bool Response::post_body(){
 }
 
 bool Response::delete_file(){
-	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
+	Config conf = this->client.get_conf();
 	std::string path;
-	if (this->path.empty())
+	if (if_location == true)
 		path = location.get_root() + this->client.get_request_target();
 	else
-		path = this->path;
+		path = conf.get_root() + this->client.get_request_target();
 	
 	struct stat sb;
-
 	if (stat(path.c_str() , &sb) == -1){
-		perror("stat");
+		std::cerr << "stat" << "\n";
 		this->status_code = 404;
 		return false;
 	}
@@ -132,7 +125,7 @@ bool Response::delete_file(){
 		return false;
 	} else if (sb.st_mode & S_IFREG){
 		if (remove(path.c_str()) !=  0){
-			perror( "Error deleting file" );
+			std::cerr <<"Error deleting file\n";
 			return false;
 		}
   		else{
@@ -179,22 +172,27 @@ bool Response::send_successful_response()  {
 }
 
 bool Response::set_body(){
-	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
+	Config conf = this->client.get_conf();
 	std::string path;
-	std::cerr << "this->path" << this->path << "\n";
-	if (this->path.empty())
+	if (if_location == true)
 		path = location.get_root() + this->client.get_request_target();
 	else
-		path = this->path;
-	std::cerr << "this->path" << this->path << "\n";
-	//std::cerr << "path" << path << ", " << this->client.get_request_target() << "\n";
+		path = conf.get_root() + this->client.get_request_target();
+
+	std::cerr << "path:" << path << "\n";
 	std::string myline;
 
 	if (this->client.get_request_target().compare("/") == 0 ){
 		if (!location.get_index().empty())
 			path += location.get_index()[0];
+		else if (!conf.get_index().empty())
+			path += conf.get_index()[0];
+		else{
+			this->status_code = 404;
+			return false;
+		}
 	}
-	std::cerr << "path.c_str()222:" << path.c_str() << "\n";
+	std::cerr << "set body path:" << path.c_str() << "\n";
 	std::ifstream myfile (path.c_str());
 	if (myfile.is_open()){
 		while(myfile){
@@ -212,9 +210,12 @@ bool Response::set_body(){
 }
 
 bool Response::set_autoindex_body(){
-	std::cout << "set_autoindex_body\n";
-	Location location = this->client.get_conf().get_location(this->client.get_request_target()).second;
-	std::string path = location.get_root() + this->client.get_request_target();
+	Config conf = this->client.get_conf();
+	std::string path;
+	if (if_location == true)
+		path = location.get_root() + this->client.get_request_target();
+	else
+		path = conf.get_root() + this->client.get_request_target();
 	DIR *dir;
   	struct dirent *entry;
 	std::vector<std::string> files;
@@ -222,7 +223,6 @@ bool Response::set_autoindex_body(){
 		while((entry = readdir(dir)) != NULL){
 			if (std::string(entry->d_name) != "." && std::string(entry->d_name) != ".."){
 				files.push_back(std::string(entry->d_name));
-				std::cout<<  "entry->d_name :" << entry->d_name << "\n";
 			}
 		}
 		closedir(dir);
@@ -243,7 +243,7 @@ bool Response::set_autoindex_body(){
 	return true;
 }
 
-bool Response::send_error_response(Location location) {
+bool Response::send_error_response() {
 
 	std::string response;
 	std::string body;
@@ -273,7 +273,7 @@ bool Response::send_error_response(Location location) {
 		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
 		body +="</h1></center></body></html>";
 	}
-	set_header_fields(body.size(), location);
+	set_header_fields(body.size());
 	response += this->header_fields;
 	response += "\r\n";
 	response += body;
@@ -299,17 +299,12 @@ Response::Response(Client client): client(client){
 	this->status_code = 0;
 	Config conf = this->client.get_conf();
 	if (conf.get_location(this->client.get_request_target()).first == false){
-		this->location.set_return(conf.get_return());
-		this->location.set_return_status(conf.get_return_status());
-		this->location.set_root(conf.get_root());
-		this->location.set_autoindex(conf.get_autoindex());
-		this->location.set_index(conf.get_index());
-		this->location.set_upload_store(conf.get_upload_store());
-		//if (conf.is_method_allowed("GET") == true)
-		//cgi
+		this->if_location = false;
 	}
-	else
+	else{
 		this->location = conf.get_location(this->client.get_request_target()).second;
+		this->if_location = true;
+	}
 }
 Response::~Response(void){
 
@@ -320,7 +315,7 @@ bool Response::send_response(){
 
 	std::cout << "Sending response \n";
 	this->check_setting_location(conf);
-	//conf.debug();
+	conf.debug();
 	if(!this->extension.empty() && this->extension.compare(".html") != 0 && this->status_code == 0) {
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
@@ -328,7 +323,7 @@ bool Response::send_response(){
 		Cgi test_cgi(this->client, conf);
 		std::string script;
 		if (if_location == true)
-			script = check_location.get_cgi(this->extension).second;
+			script = location.get_cgi(this->extension).second;
 		else 
 			script = conf.get_cgi(this->extension).second;
 		if (script.empty())
@@ -338,17 +333,17 @@ bool Response::send_response(){
 		if (cgi_body.first == false){
 			this->status_code = 500;
 		}else {
-			set_header_fields(cgi_body.second.size(), check_location);
+			set_header_fields(cgi_body.second.size());
 			return send_cgi_response(cgi_body.second);
 		}
 	}else if(this->client.get_method() == "GET" && this->status_code == 0){
-		if (check_location.get_autoindex() == true){
+		if (this->location.get_autoindex() == true || (if_location == false && conf.get_autoindex() == true)){
 			set_autoindex_body();
 		} else {
 			set_body();
 		}
 		if (!this->status_code){
-			set_header_fields(this->body.size(), check_location);
+			set_header_fields(this->body.size());
 			this->status_code = 200;
 		}
 	}else if (this->client.get_method() == "DELETE" && this->status_code == 0){
@@ -361,7 +356,7 @@ bool Response::send_response(){
 			return post_body();
 	}
 	if (this->status_code >= 300&& this->status_code <= 599)
-		return send_error_response(check_location);
+		return send_error_response();
 	return send_successful_response();
 	//return true; when return false? keep connection alive
 }
