@@ -1,6 +1,17 @@
 #include "Response.hpp"
 
 void Response::check_setting_location(Config conf){
+	//location
+	std::string path;
+	if (if_location == true)
+		path = location.get_root() + this->client.get_request_target();
+	else
+		path = conf.get_root() + this->client.get_request_target();
+	struct stat info;
+	if (stat(path.c_str(), &info ) != 0){
+		this->status_code = 404;
+		return ;
+	}
 	//check allow method
 	if (location.is_method_allowed(this->client.get_method()) == false || \
 		(if_location == false && conf.is_method_allowed(this->client.get_method()) == false)){
@@ -151,6 +162,14 @@ bool Response::send_successful_response()  {
 	return true;
 }
 
+std::string get_file_content(std::string content)
+{
+    std::ifstream input_file(content.c_str());
+    if (!input_file.is_open()){
+		return NULL;
+	}
+    return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+}
 bool Response::set_body(){
 	Config conf = this->client.get_conf();
 	std::string path;
@@ -173,18 +192,19 @@ bool Response::set_body(){
 		}
 	}
 	std::cerr << "set body path:" << path.c_str() << "\n";
-	std::ifstream myfile (path.c_str());
-	if (myfile.is_open()){
-		while(myfile){
-			std::getline (myfile, myline);
-			this->body += myline;
-		}
-	myfile.close();
-	}else {
-		std::cerr << "Error opening file\n";
-		this->status_code = 500;
-		return false;
-	}
+	// std::ifstream myfile (path.c_str());
+	// if (myfile.is_open()){
+	// 	while(myfile){
+	// 		std::getline (myfile, myline);
+	// 		this->body += myline;
+	// 	}
+	// myfile.close();
+	// }else {
+	// 	std::cerr << "Error opening file\n";
+	// 	this->status_code = 500;
+	// 	return false;
+	// }
+	this->body =  get_file_content(path);
 	return true;
 	//std::cerr << "body :" <<this->body << "\n";
 }
@@ -295,7 +315,7 @@ bool Response::send_response(){
 
 	std::cout << "Sending response \n";
 	this->check_setting_location(conf);
-	conf.debug();
+	//conf.debug();
 	if(!this->extension.empty() && this->status_code == 0 && \
 		(location.get_cgi(this->extension).first == true || conf.get_cgi(this->extension).first == true)) {
 		std::pair<bool, std::string> cgi_body;
