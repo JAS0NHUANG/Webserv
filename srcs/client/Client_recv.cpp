@@ -62,7 +62,7 @@ void Client::check_access(std::string request_target) {
 
 	int code = access(_path.c_str(), 0);
 	if (code < 0) {
-		_syscall_error = "access() \"" + _path + "\"" + "failed (" + strerror(errno) + ")";
+		_syscall_error = "access() \"" + _path + "\"" + " failed (" + strerror(errno) + ")";
 		log(log_error(_syscall_error), false);
 		if (errno == ENOENT)
 			throw 404; // Not Found

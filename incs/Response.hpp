@@ -17,6 +17,7 @@ class Response {
     private:
         Client						_client;
         Location					_location;
+		Config						_conf;
         bool						_if_location;
         std::string					_extension;
         std::map<int, std::string>	_status_code_list;
@@ -35,7 +36,9 @@ class Response {
 		std::string					get_file_content(std::string content);
         bool						send_cgi_response(std::string body);
         void						set_header_fields(int cont_Leng) ;
-        void						check_setting_location(Config conf);
+        void						check_setting();
+		void						check_location();
+		void						check_config();
 		bool						send_error_response();
 		bool						send_successful_response();
 };

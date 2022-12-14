@@ -37,6 +37,7 @@ Config::Config(const Config &x) : Location() {
 Config& Config::Config::operator=(const Config &x) {
 	_allow_method			= x._allow_method;
 	_return					= x._return;
+	_return_status			= x._return_status;
 	_root					= x._root;
 	_autoindex				= x._autoindex;
 	_index					= x._index;

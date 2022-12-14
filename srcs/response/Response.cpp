@@ -1,33 +1,65 @@
 #include "Response.hpp"
 
-void Response::check_setting_location(Config conf)
+Response::Response(Client client) : _client(client)
 {
-	// check allow method
-	if (_location.is_method_allowed(_client.get_method()) == false ||
-		(_if_location == false && conf.is_method_allowed(_client.get_method()) == false))
+	_path = _client.get_path();
+	_conf = _client.get_conf();
+	std::string tmp = _client.get_request_target();
+	std::size_t found = tmp.find(".");
+	while (found != std::string::npos)
 	{
+		tmp.erase(0, found + 1);
+		_extension = "." + tmp;
+		found = tmp.find(".");
+	}
+	init_code_msg();
+	_status_code = _client.get_status_code();
+	if (_conf.get_location(_client.get_request_target()).first == true)
+	{
+		_location = _conf.get_location(_client.get_request_target()).second;
+		_if_location = true;
+	}
+	else
+		_if_location = false;
+}
+
+void Response::check_location() {
+	if (_location.is_method_allowed(_client.get_method()) == false)
 		_status_code = 405;
-		return;
+	else if (strcmp(_client.get_method().c_str(), "GET") == 0) {
+		if (_client.get_request_target() != _location.get_return())
+			_status_code = 301;// to_int(_location.get_return_status());
 	}
-	// redicte https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
-	// https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
-	if (!(_location.get_return().empty()) || (_if_location == false && !conf.get_return().empty()))
-	{
-		if (!(_location.get_return_status()).empty())
-			_status_code = to_int(_location.get_return_status());
-		else if (!conf.get_return_status().empty())
-			_status_code = to_int(conf.get_return_status());
-		else if (strcmp(_client.get_method().c_str(), "GET") == 0)
-			_status_code = 301;
-		else if (strcmp(_client.get_method().c_str(), "POST") == 0)
-			_status_code = 308;
-		else if (strcmp(_client.get_method().c_str(), "DELETE") == 0)
-			_status_code = 303;
-		else
-			_status_code = 405;
-		return;
+	else if (strcmp(_client.get_method().c_str(), "POST") == 0)
+		_status_code = 308;
+	else if (strcmp(_client.get_method().c_str(), "DELETE") == 0)
+		_status_code = 303;
+	else
+		_status_code = 405;
+}
+
+void Response::check_config() {
+	if (_conf.is_method_allowed(_client.get_method()) == false)
+		_status_code = 405;
+	else if (strcmp(_client.get_method().c_str(), "GET") == 0) {
+		if (_client.get_request_target() != _conf.get_return()) {
+			_status_code = 301; // to_int(_conf.get_return_status());
+		}
 	}
-	// if root exist check by access
+	else if (strcmp(_client.get_method().c_str(), "POST") == 0)
+		_status_code = 308;
+	else if (strcmp(_client.get_method().c_str(), "DELETE") == 0)
+		_status_code = 303;
+	else
+		_status_code = 405;
+}
+
+void Response::check_setting()
+{
+	if (_if_location)
+		check_location();
+	else 
+		check_config();
 }
 
 void Response::set_header_fields(int cont_Leng)
@@ -266,7 +298,6 @@ bool Response::set_autoindex_body()
 
 bool Response::send_error_response()
 {
-
 	std::string response;
 
 	_body.clear();
@@ -310,31 +341,6 @@ bool Response::send_error_response()
 	return true;
 }
 
-Response::Response(Client client) : _client(client)
-{
-	_path = _client.get_path();
-	std::string tmp = _client.get_request_target();
-	std::size_t found = tmp.find(".");
-	while (found != std::string::npos)
-	{
-		tmp.erase(0, found + 1);
-		_extension = "." + tmp;
-		found = tmp.find(".");
-	}
-	init_code_msg();
-	_status_code = _client.get_status_code();
-	Config conf = _client.get_conf();
-	if (conf.get_location(_client.get_request_target()).first == false)
-	{
-		_if_location = false;
-	}
-	else
-	{
-		_location = conf.get_location(_client.get_request_target()).second;
-		_if_location = true;
-	}
-}
-
 Response::~Response(void)
 {
 }
@@ -343,7 +349,7 @@ bool Response::send_response()
 {
 	Config conf = _client.get_conf();
 
-	check_setting_location(conf);
+	check_setting();
 	if (!_extension.empty() && _status_code == 0 &&
 		(_location.get_cgi(_extension).first == true || conf.get_cgi(_extension).first == true))
 	{

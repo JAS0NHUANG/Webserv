@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		run_server(socket_list);
 	}
 	catch (std::string &str) {
-		std::cerr << RED << str << "\n" << RESET;
+		std::cerr << BRED << str << "\n" << RESET;
 		return 1;
 	}
 	return (0);

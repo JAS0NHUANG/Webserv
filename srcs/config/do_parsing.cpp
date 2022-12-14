@@ -163,11 +163,17 @@ void do_return_parsing(std::queue<std::vector<std::string> > &qu, Location &conf
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);
 
-	if (!qu.empty() && (qu.front().front().find_first_not_of("0123456789") == std::string::npos)) {
-		conf.set_return_status(qu.front().front());
-		erase_token(qu, line);
-		throw_if_file_is_empty(qu, line);
-	}
+	if (qu.front().front().find_first_not_of("0123456789") != std::string::npos || 
+		(to_int(qu.front().front()) < 300 || to_int(qu.front().front()) > 399))
+		throw_parsing_error("expected a redirection status code `3xx`", to_String(line));
+
+	conf.set_return_status(qu.front().front());
+	erase_token(qu, line);
+	throw_if_file_is_empty(qu, line);
+
+	if (qu.front().front() == ";")
+		throw_parsing_error("unexpected ';'", to_String(line));
+
 	conf.set_return(qu.front().front());
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);
