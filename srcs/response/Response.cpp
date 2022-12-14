@@ -42,9 +42,8 @@ void Response::check_config() {
 	if (_conf.is_method_allowed(_client.get_method()) == false)
 		_status_code = 405;
 	else if (strcmp(_client.get_method().c_str(), "GET") == 0) {
-		if (_client.get_request_target() != _conf.get_return()) {
+		if (!_conf.get_return().empty() && _client.get_request_target() != _conf.get_return())
 			_status_code = 301; // to_int(_conf.get_return_status());
-		}
 	}
 	else if (strcmp(_client.get_method().c_str(), "POST") == 0)
 		_status_code = 308;

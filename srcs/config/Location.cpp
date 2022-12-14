@@ -52,7 +52,7 @@ void	Location::debug() const {
 	std::cout << "return status: " << _return_status << "\n";
 	std::cout << "root         : " << _root	<< "\n";
 	std::cout << "autoindex    : " << _autoindex << "\n";
-	std::cout << "index        : "; debug_print(_index);
+	std::cout << "index        : " << _index;
 	std::cout << "cgi          : "; debug_print(_cgi);
 	std::cout << "upload_store : "; debug_print(_upload_store);
 	std::cout << RESET ;
@@ -65,7 +65,7 @@ Location::Location() {
 
 	_root = "./www/default";
 	_autoindex = false;
-	_index.push_back("index.html");
+	_index = "index.html";
 	//_cgi.first = false;
 	_upload_store.first = false;
 }
@@ -110,7 +110,7 @@ bool Location::get_autoindex() const {
 	return _autoindex;
 }
 
-std::vector<std::string> Location::get_index() const {
+std::string Location::get_index() const {
 	return _index;
 }
 
@@ -149,9 +149,8 @@ void	Location::set_autoindex(bool b) {
 	_autoindex = b;
 }
 
-void	Location::set_index(std::vector<std::string> &vec) {
-	_index.clear();
-	_index.assign(vec.begin(), vec.end());
+void	Location::set_index(std::string &str) {
+	_index = str;
 }
 
 void	Location::set_cgi(std::string &ext, std::string &bin) {

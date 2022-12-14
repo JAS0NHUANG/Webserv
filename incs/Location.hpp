@@ -28,7 +28,7 @@ class Location {
 		bool	_autoindex;
 
 		/* vector that hold default page name */
-		std::vector<std::string>	_index;
+		std::string	_index;
 
 		std::map<std::string, std::string>	_cgi;
 		/* [ is_set/is_not_set | (extension | path_to_cgi_bin) ] */
@@ -51,7 +51,7 @@ class Location {
 		std::string					get_return_status() const;
 		std::string					get_root() const;
 		bool						get_autoindex() const;
-		std::vector<std::string>	get_index() const;
+		std::string					get_index() const;
 		//std::pair<bool, std::pair<std::string, std::string> > get_cgi() const;
 		std::pair<bool, std::string> get_cgi(std::string ext) const;
 		std::pair<bool, std::string> get_upload_store() const;
@@ -61,7 +61,7 @@ class Location {
 		void	set_return_status(std::string &str);
 		void	set_root(std::string &str);
 		void	set_autoindex(bool b);
-		void	set_index(std::vector<std::string> &vec);
+		void	set_index(std::string &vec);
 		//void	set_cgi(std::string &ext, std::string &bin);
 		void	set_cgi(std::string &ext, std::string &path);
 		void	set_upload_store(std::string &dir);
