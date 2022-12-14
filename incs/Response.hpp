@@ -12,32 +12,31 @@ class Response {
 
         Response(Client client);	
 		~Response(void);
-        std::string get_code_msg(int status_code) const;
-        bool        send_response();
-        void        set_header_fields(int cont_Leng) ;
-        void        check_setting_location(Config conf);
-        bool        send_error_response();
-		bool	    send_successful_response() ;
-        bool        send_cgi_response(std::string body) const ;
-
+        bool send_response();
 
     private:
-        Client						client;
-        Location					location;
-        bool						if_location;
-        std::string					extension;
-        std::string					http_version;
-        std::map<int, std::string>	status_code_list;
-        int							status_code;
-        std::string					header_fields;
-        std::string					body;
+        Client						_client;
+        Location					_location;
+        bool						_if_location;
+        std::string					_extension;
+        std::map<int, std::string>	_status_code_list;
+        int							_status_code;
+        std::string					_header_fields;
+        std::string					_body;
+		std::string					_path;
         std::string					content_mime_type(std::string extension);
-        std::map<int, std::string>	init_code_msg();
+        void						init_code_msg();
         bool						set_body();
         bool						set_autoindex_body();
         bool						delete_file();
         bool						post_body();
-		std::string					_path;
+        std::string					get_code_msg() const;
+		std::string					get_file_content(std::string content);
+        bool						send_cgi_response(std::string body);
+        void						set_header_fields(int cont_Leng) ;
+        void						check_setting_location(Config conf);
+		bool						send_error_response();
+		bool						send_successful_response() ;
 };
 
 #endif

@@ -2,85 +2,77 @@
 
 void Response::check_setting_location(Config conf)
 {
-	// location
-	std::string path;
-	if (if_location == true)
-		path = location.get_root() + this->client.get_request_target();
-	else
-		path = conf.get_root() + this->client.get_request_target();
 	struct stat info;
-	if (stat(path.c_str(), &info) != 0)
+	if (stat(_path.c_str(), &info) != 0)
 	{
-		this->status_code = 404;
+		_status_code = 404;
 		return;
 	}
 	// check allow method
-	if (location.is_method_allowed(this->client.get_method()) == false ||
-		(if_location == false && conf.is_method_allowed(this->client.get_method()) == false))
+	if (_location.is_method_allowed(_client.get_method()) == false ||
+		(_if_location == false && conf.is_method_allowed(_client.get_method()) == false))
 	{
-		this->status_code = 405;
+		_status_code = 405;
 		return;
 	}
 	// redicte https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
 	// https://stackoverflow.com/questions/5781455/how-to-redirect-after-a-successful-delete-request
-	if (!(location.get_return().empty()) || (if_location == false && !conf.get_return().empty()))
+	if (!(_location.get_return().empty()) || (_if_location == false && !conf.get_return().empty()))
 	{
-		if (!(location.get_return_status()).empty())
-			this->status_code = toInt(location.get_return_status());
+		if (!(_location.get_return_status()).empty())
+			_status_code = toInt(_location.get_return_status());
 		else if (!conf.get_return_status().empty())
-			this->status_code = toInt(conf.get_return_status());
-		else if (strcmp(this->client.get_method().c_str(), "GET") == 0)
-			this->status_code = 301;
-		else if (strcmp(this->client.get_method().c_str(), "POST") == 0)
-			this->status_code = 308;
-		else if (strcmp(this->client.get_method().c_str(), "DELETE") == 0)
-			this->status_code = 303;
+			_status_code = toInt(conf.get_return_status());
+		else if (strcmp(_client.get_method().c_str(), "GET") == 0)
+			_status_code = 301;
+		else if (strcmp(_client.get_method().c_str(), "POST") == 0)
+			_status_code = 308;
+		else if (strcmp(_client.get_method().c_str(), "DELETE") == 0)
+			_status_code = 303;
 		else
-			this->status_code = 405;
+			_status_code = 405;
 		return;
 	}
 	// if root exist check by access
 }
 void Response::set_header_fields(int cont_Leng)
 {
-	Config conf = this->client.get_conf();
+	Config conf = _client.get_conf();
 	std::map<std::string, std::string> headers;
 
 	headers["Content-Length"] = toString(cont_Leng);
-	if (this->status_code >= 400 && this->status_code < 600)
+	if (_status_code >= 400 && _status_code < 600)
 	{
-		if (this->status_code == 405)
+		if (_status_code == 405)
 		{
 			std::string tmp;
-			if (if_location == true)
+			if (_if_location == true)
 			{
-				if (this->location.is_method_allowed("GET") == true || (if_location == false && conf.is_method_allowed("GET") == true))
+				if (_location.is_method_allowed("GET") == true || (_if_location == false && conf.is_method_allowed("GET") == true))
 					tmp = "GET, ";
-				if (this->location.is_method_allowed("POST") == true || (if_location == false && conf.is_method_allowed("POST") == true))
+				if (_location.is_method_allowed("POST") == true || (_if_location == false && conf.is_method_allowed("POST") == true))
 					tmp += "POST, ";
-				if (this->location.is_method_allowed("DELETE") == true || (if_location == false && conf.is_method_allowed("DELETE") == true))
+				if (_location.is_method_allowed("DELETE") == true || (_if_location == false && conf.is_method_allowed("DELETE") == true))
 					tmp += "DELETE, ";
 				tmp = tmp.substr(0, tmp.size() - 2);
 				headers["Allow"] = tmp;
 			}
 		}
 	}
-	if (!this->extension.empty() && this->extension.compare(".php") && this->extension.compare(".py")) {
-		std::cout << BLU << "extension : " << extension << RESET << std::endl;
-		headers["Content-Type"] = content_mime_type(this->extension);
-	}
+	if (!_extension.empty() && _extension.compare(".php") && _extension.compare(".py"))
+		headers["Content-Type"] = content_mime_type(_extension);
 	else
 		headers["Content-Type"] = "text/html; charset=utf-8";
-	if (this->status_code >= 300 && this->status_code < 400 && if_location == true)
-		headers["Location"] = this->location.get_return();
-	else if (this->status_code >= 300 && this->status_code < 400 && if_location == false)
+	if (_status_code >= 300 && _status_code < 400 && _if_location == true)
+		headers["Location"] = _location.get_return();
+	else if (_status_code >= 300 && _status_code < 400 && _if_location == false)
 		headers["Location"] = conf.get_return();
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
-		this->header_fields += it->first;
-		this->header_fields += ":";
-		this->header_fields += it->second;
-		this->header_fields += "\n";
+		_header_fields += it->first;
+		_header_fields += ":";
+		_header_fields += it->second;
+		_header_fields += "\n";
 	}
 }
 
@@ -89,49 +81,49 @@ bool Response::post_body()
 	std::string response;
 
 	std::cout << "File successfully saved\n";
-	this->body = "<!DOCTYPE html><html><body><p>File/data successfully saved</P><P>";
-	// this->body += this->client.get_body();
-	this->body += "</p></body></html>";
+	_status_code = 201;
+	_body = "<!DOCTYPE html><html><body><p>File/data successfully saved</P><P>";
+	// body += _client.get_body();
+	_body += "</p></body></html>";
 	response = "HTTP/1.1 ";
-	response += toString(201);
+	response += toString(_status_code);
 	response += " ";
-	response += this->get_code_msg(201);
+	response += get_code_msg();
 	response += "\r\n";
-	response += "Content-Length:" + toString(this->body.size()) + "\n";
+	response += "Content-Length:" + toString(_body.size()) + "\n";
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
-	response += this->body;
-	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	response += _body;
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
 
 bool Response::delete_file()
 {
-	Config conf = this->client.get_conf();
-	std::string path;
-	if (if_location == true)
-		path = location.get_root() + this->client.get_request_target();
+	Config conf = _client.get_conf();
+	if (_if_location == true)
+		_path = _location.get_root() + _client.get_request_target();
 	else
-		path = conf.get_root() + this->client.get_request_target();
+		_path = conf.get_root() + _client.get_request_target();
 
 	struct stat sb;
-	if (stat(path.c_str(), &sb) == -1)
+	if (stat(_path.c_str(), &sb) == -1)
 	{
 		std::cerr << "stat"
 				  << "\n";
-		this->status_code = 404;
+		_status_code = 404;
 		return false;
 	}
 	if (sb.st_mode & S_IFDIR)
 	{
-		this->status_code = 406;
+		_status_code = 406;
 		std::cerr << "this is a directory not a file\n";
 		return false;
 	}
 	else if (sb.st_mode & S_IFREG)
 	{
-		if (remove(path.c_str()) != 0)
+		if (remove(_path.c_str()) != 0)
 		{
 			std::cerr << "Error deleting file\n";
 			return false;
@@ -139,26 +131,27 @@ bool Response::delete_file()
 		else
 		{
 			std::cout << "File successfully deleted\n";
-			this->body = "<!DOCTYPE html><html><body><p>File successfully deleted.</p></body></html>";
+			_body = "<!DOCTYPE html><html><body><p>File successfully deleted.</p></body></html>";
 		}
 	}
 	return true;
 }
 
-bool Response::send_cgi_response(std::string body) const
+bool Response::send_cgi_response(std::string body)
 {
 
 	std::string response;
 
+	_status_code = 200;
 	response = "HTTP/1.1 ";
-	response += toString(200);
+	response += toString(_status_code);
 	response += " ";
-	response += this->get_code_msg(200);
+	response += get_code_msg();
 	response += "\r\n";
-	response += this->header_fields;
+	response += _header_fields;
 	response += "\r\n";
 	response += body;
-	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
@@ -169,44 +162,42 @@ bool Response::send_successful_response()
 	std::string response;
 
 	response = "HTTP/1.1 ";
-	response += toString(this->status_code);
+	response += toString(_status_code);
 	response += " ";
-	response += this->get_code_msg(this->status_code);
+	response += get_code_msg();
 	response += "\r\n";
-	response += this->header_fields;
+	response += _header_fields;
 	response += "\r\n";
-	response += this->body;
-	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	response += _body;
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
 
-std::string get_file_content(std::string content)
+std::string Response::get_file_content(std::string content)
 {
 	std::ifstream input_file(content.c_str());
-	if (!input_file.is_open())
-	{
-		return NULL;
+	if (!input_file.is_open()) {
+		_status_code = 500;
+		return std::string();
 	}
 	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
 }
 
 bool Response::set_body()
 {
-	std::string path = client.get_path();
-
 	struct stat s;
 
-	if (stat(path.c_str(), &s) == 0) {
+	if (stat(_path.c_str(), &s) == 0) {
 		if (s.st_mode & S_IFREG) // ELement is a regular file.
-			this->body = get_file_content(path);
+			_body = get_file_content(_path);
 		else if (s.st_mode & S_IFDIR ) { // Element is a directory
-			if (if_location && location.get_autoindex() == true)
+			if (_if_location && _location.get_autoindex() == true)
 				set_autoindex_body();
-			else if (client.get_conf().get_autoindex() == true)
+			else if (_client.get_conf().get_autoindex() == true)
 				set_autoindex_body();
 			else {
-				status_code = 403;
+				_status_code = 403;
 				send_error_response();
 			}
 		}
@@ -217,12 +208,10 @@ bool Response::set_body()
 
 bool Response::set_autoindex_body()
 {
-	std::string path = client.get_path();
-
 	DIR *dir;
 	struct dirent *entry;
 	std::vector<std::string> files;
-	if (((dir = opendir(path.c_str())) != NULL))
+	if (((dir = opendir(_path.c_str())) != NULL))
 	{
 		while ((entry = readdir(dir)) != NULL)
 		{
@@ -236,10 +225,10 @@ bool Response::set_autoindex_body()
 	else
 	{
 		std::cerr << "Error opendir\n";
-		this->status_code = 403;
+		_status_code = 403;
 		return false;
 	}
-	body =	"<!DOCTYPE html><html><body>\n"
+	_body =	"<!DOCTYPE html><html><body>\n"
 			"<style>"
 			" body {background-color: #353535;}"
 			"div {border: solid 1px black; box-sizing: border-box; width: 50%;  height: auto; margin: 0 auto; border-radius: 10px; background-color: #2b2a33 }"
@@ -248,16 +237,16 @@ bool Response::set_autoindex_body()
 			"</style>\n<div>\n";
 	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
 	{
-		body += "<a href=\"";
-		body += client.get_request_target();
-		if (client.get_request_target() != "/")
-			body += "/";
-		body += (*it);
-		body += "\">";
-		body += (*it);
-		body += "</a>";
+		_body += "<a href=\"";
+		_body += _client.get_request_target();
+		if (_client.get_request_target() != "/")
+			_body += "/";
+		_body += (*it);
+		_body += "\">";
+		_body += (*it);
+		_body += "</a>";
 	}
-	body += "</div></body></html>";
+	_body += "</div></body></html>";
 	return true;
 }
 
@@ -265,68 +254,67 @@ bool Response::send_error_response()
 {
 
 	std::string response;
-	std::string body;
-	std::string path;
 
+	_body.clear();
 	response = "HTTP/1.1 ";
-	response += toString(this->status_code);
+	response += toString(_status_code);
 	response += " ";
-	response += this->get_code_msg(this->status_code);
+	response += get_code_msg();
 	response += "\r\n";
 
-	if (!this->client.get_conf().get_error_page(this->status_code).empty())
-		path = this->client.get_conf().get_error_page(this->status_code) + "/" + toString(this->status_code) + ".html";
-	std::ifstream myfile(path.c_str());
+	if (!_client.get_conf().get_error_page(_status_code).empty())
+		_path = _client.get_conf().get_error_page(_status_code) + "/" + toString(_status_code) + ".html";
+	std::ifstream myfile(_path.c_str());
 	if (myfile.is_open())
 	{
 		std::string myline;
 		while (myfile)
 		{
 			std::getline(myfile, myline);
-			body += myline;
+			_body += myline;
 		}
 		myfile.close();
 	}
 	else
 	{
-		body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
-		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
-		body += "</title></head><body><center><h1>";
-		body += toString(this->status_code) + " " + this->get_code_msg(this->status_code);
-		body += "</h1></center></body></html>";
+		_body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
+		_body += toString(_status_code) + " " + get_code_msg();
+		_body += "</title></head><body><center><h1>";
+		_body += toString(_status_code) + " " + get_code_msg();
+		_body += "</h1></center></body></html>";
 	}
-	set_header_fields(body.size());
-	response += this->header_fields;
+	set_header_fields(_body.size());
+	response += _header_fields;
 	response += "\r\n";
-	response += body;
+	response += _body;
 
-	if (send(this->client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
 		errMsgErrno("send failed");
 	return true;
 }
 
-Response::Response(Client client) : client(client)
+Response::Response(Client client) : _client(client)
 {
-	std::string tmp = client.get_request_target();
+	_path = _client.get_path();
+	std::string tmp = _client.get_request_target();
 	std::size_t found = tmp.find(".");
 	while (found != std::string::npos)
 	{
 		tmp.erase(0, found + 1);
-		extension = "." + tmp;
+		_extension = "." + tmp;
 		found = tmp.find(".");
 	}
-	this->status_code_list = init_code_msg();
-	this->http_version = "HTTP/1.1";
-	this->status_code = 0;
-	Config conf = this->client.get_conf();
-	if (conf.get_location(this->client.get_request_target()).first == false)
+	init_code_msg();
+	_status_code = 0;
+	Config conf = _client.get_conf();
+	if (conf.get_location(_client.get_request_target()).first == false)
 	{
-		this->if_location = false;
+		_if_location = false;
 	}
 	else
 	{
-		this->location = conf.get_location(this->client.get_request_target()).second;
-		this->if_location = true;
+		_location = conf.get_location(_client.get_request_target()).second;
+		_if_location = true;
 	}
 }
 
@@ -336,27 +324,27 @@ Response::~Response(void)
 
 bool Response::send_response()
 {
-	Config conf = this->client.get_conf();
+	Config conf = _client.get_conf();
 
 	std::cout << "Sending response \n";
-	this->check_setting_location(conf);
-	if (!this->extension.empty() && this->status_code == 0 &&
-		(location.get_cgi(this->extension).first == true || conf.get_cgi(this->extension).first == true))
+	check_setting_location(conf);
+	if (!_extension.empty() && _status_code == 0 &&
+		(_location.get_cgi(_extension).first == true || conf.get_cgi(_extension).first == true))
 	{
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
-		Cgi test_cgi(this->client, conf);
+		Cgi test_cgi(_client, conf);
 		std::string script;
-		if (if_location == true)
-			script = location.get_cgi(this->extension).second;
+		if (_if_location == true)
+			script = _location.get_cgi(_extension).second;
 		else
-			script = conf.get_cgi(this->extension).second;
+			script = conf.get_cgi(_extension).second;
 		if (script.empty())
-			this->status_code = 500;
+			_status_code = 500;
 		cgi_body = test_cgi.handler(const_cast<char *>(script.c_str()));
 		if (cgi_body.first == false)
 		{
-			this->status_code = 500;
+			_status_code = 500;
 		}
 		else
 		{
@@ -364,102 +352,100 @@ bool Response::send_response()
 			return send_cgi_response(cgi_body.second);
 		}
 	}
-	else if (this->client.get_method() == "GET" && this->status_code == 0)
+	else if (_client.get_method() == "GET" && _status_code == 0)
 	{
 		set_body();
-		if (!this->status_code)
+		if (!_status_code)
 		{
-			set_header_fields(this->body.size());
-			this->status_code = 200;
+			set_header_fields(_body.size());
+			_status_code = 200;
 		}
 	}
-	else if (this->client.get_method() == "DELETE" && this->status_code == 0)
+	else if (_client.get_method() == "DELETE" && _status_code == 0)
 	{
-		if (delete_file() == false && this->status_code == 0)
-			this->status_code = 501;
-		else if (!this->status_code)
-			this->status_code = 202;
+		if (delete_file() == false && _status_code == 0)
+			_status_code = 501;
+		else if (!_status_code)
+			_status_code = 202;
 	}
-	else if (this->client.get_method() == "POST" && this->status_code == 0)
+	else if (_client.get_method() == "POST" && _status_code == 0)
 	{
-		this->status_code = 201;
+		_status_code = 201;
 		return post_body();
 	}
-	if (this->status_code >= 300 && this->status_code <= 599)
+	if (_status_code >= 300 && _status_code <= 599)
 		return send_error_response();
 	return send_successful_response();
 	// return true; when return false? keep connection alive
 }
 
-std::string Response::get_code_msg(int status_code) const
+std::string Response::get_code_msg() const
 {
-	return this->status_code_list.find(status_code)->second;
+	return _status_code_list.find(_status_code)->second;
 }
 
-std::map<int, std::string> Response::init_code_msg()
+void Response::init_code_msg()
 {
-	std::map<int, std::string> status;
 
-	status[200] = "OK";
-	status[201] = "Created";
-	status[202] = "Accepted";
-	status[203] = "Non-Authoritative Information";
-	status[204] = "No Content";
-	status[205] = "Reset Content";
-	status[206] = "Partial Content";
-	status[207] = "Multi-Status";
-	status[208] = "Already Reported";
-	status[226] = "IM Used";
-	status[300] = "Multiple Choices";
-	status[301] = "Moved Permanently";
-	status[302] = "Found";
-	status[303] = "See Other";
-	status[304] = "Not Modified";
-	status[305] = "Use Proxy";
-	status[306] = "Switch Proxy";
-	status[307] = "Temporary Redirect";
-	status[308] = "Permanent Redirect";
-	status[400] = "Bad Request";
-	status[401] = "Unauthorized";
-	status[402] = "Payment Required";
-	status[403] = "Forbidden";
-	status[404] = "Not Found";
-	status[405] = "Method Not Allowed";
-	status[406] = "Not Acceptable";
-	status[407] = "Proxy Authentication Required";
-	status[408] = "Request Timeout";
-	status[409] = "Conflict";
-	status[410] = "Gone";
-	status[411] = "Length Required";
-	status[412] = "Precondition Failed";
-	status[413] = "Payload Too Large";
-	status[414] = "URI Too Long";
-	status[415] = "Unsupported Media Type";
-	status[416] = "Range Not Satisfiable";
-	status[417] = "Expectation Failed";
-	status[418] = "I\'m a teapot";
-	status[421] = "Misdirected Request";
-	status[422] = "Unprocessable Entity";
-	status[423] = "Locked";
-	status[424] = "Failed Dependency";
-	status[425] = "Too Early";
-	status[426] = "Upgrade Required";
-	status[428] = "Precondition Required";
-	status[429] = "Too Many Requests";
-	status[431] = "Request Header Fields Too Large";
-	status[451] = "Unavailable For Legal Reasons";
-	status[500] = "Internal Server Error";
-	status[501] = "Not Implemented";
-	status[502] = "Bad Gateway";
-	status[503] = "Service Unavailable";
-	status[504] = "Gateway Timeout";
-	status[505] = "HTTP Version Not Supported";
-	status[506] = "Variant Also Negotiates";
-	status[507] = "Insufficient Storage";
-	status[508] = "Loop Detected";
-	status[510] = "Not Extended";
-	status[511] = "Network Authentication Required";
-	return status;
+	_status_code_list[200] = "OK";
+	_status_code_list[201] = "Created";
+	_status_code_list[202] = "Accepted";
+	_status_code_list[203] = "Non-Authoritative Information";
+	_status_code_list[204] = "No Content";
+	_status_code_list[205] = "Reset Content";
+	_status_code_list[206] = "Partial Content";
+	_status_code_list[207] = "Multi-Status";
+	_status_code_list[208] = "Already Reported";
+	_status_code_list[226] = "IM Used";
+	_status_code_list[300] = "Multiple Choices";
+	_status_code_list[301] = "Moved Permanently";
+	_status_code_list[302] = "Found";
+	_status_code_list[303] = "See Other";
+	_status_code_list[304] = "Not Modified";
+	_status_code_list[305] = "Use Proxy";
+	_status_code_list[306] = "Switch Proxy";
+	_status_code_list[307] = "Temporary Redirect";
+	_status_code_list[308] = "Permanent Redirect";
+	_status_code_list[400] = "Bad Request";
+	_status_code_list[401] = "Unauthorized";
+	_status_code_list[402] = "Payment Required";
+	_status_code_list[403] = "Forbidden";
+	_status_code_list[404] = "Not Found";
+	_status_code_list[405] = "Method Not Allowed";
+	_status_code_list[406] = "Not Acceptable";
+	_status_code_list[407] = "Proxy Authentication Required";
+	_status_code_list[408] = "Request Timeout";
+	_status_code_list[409] = "Conflict";
+	_status_code_list[410] = "Gone";
+	_status_code_list[411] = "Length Required";
+	_status_code_list[412] = "Precondition Failed";
+	_status_code_list[413] = "Payload Too Large";
+	_status_code_list[414] = "URI Too Long";
+	_status_code_list[415] = "Unsupported Media Type";
+	_status_code_list[416] = "Range Not Satisfiable";
+	_status_code_list[417] = "Expectation Failed";
+	_status_code_list[418] = "I\'m a teapot";
+	_status_code_list[421] = "Misdirected Request";
+	_status_code_list[422] = "Unprocessable Entity";
+	_status_code_list[423] = "Locked";
+	_status_code_list[424] = "Failed Dependency";
+	_status_code_list[425] = "Too Early";
+	_status_code_list[426] = "Upgrade Required";
+	_status_code_list[428] = "Precondition Required";
+	_status_code_list[429] = "Too Many Requests";
+	_status_code_list[431] = "Request Header Fields Too Large";
+	_status_code_list[451] = "Unavailable For Legal Reasons";
+	_status_code_list[500] = "Internal Server Error";
+	_status_code_list[501] = "Not Implemented";
+	_status_code_list[502] = "Bad Gateway";
+	_status_code_list[503] = "Service Unavailable";
+	_status_code_list[504] = "Gateway Timeout";
+	_status_code_list[505] = "HTTP Version Not Supported";
+	_status_code_list[506] = "Variant Also Negotiates";
+	_status_code_list[507] = "Insufficient Storage";
+	_status_code_list[508] = "Loop Detected";
+	_status_code_list[510] = "Not Extended";
+	_status_code_list[511] = "Network Authentication Required";
 }
 
 std::string Response::content_mime_type(std::string extension)
