@@ -28,8 +28,8 @@ class Response {
 		std::string					_syscall_error;
         std::string					content_mime_type(std::string extension);
         void						init_code_msg();
-        bool						set_body();
-        bool						set_autoindex_body();
+        void						set_body();
+        void						set_autoindex_body();
         void						delete_file();
         bool						post_body();
         std::string					get_code_msg();

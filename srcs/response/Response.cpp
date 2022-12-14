@@ -120,7 +120,11 @@ void Response::delete_file()
 		}
 		else {
 			_status_code = 200;
-			_body = "<!DOCTYPE html><html><body><p>File successfully deleted.</p></body></html>";
+			_body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
+			_body += "DELETED";
+			_body += "</title></head><body><center><h1>";
+			_body += "File successfully deleted.";
+			_body += "</h1></center></body></html>";
 		}
 	}
 }
@@ -177,10 +181,11 @@ std::string Response::get_file_content(std::string content)
 		_client.log(_client.log_error(_syscall_error), false);
 		return std::string();
 	}
+	_status_code = 200;
 	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
 }
 
-bool Response::set_body()
+void Response::set_body()
 {
 	struct stat s;
 
@@ -199,14 +204,13 @@ bool Response::set_body()
 		}
 	}
 	else {
+		_status_code = 500;
 		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
 		_client.log(_client.log_error(_syscall_error), false);
 	}
-
-	return true;
 }
 
-bool Response::set_autoindex_body()
+void Response::set_autoindex_body()
 {
 	DIR *dir;
 	struct dirent *entry;
@@ -224,10 +228,10 @@ bool Response::set_autoindex_body()
 	}
 	else
 	{
-		_status_code = 403;
+		_status_code = 500;
 		_syscall_error = "opendir() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
 		_client.log(_client.log_error(_syscall_error), false);
-		return false;
+		return;
 	}
 	_body =	"<!DOCTYPE html><html><body>\n"
 			"<style>"
@@ -248,7 +252,6 @@ bool Response::set_autoindex_body()
 		_body += "</a>";
 	}
 	_body += "</div></body></html>";
-	return true;
 }
 
 bool Response::set_defined_error_page() {
@@ -310,7 +313,7 @@ bool Response::is_redirected() {
 		_client.get_request_target() != _location.get_return()) {
 		return true;
 	}
-	else if (!_conf.get_return().empty() &&
+	else if (!_conf.get_return().empty() && _client.get_request_target() == "/" &&
 		_client.get_request_target() != _conf.get_return()) {
 		return true;
 	}
@@ -319,7 +322,6 @@ bool Response::is_redirected() {
 
 bool Response::send_response()
 {
-
 	if (_status_code) {
 		// If _status_code is already that means Client class found an error earlier
 		// No need to process more, just respond as soon as possible and leave the function
@@ -383,7 +385,6 @@ std::string Response::get_code_msg()
 
 void Response::init_code_msg()
 {
-
 	_status_code_list[200] = "OK";
 	_status_code_list[201] = "Created";
 	_status_code_list[202] = "Accepted";
