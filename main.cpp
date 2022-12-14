@@ -21,9 +21,9 @@ int main(int argc, char *argv[])
 
 	try {
 		// get configuration info
-		throwParsingError("", "", argv[0], argv[1]);
+		throw_parsing_error("", "", argv[0], argv[1]);
 		throwError("", argv[0]);
-		parseFile(argv[1], virtual_servers);
+		parse_file(argv[1], virtual_servers);
 
 		// create sockets
 		std::map<std::string, std::vector<Config> >::iterator it = virtual_servers.begin();

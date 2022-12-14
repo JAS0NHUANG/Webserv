@@ -1,6 +1,6 @@
 #include "webserv.hpp"
 
-std::string::size_type smallestIndex(std::vector<std::string::size_type> stvec) {
+std::string::size_type smallest_index(std::vector<std::string::size_type> stvec) {
 	std::string::size_type i = stvec.back();
 	stvec.pop_back();
 	while (!stvec.empty()) {
@@ -11,7 +11,7 @@ std::string::size_type smallestIndex(std::vector<std::string::size_type> stvec) 
 	return i;
 }
 
-std::vector<std::string> splitTokens(std::string str, std::vector<std::string> &strVec) {
+std::vector<std::string> split_tokens(std::string str, std::vector<std::string> &strVec) {
 	std::string::size_type i = 0;
 	std::vector<std::string::size_type> indexVec;
 	std::string tmp;
@@ -23,7 +23,7 @@ std::vector<std::string> splitTokens(std::string str, std::vector<std::string> &
 		indexVec.push_back( str.find("}"));
 		indexVec.push_back( str.find(";"));
 
-		i = smallestIndex(indexVec);
+		i = smallest_index(indexVec);
 		if (i == std::string::npos) {
 			strVec.push_back(str);
 			return strVec;
@@ -50,7 +50,7 @@ std::vector<std::string> splitTokens(std::string str, std::vector<std::string> &
 	return strVec;
 }
 
-std::vector<std::string> splitLine(std::string str) {
+std::vector<std::string> split_line(std::string str) {
 	std::vector<std::string> 	vec;
 	std::string::iterator		itStart;
 	std::string::iterator		itEnd;
@@ -58,24 +58,24 @@ std::vector<std::string> splitLine(std::string str) {
 	if (str.size() == 0)
 		return vec;
 	for (itStart = str.begin(); itStart < str.end(); itStart++) {
-		itStart = skipWhitespace(str, itStart);
+		itStart = skip_whitespace(str, itStart);
 		itEnd = itStart;
 
-		for (; itEnd < str.end() && !isWhitespace(*itEnd); itEnd++) {}
+		for (; itEnd < str.end() && !is_whitespace(*itEnd); itEnd++) {}
 
 		std::string tmp(itStart, itEnd);
 		if (!tmp.empty())
-			splitTokens(tmp, vec);
+			split_tokens(tmp, vec);
 
 		itStart = itEnd;
 	}
 
-	deleteComment(vec);
+	delete_comment(vec);
 
 	return vec;
 }
 
-void deleteComment(std::vector<std::string> &vec) {
+void delete_comment(std::vector<std::string> &vec) {
 	std::vector<std::string>::iterator	it;
 	std::string::size_type				i;
 
@@ -94,7 +94,7 @@ void deleteComment(std::vector<std::string> &vec) {
 		vec.erase(it, vec.end());
 }
 
-void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu) {
+void save_file(char *fileName, std::queue<std::vector<std::string> >	&qu) {
 	std::ifstream	configFile(fileName);
 
 	if (!configFile.is_open())
@@ -102,7 +102,7 @@ void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu) {
 
 	std::string line;
 	while (getline(configFile, line)) {
-		std::vector<std::string> vec = splitLine(line);
+		std::vector<std::string> vec = split_line(line);
 		qu.push(vec);
 	}
 	configFile.close();

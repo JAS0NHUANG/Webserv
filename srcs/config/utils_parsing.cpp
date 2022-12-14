@@ -1,11 +1,11 @@
 #include "webserv.hpp"
 
-void eraseToken(std::queue<std::vector<std::string> > &qu, int &line) {
+void erase_token(std::queue<std::vector<std::string> > &qu, int &line) {
 	qu.front().erase(qu.front().begin());
-	checkIfLineIsEmpty(qu, line);
+	check_if_line_is_empty(qu, line);
 }
 
-void checkIfLineIsEmpty(std::queue<std::vector<std::string> > &qu, int &line) {
+void check_if_line_is_empty(std::queue<std::vector<std::string> > &qu, int &line) {
 	// Skip empty lines
 	while (!qu.empty() && qu.front().empty()) {
 		qu.pop();
@@ -14,7 +14,7 @@ void checkIfLineIsEmpty(std::queue<std::vector<std::string> > &qu, int &line) {
 	}
 }
 
-directives findDirective(std::string &str) {
+directives find_directive(std::string &str) {
 	if (str == "listen")
 		return e_listen;
 	else if (str == "server_name")
@@ -42,7 +42,7 @@ directives findDirective(std::string &str) {
 	return e_unknown;
 }
 
-std::string toString(int n) {
+std::string to_String(int n) {
 	std::string			str;
 	std::stringstream	ss;
 
@@ -52,7 +52,7 @@ std::string toString(int n) {
 	return str;
 }
 
-int toInt(std::string str) {
+int to_int(std::string str) {
 	int					n;
 	std::stringstream	ss;
 
@@ -62,7 +62,7 @@ int toInt(std::string str) {
 	return n;
 }
 
-unsigned long long toULL(std::string str) {
+unsigned long long to_ULL(std::string str) {
 	unsigned long long	n;
 	std::stringstream	ss;
 
@@ -72,13 +72,13 @@ unsigned long long toULL(std::string str) {
 	return n;
 }
 
-void	strToUpper(std::string &str) {
+void	str_to_upper(std::string &str) {
 	std::string::iterator it = str.begin();
 	for (; it != str.end(); it++)
 		*it = std::toupper(*it);
 }
 
-bool isValidIpAddress(std::string str) {
+bool is_valid_ip_address(std::string str) {
 	std::string sub;
 	int loop = 0;
 	std::string::size_type j = 0;
@@ -89,8 +89,8 @@ bool isValidIpAddress(std::string str) {
 			i = str.find(".", i + 1);
 		if (i != std::string::npos) {
 			sub = str.substr(j, i - j);
-			if (sub.empty() || !isNum(sub) || sub.size() > 3 || 
-				!(toInt(sub) >= 0 && toInt(sub) <= 255))
+			if (sub.empty() || !is_num(sub) || sub.size() > 3 || 
+				!(to_int(sub) >= 0 && to_int(sub) <= 255))
 				return false;
 		}
 		else
@@ -100,14 +100,14 @@ bool isValidIpAddress(std::string str) {
 	return true;
 }
 
-bool isValidPort(std::string str) {
-	if (toInt(str) >= 0 && toInt(str) <= 65535)
+bool is_valid_port(std::string str) {
+	if (to_int(str) >= 0 && to_int(str) <= 65535)
 		return true;
 
 	return false;
 }
 
-bool isWhitespace(unsigned char c)
+bool is_whitespace(unsigned char c)
 {
     if (c == ' ' || c == '\t' || c == '\n' ||
         c == '\r' || c == '\f' || c == '\v')
@@ -115,13 +115,13 @@ bool isWhitespace(unsigned char c)
     return false;
 }
 
-std::string::iterator	skipWhitespace(std::string &str, std::string::iterator it) {
-	while (isWhitespace(*it) && it != str.end())
+std::string::iterator	skip_whitespace(std::string &str, std::string::iterator it) {
+	while (is_whitespace(*it) && it != str.end())
 		it++;
 	return it;
 }
 
-bool isNum(std::string str) {
+bool is_num(std::string str) {
 	std::string::iterator it = str.begin();
 	for (; it != str.end(); it++)
 		if (std::isdigit(*it) == false)
@@ -130,7 +130,7 @@ bool isNum(std::string str) {
 	return true;
 }
 
-bool isHttpErrorStatusCode(std::string str) {
+bool is_http_error_status_code(std::string str) {
 	std::string codes[40] = {"400", "401", "402", "403", "404", "405", "406",
 		"407", "408", "409", "410", "411", "412", "413", "414", "415", "416",
 		"417", "418", "421", "422", "423", "424", "425", "426", "428", "429",
@@ -144,7 +144,7 @@ bool isHttpErrorStatusCode(std::string str) {
 	return false;
 }
 
-bool isRedirectStatusCode(std::string str) {
+bool is_redirect_status_code(std::string str) {
 	std::string codes[7] = {"300", "301", "302", "303", "304", "307", "308"};
 
 	for (int i = 0; i != 7; i++)
@@ -154,15 +154,15 @@ bool isRedirectStatusCode(std::string str) {
 	return false;
 }
 
-bool isValidMethod(std::string str) {
+bool is_valid_method(std::string str) {
 	return (str == "GET" || str == "POST" || str == "DELETE");
 }
 
-bool isServerDirective(std::string &str) {
+bool is_server_directive(std::string &str) {
 	return str == "server";
 }
 
-bool isDirective(std::string str) {
+bool is_directive(std::string str) {
 	if (str == "listen" || str == "server_name" || str == "error_page"
 	|| str == "client_max_body_size" || str == "location" || str == "allow_method"
 	|| str == "return" || str == "root" || str == "autoindex"
@@ -171,12 +171,12 @@ bool isDirective(std::string str) {
 	return false;
 }
 
-void throwIfFileIsEmpty(std::queue<std::vector<std::string> > &qu, int line) {
+void throw_if_file_is_empty(std::queue<std::vector<std::string> > &qu, int line) {
 	if (qu.empty())
-		throwParsingError("unexpected end of file", toString(line));
+		throw_parsing_error("unexpected end of file", to_String(line));
 }
 
-void throwParsingError(std::string msg, std::string line, std::string bName, std::string fName) {
+void throw_parsing_error(std::string msg, std::string line, std::string bName, std::string fName) {
 	static std::string binName = bName;
 	static std::string fileName = fName;
 	if (fName != "")

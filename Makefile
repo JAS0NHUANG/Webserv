@@ -26,10 +26,10 @@ endif
 SRCS		=	main.cpp \
 				srcs/config/Location.cpp \
 				srcs/config/Config.cpp \
-				srcs/config/configParsing.cpp \
-				srcs/config/utilsParsing.cpp \
-				srcs/config/saveFile.cpp \
-				srcs/config/doParsing.cpp \
+				srcs/config/config_parsing.cpp \
+				srcs/config/utils_parsing.cpp \
+				srcs/config/save_file.cpp \
+				srcs/config/do_parsing.cpp \
 				srcs/socket/Socket.cpp \
 				srcs/server/run_server.cpp \
 				srcs/utils/utils.cpp \

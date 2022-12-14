@@ -20,9 +20,9 @@ void Response::check_setting_location(Config conf)
 	if (!(_location.get_return().empty()) || (_if_location == false && !conf.get_return().empty()))
 	{
 		if (!(_location.get_return_status()).empty())
-			_status_code = toInt(_location.get_return_status());
+			_status_code = to_int(_location.get_return_status());
 		else if (!conf.get_return_status().empty())
-			_status_code = toInt(conf.get_return_status());
+			_status_code = to_int(conf.get_return_status());
 		else if (strcmp(_client.get_method().c_str(), "GET") == 0)
 			_status_code = 301;
 		else if (strcmp(_client.get_method().c_str(), "POST") == 0)
@@ -40,7 +40,7 @@ void Response::set_header_fields(int cont_Leng)
 	Config conf = _client.get_conf();
 	std::map<std::string, std::string> headers;
 
-	headers["Content-Length"] = toString(cont_Leng);
+	headers["Content-Length"] = to_String(cont_Leng);
 	if (_status_code >= 400 && _status_code < 600)
 	{
 		if (_status_code == 405)
@@ -86,11 +86,11 @@ bool Response::post_body()
 	// body += _client.get_body();
 	_body += "</p></body></html>";
 	response = "HTTP/1.1 ";
-	response += toString(_status_code);
+	response += to_String(_status_code);
 	response += " ";
 	response += get_code_msg();
 	response += "\r\n";
-	response += "Content-Length:" + toString(_body.size()) + "\n";
+	response += "Content-Length:" + to_String(_body.size()) + "\n";
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += _body;
@@ -144,7 +144,7 @@ bool Response::send_cgi_response(std::string body)
 
 	_status_code = 200;
 	response = "HTTP/1.1 ";
-	response += toString(_status_code);
+	response += to_String(_status_code);
 	response += " ";
 	response += get_code_msg();
 	response += "\r\n";
@@ -162,7 +162,7 @@ bool Response::send_successful_response()
 	std::string response;
 
 	response = "HTTP/1.1 ";
-	response += toString(_status_code);
+	response += to_String(_status_code);
 	response += " ";
 	response += get_code_msg();
 	response += "\r\n";
@@ -257,13 +257,13 @@ bool Response::send_error_response()
 
 	_body.clear();
 	response = "HTTP/1.1 ";
-	response += toString(_status_code);
+	response += to_String(_status_code);
 	response += " ";
 	response += get_code_msg();
 	response += "\r\n";
 
 	if (!_client.get_conf().get_error_page(_status_code).empty())
-		_path = _client.get_conf().get_error_page(_status_code) + "/" + toString(_status_code) + ".html";
+		_path = _client.get_conf().get_error_page(_status_code) + "/" + to_String(_status_code) + ".html";
 	std::ifstream myfile(_path.c_str());
 	if (myfile.is_open())
 	{
@@ -278,9 +278,9 @@ bool Response::send_error_response()
 	else
 	{
 		_body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
-		_body += toString(_status_code) + " " + get_code_msg();
+		_body += to_String(_status_code) + " " + get_code_msg();
 		_body += "</title></head><body><center><h1>";
-		_body += toString(_status_code) + " " + get_code_msg();
+		_body += to_String(_status_code) + " " + get_code_msg();
 		_body += "</h1></center></body></html>";
 	}
 	set_header_fields(_body.size());

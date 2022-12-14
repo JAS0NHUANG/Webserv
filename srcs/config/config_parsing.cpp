@@ -1,27 +1,27 @@
 #include "webserv.hpp"
 
-void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
-	directives d = findDirective(qu.front().front());
+void call_doers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line) {
+	directives d = find_directive(qu.front().front());
 
 	if (d == e_allow_method)
-		doAllowMethodParsing(qu, conf, line);
+		do_allow_method_parsing(qu, conf, line);
 	else if (d == e_cgi)
-		doCgiParsing(qu, conf, line);
+		do_cgi_parsing(qu, conf, line);
 	else if (d == e_return)
-		doReturnParsing(qu, conf, line);
+		do_return_parsing(qu, conf, line);
 	else if (d == e_root)
-		doRootParsing(qu, conf, line);
+		do_root_parsing(qu, conf, line);
 	else if (d == e_autoindex)
-		doAutoindexParsing(qu, conf, line);
+		do_autoindex_parsing(qu, conf, line);
 	else if (d == e_index)
-		doIndexParsing(qu, conf, line);
+		do_index_parsing(qu, conf, line);
 	else if (d == e_upload_store)
-		doUploadStoreParsing(qu, conf, line);
+		do_upload_store_parsing(qu, conf, line);
 	else
-		throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
+		throw_parsing_error(std::string("unexpected '" + qu.front().front() + "'"), to_String(line));
 }
 
-void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf) {
+void config_parse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf) {
 
 	int line		= 1;
 	directives d	= e_neutral;
@@ -39,7 +39,7 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> 
 		}
 
 		if (d == e_neutral) {
-			doServerParsing(qu, line);
+			do_server_parsing(qu, line);
 			c = Config();
 			// conf.push_back(Config());
 			d = e_server;
@@ -47,38 +47,38 @@ void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> 
 
 		if (d == e_server) {
 			if (qu.empty())
-				throwParsingError("expected '}'", toString(line));
+				throw_parsing_error("expected '}'", to_String(line));
 
 			if (qu.front().front() == "}") {
-				eraseToken(qu, line);
+				erase_token(qu, line);
 				d = e_neutral;
 				conf.push_back(c);
 				continue;
 			}
 
-			d = findDirective(qu.front().front());
+			d = find_directive(qu.front().front());
 			if (d == e_unknown)
-				throwParsingError(std::string("unexpected '" + qu.front().front() + "'"), toString(line));
+				throw_parsing_error(std::string("unexpected '" + qu.front().front() + "'"), to_String(line));
 
 			if (d == e_listen)
-				doListenParsing(qu, c, line);
+				do_listen_parsing(qu, c, line);
 			else if (d == e_server_name)
-				doServerNameParsing(qu, c, line);
+				do_server_name_parsing(qu, c, line);
 			else if (d == e_error_page)
-				doErrorPageParsing(qu, c, line);
+				do_error_page_parsing(qu, c, line);
 			else if (d == e_client_max_body_size)
-				doClientMaxBodySizeParsing(qu, c, line);
+				do_client_max_body_size_parsing(qu, c, line);
 			else if (d == e_location)
-				doLocationParsing(qu, c, line);
+				do_location_parsing(qu, c, line);
 			else
-				callDoers(qu, c, line);
+				call_doers(qu, c, line);
 
 			d = e_server;
 		}
 	}
 
 	if (d == e_server)
-		throwParsingError("expected '}' to close 'server' directive", toString(line));
+		throw_parsing_error("expected '}' to close 'server' directive", to_String(line));
 }
 
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
@@ -96,25 +96,25 @@ void debugPrintQ(std::queue<std::vector<std::string> >	&qu) {
 	}
 }
 
-void parseFile(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers)
+void parse_file(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers)
 {
 	std::vector<Config> conf;
 	std::queue<std::vector<std::string> >	qu;
 
 	// Save the file into a queue
-	saveFile(fileName, qu);
+	save_file(fileName, qu);
 
 	//If debug is used, qu will be empty
 	// debugPrintQ(qu);
 
 	// Parse the file
-	configParse(qu, conf);
+	config_parse(qu, conf);
 
 	// Save the virtual server that have same address:port 
 	// in a unique entry in a map;
 	std::vector<Config>::iterator it = conf.begin();
 	for (; it != conf.end(); it++) {
-		std::string key = (*it).get_address() + toString((*it).get_port());
+		std::string key = (*it).get_address() + to_String((*it).get_port());
 		virtual_servers[key].push_back(*it);
 	}
 }

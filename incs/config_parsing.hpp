@@ -20,51 +20,51 @@ enum directives {
 };
 
 // saveFile.cpp
-std::vector<std::string> splitLine(std::string str);
-void deleteComment(std::vector<std::string> &vec);
-void saveFile(char *fileName, std::queue<std::vector<std::string> >	&qu);
+std::vector<std::string> split_line(std::string str);
+void delete_comment(std::vector<std::string> &vec);
+void save_file(char *fileName, std::queue<std::vector<std::string> >	&qu);
 
 // configParsing.cpp
-void callDoers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void configParse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf);
+void call_doers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void config_parse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf);
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu);
-void parseFile(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers);
+void parse_file(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers);
 
 // doParsing.cpp
-void doServerParsing(std::queue<std::vector<std::string> > &qu, int &line);
-void doListenParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
-void doServerNameParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
-void doErrorPageParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
-void doClientMaxBodySizeParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
-void doLocationParsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
-void doAllowMethodParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void doReturnParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void doRootParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void doAutoindexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void doIndexParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void doCgiParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
-void doUploadStoreParsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_server_parsing(std::queue<std::vector<std::string> > &qu, int &line);
+void do_listen_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void do_server_name_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void do_error_page_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void do_client_max_body_size_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void do_location_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
+void do_allow_method_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_return_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_root_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_autoindex_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_index_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_cgi_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_upload_store_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 
 // utilsParsing.cpp
-void errMsgErrno(std::string msg);
-void eraseToken(std::queue<std::vector<std::string> > &qu, int &line);
-void checkIfLineIsEmpty(std::queue<std::vector<std::string> > &qu, int &line);
-directives findDirective(std::string &str);
-std::string toString(int n);
-int toInt(std::string str);
-unsigned long long toULL(std::string str);
-bool isValidIpAddress(std::string str);
-bool isValidPort(std::string str);
-bool isHttpErrorStatusCode(std::string str);
-bool isRedirectStatusCode(std::string str);
-void strToUpper(std::string &str);
-bool isWhitespace(unsigned char c);
-bool isNum(std::string str);
-bool isValidMethod(std::string str);
-std::string::iterator skipWhitespace(std::string &str, std::string::iterator it);
-bool isServerDirective(std::string &str);
-bool isDirective(std::string str);
-void throwIfFileIsEmpty(std::queue<std::vector<std::string> > &qu, int line);
-void throwParsingError( std::string msg, std::string line, std::string bName = "", std::string fName = "");
+void err_msg_errno(std::string msg);
+void erase_token(std::queue<std::vector<std::string> > &qu, int &line);
+void check_if_line_is_empty(std::queue<std::vector<std::string> > &qu, int &line);
+directives find_directive(std::string &str);
+std::string to_String(int n);
+int to_int(std::string str);
+unsigned long long to_ULL(std::string str);
+bool is_valid_ip_address(std::string str);
+bool is_valid_port(std::string str);
+bool is_http_error_status_code(std::string str);
+bool is_redirect_status_code(std::string str);
+void str_to_upper(std::string &str);
+bool is_whitespace(unsigned char c);
+bool is_num(std::string str);
+bool is_valid_method(std::string str);
+std::string::iterator skip_whitespace(std::string &str, std::string::iterator it);
+bool is_server_directive(std::string &str);
+bool is_directive(std::string str);
+void throw_if_file_is_empty(std::queue<std::vector<std::string> > &qu, int line);
+void throw_parsing_error( std::string msg, std::string line, std::string bName = "", std::string fName = "");
 
 #endif

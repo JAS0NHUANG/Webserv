@@ -120,7 +120,7 @@ void Client::retrieve_conf(std::string host) {
 	std::string::size_type i = host.find(":");
 	if (i != std::string::npos)
 		host.erase(i);
-	for (i = 0; i < host.size() && isWhitespace(host[i]); i++);
+	for (i = 0; i < host.size() && is_whitespace(host[i]); i++);
 
 	if (i != 0)
 		host.assign(host.begin() + i, host.end());

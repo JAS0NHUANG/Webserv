@@ -31,7 +31,7 @@ void Cgi::set_env(Client &requ, Config &config){
     if (config.get_location(requ.get_request_target()).first == true){
         Location location = config.get_location(requ.get_request_target()).second;
         if (requ.get_method() == "POST"){
-            this->env["CONTENT_LENGTH"] = toString(requ.get_body().size());
+            this->env["CONTENT_LENGTH"] = to_String(requ.get_body().size());
             this->env["CONTENT_TYPE"] = headers["content-type"].substr(1);
         } else if (requ.get_method() == "GET")
             this->env["QUERY_STRING"] = requ.get_query_string();
@@ -45,7 +45,7 @@ void Cgi::set_env(Client &requ, Config &config){
         this->env["SCRIPT_FILENAME"] = location.get_root() + requ.get_request_target();
         //!!!!!!!!!!!!!!!!!
         this->env["SERVER_NAME"] = config.get_server_name()[0];
-        this->env["SERVER_PORT"] = toString(config.get_port());
+        this->env["SERVER_PORT"] = to_String(config.get_port());
         this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
         this->env["REDIRECT_STATUS"]="200"; //php
         //print_env(this->env);
