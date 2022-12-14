@@ -311,7 +311,6 @@ Response::Response(Client client) : client(client)
 	std::size_t found = tmp.find(".");
 	while (found != std::string::npos)
 	{
-		// this->tmp = this->tmp.substr(found);
 		tmp.erase(0, found + 1);
 		extension = "." + tmp;
 		found = tmp.find(".");

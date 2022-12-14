@@ -63,7 +63,7 @@ Location::Location() {
 	_allow_method.insert("GET");
 	_allow_method.insert("DELETE");
 
-	_root = "/var/www/html";
+	_root = "./www/default";
 	_autoindex = false;
 	_index.push_back("index.html");
 	//_cgi.first = false;
