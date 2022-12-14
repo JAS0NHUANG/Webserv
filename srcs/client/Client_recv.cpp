@@ -62,7 +62,8 @@ void Client::check_access(std::string request_target) {
 
 	int code = access(_path.c_str(), 0);
 	if (code < 0) {
-		errMsgErrno("access");
+		_syscall_error = "access() \"" + _path + "\"" + "failed (" + strerror(errno) + ")";
+		log(log_error(_syscall_error), false);
 		if (errno == ENOENT)
 			throw 404; // Not Found
 		throw 500; //Internal error server
@@ -257,9 +258,10 @@ std::string Client::recv_request() {
 			_request_is_complete = true;
 	}
 	if (valread < 0) {
+		_syscall_error = "recv()";
+		log(log_error(_syscall_error), false);
 		// Still don't know why sometimes will have "Resource temporarily unavailable" error...
 		// Is something blocking the recv?
-		errMsgErrno("recv");
 	}
 
 	return raw_request;

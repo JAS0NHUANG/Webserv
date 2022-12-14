@@ -38,9 +38,6 @@ class Response {
         void						check_setting_location(Config conf);
 		bool						send_error_response();
 		bool						send_successful_response();
-		void						log(std::string message, bool success);
-		std::string					log_access();
-		std::string					log_error();
 };
 
 #endif

@@ -23,7 +23,7 @@ endif
 # **************************************************************************** #
 #       SOURCES                                                                #
 # **************************************************************************** #
-SRCS		=	main.cpp \
+SRCS		=	srcs/main.cpp \
 				srcs/config/Location.cpp \
 				srcs/config/Config.cpp \
 				srcs/config/config_parsing.cpp \
@@ -35,7 +35,6 @@ SRCS		=	main.cpp \
 				srcs/utils/utils.cpp \
 				srcs/client/Client.cpp \
 				srcs/client/Client_recv.cpp \
-				srcs/client/Client_send.cpp \
 				srcs/client/Client_post.cpp \
 				srcs/response/Response.cpp \
 				srcs/response/Cgi.cpp

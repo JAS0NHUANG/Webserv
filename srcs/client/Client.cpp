@@ -52,7 +52,8 @@ Client& Client::operator=(const Client &src) {
 	_path					= src._path;
 	_client_ip				= src._client_ip;
 	_host_ip_port			= src._host_ip_port;
-	_request_line		= src._request_line;
+	_request_line			= src._request_line;
+	_syscall_error			= src._syscall_error;
 	return *this;
 }
 
@@ -108,6 +109,51 @@ std::string Client::get_request_line() const {
 	return _request_line;
 }
 
+void Client::log(std::string message, bool success)
+{
+	time_t rawtime;
+	time(&rawtime);
+	struct tm *timeinfo = localtime(&rawtime);
+
+	if (success)
+	{
+		std::string date = asctime(timeinfo);
+		date.erase(date.size() - 1);
+		std::cout << BBLU <<  "[" << date << "] " << "[access] : " << message << RESET << std::endl;
+	}
+	else
+	{
+		std::string date = asctime(timeinfo);
+		date.erase(date.size() - 1);
+		std::cerr << BYEL <<  "[" << date << "] " << "[error] : " << message << RESET << std::endl;
+	}
+}
+
+// access log format
+// [access] : client: 127.0.0.1, request: "GET /favicon.ico HTTP/1.1", 404, host "localhost:8080"
+std::string Client::log_access(int status_code) {
+	std::string message;
+
+	message += "client: ";
+	message += get_client_ip() + ", ";
+	message += "\"" + get_request_line() + "\", ";
+	message += to_String(status_code) + ", ";
+	message += "host: " + get_host_ip_port();
+
+	return message;
+}
+
+// error log format
+// [error]  : open() "/usr/share/nginx/html/my-site/another/favicon.ico" failed (2: No such file or directory), client: 127.0.0.1, request: "GET /favicon.ico HTTP/1.1", host: "localhost:8080"
+std::string Client::log_error(std::string syscall_error) {
+	std::string message;
+
+	message += syscall_error + ", ";
+	message += get_client_ip() + ", ";
+	message += "\"" + get_request_line() + "\", ";
+	message += "host: " + get_host_ip_port();
+	return message;
+}
 
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
@@ -180,8 +226,4 @@ void Client::start_timeout() {
 
 std::time_t Client::get_timeout() const {
 	return std::time(NULL) - _timeout;
-}
-
-void Client::clear() {
-	*this = Client();
 }

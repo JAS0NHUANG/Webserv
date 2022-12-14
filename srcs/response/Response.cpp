@@ -1,52 +1,5 @@
 #include "Response.hpp"
 
-void Response::log(std::string message, bool success)
-{
-	time_t rawtime;
-	time(&rawtime);
-	struct tm *timeinfo = localtime(&rawtime);
-
-	if (success)
-	{
-		std::string date = asctime(timeinfo);
-		date.erase(date.size() - 1);
-		std::cout << GRN <<  "[" << date << "] " << "[access]  : " << message << RESET << std::endl;
-	}
-	else
-	{
-		std::string date = asctime(timeinfo);
-		date.erase(date.size() - 1);
-		std::cerr << RED <<  "[" << date << "] " << "[error]   : " << message << RESET << std::endl;
-	}
-}
-
-// access log format
-// [access] : client: 127.0.0.1, request: "GET /favicon.ico HTTP/1.1", 404, host "localhost:8080"
-std::string Response::log_access() {
-	std::string message;
-
-	message += "client: ";
-	message += _client.get_client_ip() + ", ";
-	message += "\"" + _client.get_request_line() + "\", ";
-	message += to_String(_status_code) + ", ";
-	message += "host: " + _client.get_host_ip_port();
-
-	return message;
-}
-
-// error log format
-// [error]  : open() "/usr/share/nginx/html/my-site/another/favicon.ico" failed (2: No such file or directory), client: 127.0.0.1, request: "GET /favicon.ico HTTP/1.1", host: "localhost:8080"
-std::string Response::log_error() {
-	std::string message;
-
-	message += _syscall_error + ", ";
-	message += _client.get_client_ip() + ", ";
-	message += "\"" + _client.get_request_line() + "\", ";
-	message += "host: " + _client.get_host_ip_port();
-	return message;
-}
-
-
 void Response::check_setting_location(Config conf)
 {
 	// check allow method
@@ -138,9 +91,9 @@ bool Response::post_body()
 	response += _body;
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
 		_syscall_error = "send()";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 	}
-	log(log_access(), true);
+	_client.log(_client.log_access(_status_code), true);
 	return true;
 }
 
@@ -159,7 +112,7 @@ bool Response::delete_file()
 				  << "\n";
 		_status_code = 404;
 		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 		return false;
 	}
 	if (sb.st_mode & S_IFDIR)
@@ -173,7 +126,7 @@ bool Response::delete_file()
 		if (remove(_path.c_str()) != 0)
 		{
 			_syscall_error = "remove() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
-			log(log_error(), false);
+			_client.log(_client.log_error(_syscall_error), false);
 			return false;
 		}
 		else
@@ -201,9 +154,9 @@ bool Response::send_cgi_response(std::string body)
 	response += body;
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
 		_syscall_error = "send()";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 	}
-	log(log_access(), true);
+	_client.log(_client.log_access(_status_code), true);
 	return true;
 }
 
@@ -222,9 +175,9 @@ bool Response::send_successful_response()
 	response += _body;
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
 		_syscall_error = "send()";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 	}
-	log(log_access(), true);
+	_client.log(_client.log_access(_status_code), true);
 	return true;
 }
 
@@ -234,7 +187,7 @@ std::string Response::get_file_content(std::string content)
 	if (!input_file.is_open()) {
 		_status_code = 500;
 		_syscall_error = "ifstream open() \"" + _path + "\" " + "failed ";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 		return std::string();
 	}
 	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
@@ -260,7 +213,7 @@ bool Response::set_body()
 	}
 	else {
 		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 	}
 
 	return true;
@@ -286,7 +239,7 @@ bool Response::set_autoindex_body()
 	{
 		_status_code = 403;
 		_syscall_error = "opendir() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 		return false;
 	}
 	_body =	"<!DOCTYPE html><html><body>\n"
@@ -351,9 +304,9 @@ bool Response::send_error_response()
 
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0){
 		_syscall_error = "send()";  
-		log(log_error(), false);
+		_client.log(_client.log_error(_syscall_error), false);
 	}
-	log(log_access(), true);
+	_client.log(_client.log_access(_status_code), true);
 	return true;
 }
 

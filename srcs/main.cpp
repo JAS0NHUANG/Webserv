@@ -7,7 +7,21 @@ void	signal_handler(int signal) {
 		g_shutdown = 0;
 }
 
-// NOTE: Use throw and catch for error (like parsing errors)
+void init_virtual_servers(std::map<std::string, std::vector<Config> > &virtual_servers, 
+	std::vector<Socket> &socket_list) {
+	// create sockets
+	std::map<std::string, std::vector<Config> >::iterator it = virtual_servers.begin();
+	std::cout << BBLU << "Virtual servers set:" << RESET << std::endl;
+	int i = 1;
+	for (; it != virtual_servers.end(); it++) {
+		std::cout << BBLU << i << ". "<< it->second.front().get_address() << ":"
+				<< it->second.front().get_port() << "\n" RESET;
+		socket_list.push_back(Socket(it->second.front().get_port(),
+			it->second.front().get_address(), it->second));
+		++i;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	std::signal(SIGINT, signal_handler);
@@ -25,13 +39,7 @@ int main(int argc, char *argv[])
 		throwError("", argv[0]);
 		parse_file(argv[1], virtual_servers);
 
-		// create sockets
-		std::map<std::string, std::vector<Config> >::iterator it = virtual_servers.begin();
-		for (; it != virtual_servers.end(); it++) {
-			std::cout << GRN <<  "\naddress: " << it->second.front().get_address() << ", port: " << it->second.front().get_port() << "\n" RESET;
-			socket_list.push_back(Socket(it->second.front().get_port(), it->second.front().get_address(), it->second));
-			// it->second.front().debug();
-		}
+		init_virtual_servers(virtual_servers, socket_list);
 
 		// run server
 		run_server(socket_list);

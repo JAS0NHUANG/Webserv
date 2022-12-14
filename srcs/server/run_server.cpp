@@ -27,7 +27,6 @@ int accept_conn(struct epoll_event ev, int epollfd) {
 	if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0)
 		errMsgErrno("fcntl");
 	add_event(epollfd, conn_sock, EPOLLIN);
-	std::cout << BBLU "New incoming connection:" << conn_sock << RESET "\n";
 	return conn_sock;
 }
 
@@ -46,6 +45,7 @@ int run_server(std::vector<Socket> &socket_list) {
 		add_event(epollfd, socket_list[i].getSockFd(), EPOLLIN);
 	}
 
+	std::cout << BGRN << UGRN << ">> Webserv successfully running and waiting for requests <<" << RESET << std::endl;
 	while (g_shutdown) {
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
@@ -89,11 +89,9 @@ int run_server(std::vector<Socket> &socket_list) {
 					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_DEL)");
 					else
-						std::cout << "Client deleted from event list\n";
 
 					if (close(events[n].data.fd) < 0)
 						errMsgErrno("close");
-					std::cout << "A connection has been closed\n";
 				}
 			}
 		}

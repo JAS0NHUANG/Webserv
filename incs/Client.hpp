@@ -23,6 +23,7 @@ class Client {
 		std::string							_body;
 		std::string							_query_string;
 		std::string							_path;
+		std::string							_syscall_error;
 		int									_status_code;
 		std::stringstream					_ss;
 		bool								_process_request_line;
@@ -62,14 +63,6 @@ class Client {
 		void								start_timeout();
 		std::time_t							get_timeout() const;
 
-		bool								send_client_error_response() const;
-		bool								send_server_error_response() const;
-		bool								send_successful_response() const;
-		bool								send_redirection_message() const;
-		bool								send_informational_response() const;
-
-		void								clear();
-
 	public:
 		Client();
 		Client(int fd, std::vector<Config> virtual_servers);
@@ -81,6 +74,10 @@ class Client {
 		std::string							recv_request();
 		bool								handle_request(std::string &raw_request);
 		bool								send_response();
+
+		void								log(std::string message, bool success);
+		std::string							log_access(int status_code);
+		std::string							log_error(std::string syscall_error);
 
 		// getters
 		std::string							get_method() const;
