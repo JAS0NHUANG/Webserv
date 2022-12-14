@@ -82,7 +82,6 @@ int run_server(std::vector<Socket> &socket_list) {
 
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
-				std::cout << "Creating a response\n";
 				Response response(clients[events[n].data.fd]);
 				done = response.send_response();
 				if (done) {

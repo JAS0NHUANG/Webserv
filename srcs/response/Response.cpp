@@ -1,13 +1,54 @@
 #include "Response.hpp"
 
+void Response::log(std::string message, bool success)
+{
+	time_t rawtime;
+	time(&rawtime);
+	struct tm *timeinfo = localtime(&rawtime);
+
+	if (success)
+	{
+		std::string date = asctime(timeinfo);
+		date.erase(date.size() - 1);
+		std::cout << GRN <<  "[" << date << "] " << "[access]  : " << message << RESET << std::endl;
+	}
+	else
+	{
+		std::string date = asctime(timeinfo);
+		date.erase(date.size() - 1);
+		std::cerr << RED <<  "[" << date << "] " << "[error]   : " << message << RESET << std::endl;
+	}
+}
+
+// access log format
+// [access] : client: 127.0.0.1, request: "GET /favicon.ico HTTP/1.1", 404, host "localhost:8080"
+std::string Response::log_access() {
+	std::string message;
+
+	message += "client: ";
+	message += _client.get_client_ip() + ", ";
+	message += "\"" + _client.get_request_line() + "\", ";
+	message += to_String(_status_code) + ", ";
+	message += "host: " + _client.get_host_ip_port();
+
+	return message;
+}
+
+// error log format
+// [error]  : open() "/usr/share/nginx/html/my-site/another/favicon.ico" failed (2: No such file or directory), client: 127.0.0.1, request: "GET /favicon.ico HTTP/1.1", host: "localhost:8080"
+std::string Response::log_error() {
+	std::string message;
+
+	message += _syscall_error + ", ";
+	message += _client.get_client_ip() + ", ";
+	message += "\"" + _client.get_request_line() + "\", ";
+	message += "host: " + _client.get_host_ip_port();
+	return message;
+}
+
+
 void Response::check_setting_location(Config conf)
 {
-	struct stat info;
-	if (stat(_path.c_str(), &info) != 0)
-	{
-		_status_code = 404;
-		return;
-	}
 	// check allow method
 	if (_location.is_method_allowed(_client.get_method()) == false ||
 		(_if_location == false && conf.is_method_allowed(_client.get_method()) == false))
@@ -35,6 +76,7 @@ void Response::check_setting_location(Config conf)
 	}
 	// if root exist check by access
 }
+
 void Response::set_header_fields(int cont_Leng)
 {
 	Config conf = _client.get_conf();
@@ -94,8 +136,11 @@ bool Response::post_body()
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += _body;
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
-		errMsgErrno("send failed");
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
+		_syscall_error = "send()";  
+		log(log_error(), false);
+	}
+	log(log_access(), true);
 	return true;
 }
 
@@ -113,6 +158,8 @@ bool Response::delete_file()
 		std::cerr << "stat"
 				  << "\n";
 		_status_code = 404;
+		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+		log(log_error(), false);
 		return false;
 	}
 	if (sb.st_mode & S_IFDIR)
@@ -125,7 +172,8 @@ bool Response::delete_file()
 	{
 		if (remove(_path.c_str()) != 0)
 		{
-			std::cerr << "Error deleting file\n";
+			_syscall_error = "remove() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+			log(log_error(), false);
 			return false;
 		}
 		else
@@ -151,8 +199,11 @@ bool Response::send_cgi_response(std::string body)
 	response += _header_fields;
 	response += "\r\n";
 	response += body;
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
-		errMsgErrno("send failed");
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
+		_syscall_error = "send()";  
+		log(log_error(), false);
+	}
+	log(log_access(), true);
 	return true;
 }
 
@@ -169,8 +220,11 @@ bool Response::send_successful_response()
 	response += _header_fields;
 	response += "\r\n";
 	response += _body;
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
-		errMsgErrno("send failed");
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
+		_syscall_error = "send()";  
+		log(log_error(), false);
+	}
+	log(log_access(), true);
 	return true;
 }
 
@@ -179,6 +233,8 @@ std::string Response::get_file_content(std::string content)
 	std::ifstream input_file(content.c_str());
 	if (!input_file.is_open()) {
 		_status_code = 500;
+		_syscall_error = "ifstream open() \"" + _path + "\" " + "failed ";  
+		log(log_error(), false);
 		return std::string();
 	}
 	return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
@@ -202,6 +258,10 @@ bool Response::set_body()
 			}
 		}
 	}
+	else {
+		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+		log(log_error(), false);
+	}
 
 	return true;
 }
@@ -224,8 +284,9 @@ bool Response::set_autoindex_body()
 	}
 	else
 	{
-		std::cerr << "Error opendir\n";
 		_status_code = 403;
+		_syscall_error = "opendir() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+		log(log_error(), false);
 		return false;
 	}
 	_body =	"<!DOCTYPE html><html><body>\n"
@@ -288,8 +349,11 @@ bool Response::send_error_response()
 	response += "\r\n";
 	response += _body;
 
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
-		errMsgErrno("send failed");
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0){
+		_syscall_error = "send()";  
+		log(log_error(), false);
+	}
+	log(log_access(), true);
 	return true;
 }
 
@@ -305,7 +369,7 @@ Response::Response(Client client) : _client(client)
 		found = tmp.find(".");
 	}
 	init_code_msg();
-	_status_code = 0;
+	_status_code = _client.get_status_code();
 	Config conf = _client.get_conf();
 	if (conf.get_location(_client.get_request_target()).first == false)
 	{
@@ -326,7 +390,6 @@ bool Response::send_response()
 {
 	Config conf = _client.get_conf();
 
-	std::cout << "Sending response \n";
 	check_setting_location(conf);
 	if (!_extension.empty() && _status_code == 0 &&
 		(_location.get_cgi(_extension).first == true || conf.get_cgi(_extension).first == true))
@@ -528,10 +591,7 @@ std::string Response::content_mime_type(std::string extension)
 	type[".3g2"] = "video/3gpp2;";
 	type[".7z"] = "application/x-7z-compressed";
 
-	for (std::map<std::string, std::string>::iterator it = type.begin(); it != type.end(); it++)
-	{
-		if (it->first.compare(extension) == 0)
-			return it->second;
-	}
+	if (type.count(extension) != 0)
+		return type[extension];
 	return std::string();
 }

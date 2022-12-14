@@ -24,6 +24,7 @@ class Response {
         std::string					_header_fields;
         std::string					_body;
 		std::string					_path;
+		std::string					_syscall_error;
         std::string					content_mime_type(std::string extension);
         void						init_code_msg();
         bool						set_body();
@@ -36,7 +37,10 @@ class Response {
         void						set_header_fields(int cont_Leng) ;
         void						check_setting_location(Config conf);
 		bool						send_error_response();
-		bool						send_successful_response() ;
+		bool						send_successful_response();
+		void						log(std::string message, bool success);
+		std::string					log_access();
+		std::string					log_error();
 };
 
 #endif

@@ -60,9 +60,7 @@ void Client::check_access(std::string request_target) {
 
 	_path = create_path(request_target);
 
-	int code = 1;
-	access(_path.c_str(), 0);
-	std::cerr << "access " << _path.c_str() << "\n";
+	int code = access(_path.c_str(), 0);
 	if (code < 0) {
 		errMsgErrno("access");
 		if (errno == ENOENT)
@@ -73,6 +71,7 @@ void Client::check_access(std::string request_target) {
 
 void Client::process_request_line(std::string &line) {
 
+	_request_line = line;
 	std::vector<std::string> tokens = ft_split(line.c_str(), "\t\v\r ");
 	std::vector<std::string>::iterator it = tokens.begin();
 
@@ -226,7 +225,7 @@ bool Client::handle_request(std::string &raw_request) {
 	// set status code too 400 when no raw_request recieved
 	if (raw_request.empty()) {
 		_request_is_complete = true;
-		_code = 400;
+		_status_code = 400;
 	}
 	std::deque<std::string>	lines;
 	lines = getlines(raw_request);
@@ -235,8 +234,7 @@ bool Client::handle_request(std::string &raw_request) {
 			parse_line(lines, raw_request);
 		}
 		catch (int error_code) {
-			std::cout << "Catched exception: " << error_code << "\n" ;
-			_code = error_code;
+			_status_code = error_code;
 			return true;
 		}
 	}

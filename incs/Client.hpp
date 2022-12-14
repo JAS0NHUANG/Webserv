@@ -23,7 +23,7 @@ class Client {
 		std::string							_body;
 		std::string							_query_string;
 		std::string							_path;
-		int									_code;
+		int									_status_code;
 		std::stringstream					_ss;
 		bool								_process_request_line;
 		bool								_process_headers;
@@ -31,12 +31,14 @@ class Client {
 		bool								_request_is_complete;
 		std::time_t							_timeout;
 		int									_fd;
+		std::string							_client_ip;
+		std::string							_host_ip_port;
+		std::string							_request_line;
 		std::vector<Config>					_virtual_servers;
 		Config								_conf;
 		// add body boundary
 		std::string							_body_boundary;
 		bool								_is_upload_ok;
-
 		// parsing
 		void								parse_line(std::deque<std::string> &lines, std::string &raw_request);
 		void								process_request_line(std::string &line);
@@ -87,10 +89,13 @@ class Client {
 		std::map<std::string, std::string>	get_headers() const;
 		int									get_fd() const;
 		Config 								get_conf() const;
-		int 								get_code() const;
+		int 								get_status_code() const;
 		std::string							get_body() const;
 		std::string							get_path() const;
 		bool								get_request_is_complete() const;
+		std::string							get_client_ip() const;
+		std::string							get_host_ip_port() const;
+		std::string							get_request_line() const;
 };
 
 #endif

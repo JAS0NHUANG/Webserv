@@ -3,14 +3,29 @@
 Client::Client() {}
 
 Client::Client(int fd, std::vector<Config> virtual_servers) :
-	_code(0),
+	_status_code(0),
 	_process_request_line(true),
 	_process_headers(true),
 	_process_body(true),
 	_request_is_complete(false),
 	_timeout(std::time(NULL)),
 	_fd(fd),
-	_virtual_servers(virtual_servers) {}
+	_virtual_servers(virtual_servers) {
+	char ip[INET_ADDRSTRLEN];
+	struct sockaddr_in addr;
+	socklen_t len = sizeof(addr);
+
+	getpeername(_fd, (struct sockaddr*) &addr, &len);
+	inet_ntop(AF_INET, &addr.sin_addr, ip, INET_ADDRSTRLEN);
+	_client_ip = ip;
+
+	getsockname(_fd, (struct sockaddr*) &addr, &len);
+	inet_ntop(AF_INET, &addr.sin_addr, ip, INET_ADDRSTRLEN);
+	std::ostringstream oss;
+	oss << ntohs(addr.sin_port);
+
+	_host_ip_port = std::string(ip) + ":" + oss.str();
+}
 
 Client::Client(const Client &src) {
 	*this = src;
@@ -23,7 +38,7 @@ Client& Client::operator=(const Client &src) {
 	_body					= src._body;
 	_query_string			= src._query_string;
 	_path					= src._path;
-	_code					= src._code;
+	_status_code			= src._status_code;
 	_process_request_line	= src._process_request_line;
 	_process_headers		= src._process_headers;
 	_process_body			= src._process_body;
@@ -35,6 +50,9 @@ Client& Client::operator=(const Client &src) {
 	_virtual_servers		= src._virtual_servers;
 	_conf					= src._conf;
 	_path					= src._path;
+	_client_ip				= src._client_ip;
+	_host_ip_port			= src._host_ip_port;
+	_request_line		= src._request_line;
 	return *this;
 }
 
@@ -60,8 +78,8 @@ Config 	Client::get_conf() const{
 	return _conf;
 }
 
-int Client::get_code() const {
-	return _code;
+int Client::get_status_code() const {
+	return _status_code;
 }
 
 std::string		Client::get_body() const{
@@ -76,9 +94,20 @@ std::string		Client::get_path() const {
 	return _path;
 }
 
-bool			Client::get_request_is_complete() const {
+bool	Client::get_request_is_complete() const {
 	return _request_is_complete;
 }
+std::string	Client::get_client_ip() const {
+	return _client_ip;
+}
+
+std::string	Client::get_host_ip_port() const {
+	return _host_ip_port;
+}
+std::string Client::get_request_line() const {
+	return _request_line;
+}
+
 
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
