@@ -120,7 +120,6 @@ void Response::delete_file()
 
 bool Response::send_cgi_response(std::string body)
 {
-
 	std::string response;
 
 	_status_code = 200;
@@ -142,7 +141,6 @@ bool Response::send_cgi_response(std::string body)
 
 bool Response::send_successful_response()
 {
-
 	std::string response;
 
 	response = "HTTP/1.1 ";

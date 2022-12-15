@@ -61,6 +61,10 @@ Client& Client::operator=(const Client &src) {
 
 Client::~Client() {}
 
+void Client::set_timeout_status_code() {
+	_status_code = 408;
+}
+
 std::string Client::get_method() const {
 	return _method;
 }
@@ -227,6 +231,7 @@ std::vector<std::string> Client::ft_split(const char *str, const char *charset)
 	return tokens;
 }
 
+// Timeout in seconds
 void Client::start_timeout() {
 	_timeout = std::time(NULL);
 }

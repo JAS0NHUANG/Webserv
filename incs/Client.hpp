@@ -61,10 +61,6 @@ class Client {
 		std::deque<std::string>				getlines(std::string buf);
 		std::vector<std::string>			ft_split(const char *str, const char *charset);
 
-		// timeout
-		void								start_timeout();
-		std::time_t							get_timeout() const;
-
 	public:
 		std::string							create_path(std::string request_target);
 		Client();
@@ -81,6 +77,11 @@ class Client {
 		void								log(std::string message, bool success);
 		std::string							log_access(int status_code);
 		std::string							log_error(std::string syscall_error);
+
+		// timeout
+		void								start_timeout();
+		std::time_t							get_timeout() const;
+		void								set_timeout_status_code();
 
 		// getters
 		std::string							get_method() const;
