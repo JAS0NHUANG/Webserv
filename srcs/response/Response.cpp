@@ -29,42 +29,38 @@ Response::~Response(void)
 
 void Response::set_header_fields(int cont_Leng)
 {
-	Config conf = _client.get_conf();
 	std::map<std::string, std::string> headers;
 
 	headers["Content-Length"] = to_String(cont_Leng);
-	if (_status_code >= 400 && _status_code < 600)
+	if (_status_code == 405)
 	{
-		if (_status_code == 405)
-		{
-			std::string tmp;
-			if (_if_location == true)
-			{
-				if (_location.is_method_allowed("GET") == true || (_if_location == false && conf.is_method_allowed("GET") == true))
-					tmp = "GET, ";
-				if (_location.is_method_allowed("POST") == true || (_if_location == false && conf.is_method_allowed("POST") == true))
-					tmp += "POST, ";
-				if (_location.is_method_allowed("DELETE") == true || (_if_location == false && conf.is_method_allowed("DELETE") == true))
-					tmp += "DELETE, ";
-				tmp = tmp.substr(0, tmp.size() - 2);
-				headers["Allow"] = tmp;
-			}
-		}
+		std::string tmp;
+		if (_location.is_method_allowed("GET") == true ||
+			(_if_location == false && _conf.is_method_allowed("GET") == true))
+			tmp = "GET, ";
+		if (_location.is_method_allowed("POST") == true ||
+			(_if_location == false && _conf.is_method_allowed("POST") == true))
+			tmp += "POST, ";
+		if (_location.is_method_allowed("DELETE") == true ||
+			(_if_location == false && _conf.is_method_allowed("DELETE") == true))
+			tmp += "DELETE, ";
+		tmp = tmp.substr(0, tmp.size() - 2);
+		headers["Allow"] = tmp;
 	}
-	if (!_extension.empty() && _extension.compare(".php") && _extension.compare(".py"))
+	if (!_extension.empty())
 		headers["Content-Type"] = content_mime_type(_extension);
 	else
 		headers["Content-Type"] = "text/html; charset=utf-8";
 	if (_status_code >= 300 && _status_code < 400 && _if_location == true)
 		headers["Location"] = _location.get_return();
 	else if (_status_code >= 300 && _status_code < 400 && _if_location == false)
-		headers["Location"] = conf.get_return();
+		headers["Location"] = _conf.get_return();
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
 		_header_fields += it->first;
 		_header_fields += ":";
 		_header_fields += it->second;
-		_header_fields += "\n";
+		_header_fields += "\r\n";
 	}
 }
 
