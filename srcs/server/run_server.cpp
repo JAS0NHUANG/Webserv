@@ -70,9 +70,9 @@ int run_server(std::vector<Socket> &socket_list) {
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
-				std::string raw_request  = clients[events[n].data.fd].recv_request();
+				clients[events[n].data.fd].recv_request();
 				// std::cout << "raw request: " << raw_request << "\n";
-				done = clients[events[n].data.fd].handle_request(raw_request);
+				done = clients[events[n].data.fd].handle_request();
 				if (done) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
@@ -99,6 +99,9 @@ int run_server(std::vector<Socket> &socket_list) {
 						errMsgErrno("close");
 					std::cout << "A connection has been closed\n";
 				}
+			}
+			else {
+				continue ;
 			}
 		}
 	}

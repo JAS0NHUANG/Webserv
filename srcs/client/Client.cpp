@@ -80,6 +80,10 @@ bool			Client::get_request_is_complete() const {
 	return _request_is_complete;
 }
 
+std::string		Client::get_raw_request() {
+	return _raw_request;
+}
+
 // --------- ft_split ----------- //
 int		ft_check_charset(char c, const char *charset)
 {

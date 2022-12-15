@@ -34,6 +34,8 @@ class Client {
 		std::vector<Config>					_virtual_servers;
 		Config								_conf;
 		// add body boundary
+		int									_recv_length;
+		std::string							_raw_request;
 		std::string							_body_boundary;
 		bool								_is_upload_ok;
 
@@ -76,8 +78,8 @@ class Client {
 		~Client();
 
 		// received from client / send to client
-		std::string							recv_request();
-		bool								handle_request(std::string &raw_request);
+		void								recv_request();
+		bool								handle_request();
 		bool								send_response();
 
 		// getters
@@ -91,6 +93,7 @@ class Client {
 		std::string							get_body() const;
 		std::string							get_path2() const;
 		bool								get_request_is_complete() const;
+		std::string							get_raw_request();
 };
 
 #endif

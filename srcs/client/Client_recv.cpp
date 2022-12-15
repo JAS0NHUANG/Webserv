@@ -222,17 +222,18 @@ std::deque<std::string> Client::getlines(std::string buf) {
 	return lines;
 }
 
-bool Client::handle_request(std::string &raw_request) {
+bool Client::handle_request() {
 	// set status code too 400 when no raw_request recieved
-	if (raw_request.empty()) {
+	std::cout << YEL "raw request handling: " << _raw_request << "\n" RESET;
+	if (_raw_request.empty()) {
 		_request_is_complete = true;
 		_code = 400;
 	}
 	std::deque<std::string>	lines;
-	lines = getlines(raw_request);
+	lines = getlines(_raw_request);
 	if (!lines.empty()) {
 		try { // This will catch any bad request 
-			parse_line(lines, raw_request);
+			parse_line(lines, _raw_request);
 		}
 		catch (int error_code) {
 			std::cout << "Catched exception: " << error_code << "\n" ;
@@ -244,25 +245,20 @@ bool Client::handle_request(std::string &raw_request) {
 	return _request_is_complete;
 }
 
-std::string Client::recv_request() {
-	char buffer[BUFFER_SIZE] = {};
+void Client::recv_request() {
 	int valread;
-	std::string raw_request;
+	char buffer[BUFFER_SIZE] = {};
 
-	while ((valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0)) > 0) {
-		buffer[valread] = '\0';
-		raw_request.append(buffer, valread);
-	}
-	if (valread == 0) {
-		// change the condition from || to &&, dont know if it's logic?
-		if (_process_request_line == false && _process_headers == false)
-			_request_is_complete = true;
-	}
+	valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
+
+	if (valread == 0)
+		return ;
 	if (valread < 0) {
-		// Still don't know why sometimes will have "Resource temporarily unavailable" error...
-		// Is something blocking the recv?
 		errMsgErrno("recv");
+		return ;
 	}
 
-	return raw_request;
+	_recv_length += valread;
+	buffer[valread] = '\0';
+	_raw_request.append(buffer, valread);
 }
