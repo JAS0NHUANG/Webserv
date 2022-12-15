@@ -47,10 +47,7 @@ void Response::set_header_fields(int cont_Leng)
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
 	}
-	if (!_extension.empty())
-		headers["Content-Type"] = content_mime_type(_extension);
-	else
-		headers["Content-Type"] = "text/html; charset=utf-8";
+	headers["Content-Type"] = content_mime_type(_extension);
 	if (_status_code >= 300 && _status_code < 400 && _if_location == true)
 		headers["Location"] = _location.get_return();
 	else if (_status_code >= 300 && _status_code < 400 && _if_location == false)
@@ -357,7 +354,6 @@ bool Response::send_response()
 		else {
 			set_body();
 			set_header_fields(_body.size());
-			_status_code = 200; // do we need to set it here
 		}
 	}
 	else if (_client.get_method() == "DELETE")
