@@ -44,10 +44,20 @@ void Response::set_header_fields(int cont_Leng)
 		headers["Allow"] = tmp;
 	}
 	headers["Content-Type"] = content_mime_type(_extension);
-	if (_status_code >= 300 && _status_code < 400 && _if_location == true)
-		headers["Location"] = _location.get_return();
-	else if (_status_code >= 300 && _status_code < 400 && _if_location == false)
-		headers["Location"] = _conf.get_return();
+	if (_status_code >= 300 && _status_code < 400 && _if_location == true) {
+		if (!_location.get_return().empty())
+			headers["Location"] = _location.get_return();
+		else
+			headers["Location"] = _location.get_index();
+	}
+	else if (_status_code >= 300 && _status_code < 400 && _if_location == false) {
+		if (!_conf.get_return().empty())
+			headers["Location"] = _conf.get_return();
+		else {
+			std::cout << "setting get index" << std::endl;
+			headers["Location"] = _conf.get_index();
+		}
+	}
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
 		_header_fields += it->first;
@@ -180,14 +190,11 @@ void Response::set_body()
 		if (s.st_mode & S_IFREG) // ELement is a regular file.
 			_body = get_file_content(_path);
 		else if (s.st_mode & S_IFDIR ) { // Element is a directory
-			if (_if_location && _location.get_autoindex() == true)
+			if ((_if_location && _location.get_autoindex() == true) ||
+				_conf.get_autoindex() == true)
 				set_autoindex_body();
-			else if (_client.get_conf().get_autoindex() == true)
-				set_autoindex_body();
-			else {
-				_status_code = 403;
-				// send_error_response();
-			}
+			else
+				_status_code = 301;
 		}
 	}
 	else {
@@ -345,10 +352,8 @@ bool Response::send_response()
 	{
 		if (is_redirected())
 			_status_code = 301;
-		else {
+		else 
 			set_body();
-			set_header_fields(_body.size());
-		}
 	}
 	else if (_client.get_method() == "DELETE")
 		delete_file();

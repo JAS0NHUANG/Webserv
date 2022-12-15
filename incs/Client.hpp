@@ -72,7 +72,6 @@ class Client {
 		// received from client / send to client
 		std::string							recv_request();
 		bool								handle_request(std::string &raw_request);
-		bool								send_response();
 
 		void								log(std::string message, bool success);
 		std::string							log_access(int status_code);
