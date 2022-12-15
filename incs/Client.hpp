@@ -36,7 +36,9 @@ class Client {
 		std::string							_host_ip_port;
 		std::string							_request_line;
 		std::vector<Config>					_virtual_servers;
+		bool								_if_location;
 		Config								_conf;
+		Location							_location;
 		// add body boundary
 		std::string							_body_boundary;
 		bool								_is_upload_ok;
@@ -45,6 +47,7 @@ class Client {
 		void								process_request_line(std::string &line);
 		std::string							get_query_string(std::string &request_target);
 		void								check_access(std::string request_target);
+		bool								check_if_location_required(std::string &request_target);
 		void								check_method(std::string &method);
 		void								process_field_line(std::string &line);
 		bool								field_name_has_whitespace(std::string &field_name) const;
@@ -93,6 +96,7 @@ class Client {
 		std::string							get_client_ip() const;
 		std::string							get_host_ip_port() const;
 		std::string							get_request_line() const;
+		bool								get_if_location() const;
 };
 
 #endif

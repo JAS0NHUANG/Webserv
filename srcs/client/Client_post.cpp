@@ -1,34 +1,65 @@
 #include "Client.hpp"
 
 bool Client::upload_file(std::string &raw_request) {
-	while ( raw_request.find("filename") != std::string::npos) {
+	std::string upload_path;
+	if (_if_location && _location.get_upload_store().first == true)
+		upload_path = create_path(_location.get_upload_store().second);
+	else if (_conf.get_upload_store().first == true)
+		upload_path = create_path(_conf.get_upload_store().second);
+
+	while (raw_request.find("filename") != std::string::npos) {
 		if (!_conf.get_upload_store().second.empty()) {
-			if (access(_conf.get_upload_store().second.c_str(), X_OK) != 0) {
+			if (access(upload_path.c_str(), X_OK) != 0) {
 				return false;
 			}
 		}
 		int filename_index = 0;
 		if (raw_request.find("filename=") != std::string::npos)
 			filename_index = raw_request.find("filename=");
-		raw_request.erase(0, filename_index);
+
+		try {
+			raw_request.erase(0, filename_index);
+		}
+		catch (std::exception &e) {
+			std::cout << "First catch" << std::endl;
+		}
+
 		int n = 0;
 		if (raw_request.find("\n") != std::string::npos)
 			n = raw_request.find("\n");
 
 		// get the file name
 		std::string filename = raw_request.substr(10, n - 12 );
+		// std::cout << BLU << "FILENAME : " << filename << std::endl;
 
 		int content_start_index = 0;
 		if (raw_request.find("\r\n\r\n") != std::string::npos)
 			content_start_index = raw_request.find("\r\n\r\n");
-		raw_request.erase(0, content_start_index + 4);
+
+		try {
+			raw_request.erase(0, content_start_index + 4);
+		}
+		catch (std::exception &e) {
+			std::cout << "Second catch" << std::endl;
+		}
+
 
 		int content_end_index = 0;
 		if(raw_request.find(_body_boundary) != std::string::npos)
 			content_end_index = raw_request.find(_body_boundary);
-		raw_request.erase(content_end_index - 5, _body_boundary.size() + 8);
 
-		std::ofstream temp_file((_conf.get_upload_store().second + "/" + filename).c_str());
+		try {
+			// Sometimes this `erase` throw because the first parameter is negative,
+			// leading to server crash.
+			std::cout << "content_end_index - 5 = " << content_end_index - 5 << 
+				" | _body_boundary.size =  " << +_body_boundary.size() << std::endl; 
+			raw_request.erase(content_end_index - 5, _body_boundary.size() + 8);
+		}
+		catch (std::exception &e) {
+			std::cout << "Third catch : " << e.what() << std::endl;
+		}
+
+		std::ofstream temp_file((upload_path + "/" + filename).c_str());
 		temp_file << raw_request;
 		temp_file.close();
 	}

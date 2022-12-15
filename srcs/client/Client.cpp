@@ -54,6 +54,8 @@ Client& Client::operator=(const Client &src) {
 	_host_ip_port			= src._host_ip_port;
 	_request_line			= src._request_line;
 	_syscall_error			= src._syscall_error;
+	_if_location			= src._if_location;
+	_location				= src._location;
 	return *this;
 }
 
@@ -108,6 +110,11 @@ std::string	Client::get_host_ip_port() const {
 std::string Client::get_request_line() const {
 	return _request_line;
 }
+
+bool Client::get_if_location() const {
+	return _if_location;
+}
+
 
 void Client::log(std::string message, bool success)
 {

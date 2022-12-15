@@ -14,13 +14,9 @@ Response::Response(Client client) : _client(client)
 	}
 	init_code_msg();
 	_status_code = _client.get_status_code();
-	if (_conf.get_location(_client.get_request_target()).first == true)
-	{
+	_if_location = _client.get_if_location();
+	if (_if_location)
 		_location = _conf.get_location(_client.get_request_target()).second;
-		_if_location = true;
-	}
-	else
-		_if_location = false;
 }
 
 Response::~Response(void)
@@ -35,14 +31,14 @@ void Response::set_header_fields(int cont_Leng)
 	if (_status_code == 405)
 	{
 		std::string tmp;
-		if (_location.is_method_allowed("GET") == true ||
-			(_if_location == false && _conf.is_method_allowed("GET") == true))
+		if ((_if_location && _location.is_method_allowed("GET") == true) ||
+			(_conf.is_method_allowed("GET") == true))
 			tmp = "GET, ";
-		if (_location.is_method_allowed("POST") == true ||
-			(_if_location == false && _conf.is_method_allowed("POST") == true))
+		if ((_if_location && _conf.is_method_allowed("POST") == true) ||
+			(_location.is_method_allowed("POST") == true))
 			tmp += "POST, ";
-		if (_location.is_method_allowed("DELETE") == true ||
-			(_if_location == false && _conf.is_method_allowed("DELETE") == true))
+		if ((_if_location && _conf.is_method_allowed("DELETE") == true) ||
+			(_location.is_method_allowed("DELETE") == true))
 			tmp += "DELETE, ";
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
@@ -79,7 +75,7 @@ bool Response::post_body()
 	response += "\r\n";
 	response += _body;
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
-		_syscall_error = "send()";  
+		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 	_client.log(_client.log_access(_status_code), true);

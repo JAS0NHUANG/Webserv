@@ -30,25 +30,25 @@ std::string Client::create_path(std::string request_target) {
 	std::pair<bool , Location> pr_candidate;
 	pr_candidate.first = false;
 
-	std::string location;
+	std::string path;
 	std::string::iterator it = request_target.begin() + 1;
 	while (it != request_target.end()){
 		for (; it != request_target.end(); it++) {
 			if (*it == '/')
 				break;
 		}
-		location.assign(request_target.begin(), it);
-		pr_candidate = _conf.get_location(location);
+		path.assign(request_target.begin(), it);
+		pr_candidate = _conf.get_location(path);
 		if (pr_candidate.first == true)
 			pr = pr_candidate;
 		if (it != request_target.end())
 			++it;
 	}
 	if (pr.first)
-		location = pr.second.get_root() + location;
+		path = pr.second.get_root() + path;
 	else
-		location = _conf.get_root() + location;
-	return location;
+		path = _conf.get_root() + path;
+	return path;
 }
 
 void Client::check_method(std::string &method) {
@@ -68,6 +68,16 @@ void Client::check_access(std::string request_target) {
 			throw 404; // Not Found
 		throw 500; //Internal error server
 	}
+}
+
+bool Client::check_if_location_required(std::string &request_target) {
+	if (_conf.get_location(request_target).first == true)
+	{
+		_location = _conf.get_location(request_target).second;
+		return true;
+	}
+	else
+		return false;
 }
 
 void Client::process_request_line(std::string &line) {
@@ -92,6 +102,9 @@ void Client::process_request_line(std::string &line) {
 	// Get request target and query string if any
 	// and delete it from request_target
 	_request_target = *it;
+
+	_if_location = check_if_location_required(_request_target); 
+
 	_query_string =  get_query_string(_request_target);
 
 	// Check if there is the http version
