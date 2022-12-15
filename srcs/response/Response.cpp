@@ -199,7 +199,7 @@ void Response::set_body()
 				set_autoindex_body();
 			else {
 				_status_code = 403;
-				send_error_response();
+				// send_error_response();
 			}
 		}
 	}
@@ -252,11 +252,12 @@ void Response::set_autoindex_body()
 		_body += "</a>";
 	}
 	_body += "</div></body></html>";
+	_status_code = 200;
 }
 
 bool Response::set_defined_error_page() {
 	if (!_conf.get_error_page(_status_code).empty()) {
-		_path = _conf.get_error_page(_status_code);
+		_path = _client.create_path(_conf.get_error_page(_status_code));
 		std::ifstream myfile(_path.c_str());
 		if (myfile.is_open())
 		{
@@ -360,7 +361,7 @@ bool Response::send_response()
 		else {
 			set_body();
 			set_header_fields(_body.size());
-			_status_code = 200;
+			_status_code = 200; // do we need to set it here
 		}
 	}
 	else if (_client.get_method() == "DELETE")

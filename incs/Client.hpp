@@ -44,7 +44,6 @@ class Client {
 		void								parse_line(std::deque<std::string> &lines, std::string &raw_request);
 		void								process_request_line(std::string &line);
 		std::string							get_query_string(std::string &request_target);
-		std::string							create_path(std::string request_target);
 		void								check_access(std::string request_target);
 		void								check_method(std::string &method);
 		void								process_field_line(std::string &line);
@@ -64,6 +63,7 @@ class Client {
 		std::time_t							get_timeout() const;
 
 	public:
+		std::string							create_path(std::string request_target);
 		Client();
 		Client(int fd, std::vector<Config> virtual_servers);
 		Client(const Client &src);
