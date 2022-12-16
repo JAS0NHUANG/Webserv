@@ -53,10 +53,8 @@ void Response::set_header_fields(int cont_Leng)
 	else if (_status_code >= 300 && _status_code < 400 && _if_location == false) {
 		if (!_conf.get_return().empty())
 			headers["Location"] = _conf.get_return();
-		else {
-			std::cout << "setting get index" << std::endl;
+		else
 			headers["Location"] = _conf.get_index();
-		}
 	}
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
