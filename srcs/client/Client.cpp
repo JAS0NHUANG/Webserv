@@ -56,6 +56,7 @@ Client& Client::operator=(const Client &src) {
 	_syscall_error			= src._syscall_error;
 	_if_location			= src._if_location;
 	_location				= src._location;
+	_server_name			= src._server_name;
 	return *this;
 }
 
@@ -117,6 +118,10 @@ std::string Client::get_request_line() const {
 
 bool Client::get_if_location() const {
 	return _if_location;
+}
+
+std::string Client::get_server_name() const {
+	return _server_name;
 }
 
 

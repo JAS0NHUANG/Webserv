@@ -4,20 +4,21 @@
 #include "Cgi.hpp"
 
 //ref:http://www.wijata.com/cgi/cgispec.html#6.0
-Cgi::Cgi(Client &requ, Config &config){
-    this->env_char = NULL;
-    this->request =  requ;
-    set_env(requ, config);
+Cgi::Cgi(Client &client, Config conf, Location location){
+	_conf = conf;
+	_location = location;
+    this->_env_char = NULL;
+    this->_client = client;
+    set_env();
     env_to_char();
 }
 
 Cgi::~Cgi(void){
-    if (this->env_char){
-        for (int i = 0; this->env_char[i]; i++)
-		    delete[] this->env_char[i];
-	    delete[] this->env_char;
+    if (this->_env_char){
+        for (int i = 0; this->_env_char[i]; i++)
+		    delete[] this->_env_char[i];
+	    delete[] this->_env_char;
     }
-    //std::cerr<< "delete cgi" << "\n";
 }
 
 void print_env(std::map<std::string, std::string>	env){
@@ -26,33 +27,24 @@ void print_env(std::map<std::string, std::string>	env){
     }
 }
 
-void Cgi::set_env(Client &requ, Config &config){
-    std::map<std::string, std::string>	headers = requ.get_headers();
-    if (config.get_location(requ.get_request_target()).first == true){
-        Location location = config.get_location(requ.get_request_target()).second;
-        if (requ.get_method() == "POST"){
-            this->env["CONTENT_LENGTH"] = to_String(requ.get_body().size());
-            this->env["CONTENT_TYPE"] = headers["content-type"].substr(1);
-        } else if (requ.get_method() == "GET")
-            this->env["QUERY_STRING"] = requ.get_query_string();
-        this->env["CONTENT"] = requ.get_body();
-        this->env["GATEWAY_INTERFAC"] = "CGI/1.1";
-        this->env["SERVER_PROTOCOL"]= "HTTP/1.1";
-        this->env["PATH_INFO"] = requ.get_request_target();
-        this->env["REQUEST_METHOD"]= requ.get_method();
-        this->env["REMOTE_HOST"]= headers["Host"];
-        //REMOTE_ADDR
-        this->env["SCRIPT_FILENAME"] = location.get_root() + requ.get_request_target();
-        //!!!!!!!!!!!!!!!!!
-        this->env["SERVER_NAME"] = config.get_server_name()[0];
-        this->env["SERVER_PORT"] = to_String(config.get_port());
-        this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
-        this->env["REDIRECT_STATUS"]="200"; //php
-        //print_env(this->env);
-    }else{
-        errMsgErrno("cgi location is not valid");
-        return ;
-    }
+void Cgi::set_env(){
+	if (_client.get_method() == "POST") {
+		this->env["CONTENT_LENGTH"] = to_String(_client.get_body().size());
+		this->env["CONTENT_TYPE"] = _client.get_headers()["content-type"].substr(1);
+	}
+	else if (_client.get_method() == "GET")
+		this->env["QUERY_STRING"] = _client.get_query_string();
+	this->env["CONTENT"] = _client.get_body();
+	this->env["GATEWAY_INTERFAC"] = "CGI/1.1";
+	this->env["SERVER_PROTOCOL"]= "HTTP/1.1";
+	this->env["PATH_INFO"] = _client.get_request_target();
+	this->env["REQUEST_METHOD"]= _client.get_method();
+	this->env["REMOTE_HOST"]= _client.get_headers()["Host"];
+	this->env["SCRIPT_FILENAME"] = _client.get_path();
+	this->env["SERVER_NAME"] = _client.get_server_name();
+	this->env["SERVER_PORT"] = to_String(_conf.get_port());
+	this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
+	this->env["REDIRECT_STATUS"]="200";
 }
 
 void close_fd(int fd_in[], int fd_out[]){
@@ -64,15 +56,15 @@ void close_fd(int fd_in[], int fd_out[]){
 
 void Cgi::env_to_char(){
 
-    this->env_char = new char*[this->env.size() + 1];
+    this->_env_char = new char*[this->env.size() + 1];
     int i = 0;
     for( std::map<std::string, std::string>::iterator it=this->env.begin(); it!=this->env.end(); ++it){
         std::string item = it->first + "=" + it->second;
-        this->env_char[i] = new char[item.size() + 1];
-        strcpy(this->env_char[i], item.c_str());
+        this->_env_char[i] = new char[item.size() + 1];
+        strcpy(this->_env_char[i], item.c_str());
         i++;
     }
-    this->env_char[i] = NULL;
+    this->_env_char[i] = NULL;
 }
 
 std::pair<bool, std::string> Cgi::handler(char * cgi_script){
@@ -80,7 +72,7 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     int		fd_in[2];
     int     fd_out[2];
     pid_t	pid;
-    //std::string content ="";
+
     char 		*arg[] = {
         cgi_script,
         const_cast<char*>(this->env["SCRIPT_FILENAME"].c_str()),
@@ -88,14 +80,13 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     };
     std::string body;
     std::string get_request_body;
-    if (!this->request.get_body().empty()){
-        get_request_body = this->request.get_body();
+    if (!this->_client.get_body().empty()){
+        get_request_body = this->_client.get_body();
     }
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
         std::cerr << "pipe: cgi"  << std::endl;
         return std::make_pair(false, body);
     }
-    //std::cerr << "this->env[\"CONTENT\"]:|" << get_request_body << "|\n";
     if (write(fd_in[1], get_request_body.c_str(), get_request_body.size()) < 0){
         std::cerr << "write in cgi"  << std::endl;
         close_fd(fd_in, fd_out);
@@ -120,7 +111,7 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
 			return std::make_pair(false, body);
         }
 		close(fd_out[1]);
-		execve(cgi_script, arg, this->env_char);
+		execve(cgi_script, arg, this->_env_char);
 		std::cerr << "execve in cgi"<< std::endl;
     }
     close(fd_in[1]);

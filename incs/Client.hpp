@@ -37,6 +37,7 @@ class Client {
 		std::string							_request_line;
 		std::vector<Config>					_virtual_servers;
 		bool								_if_location;
+		std::string							_server_name;
 		Config								_conf;
 		Location							_location;
 		// add body boundary
@@ -97,6 +98,7 @@ class Client {
 		std::string							get_host_ip_port() const;
 		std::string							get_request_line() const;
 		bool								get_if_location() const;
+		std::string							get_server_name() const;
 };
 
 #endif

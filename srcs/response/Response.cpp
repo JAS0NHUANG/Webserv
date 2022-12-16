@@ -324,12 +324,13 @@ bool Response::send_response()
 		return true;
 	}
 
-	if (!_extension.empty() && _status_code == 0 &&
-		(_location.get_cgi(_extension).first == true || _conf.get_cgi(_extension).first == true))
+	if (!_extension.empty() &&
+		((_if_location && _location.get_cgi(_extension).first == true) ||
+		_conf.get_cgi(_extension).first == true))
 	{
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
-		Cgi test_cgi(_client, _conf);
+		Cgi cgi(_client, _conf, _location);
 		std::string script;
 		if (_if_location == true)
 			script = _location.get_cgi(_extension).second;
@@ -337,7 +338,7 @@ bool Response::send_response()
 			script = _conf.get_cgi(_extension).second;
 		if (script.empty())
 			_status_code = 500;
-		cgi_body = test_cgi.handler(const_cast<char *>(script.c_str()));
+		cgi_body = cgi.handler(const_cast<char *>(script.c_str()));
 		if (cgi_body.first == false)
 		{
 			_status_code = 500;

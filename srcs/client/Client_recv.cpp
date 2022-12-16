@@ -144,6 +144,7 @@ void Client::retrieve_conf(std::string host) {
 		std::vector<std::string> serv_names = (*it).get_server_name(); 
 		for (std::vector<std::string>::size_type i = 0; i != serv_names.size(); i++) {
 			if (serv_names[i] == host) {
+				_server_name = serv_names[i];
 				_conf = *it;
 				break;
 			}
