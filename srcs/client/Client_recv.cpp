@@ -180,7 +180,7 @@ void Client::process_field_line(std::string &line) {
 }
 
 void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request) {
-
+	(void)raw_request;
 	remove_cr_char(lines);
 
 	while (!lines.empty()) {
@@ -192,10 +192,6 @@ void Client::parse_line(std::deque<std::string> &lines, std::string &raw_request
 		{
 			process_field_line(lines.front());
 			lines.pop_front();
-		}
-		else {
-			process_body(raw_request);
-			lines.clear();
 		}
 
 		if (_request_is_complete)
@@ -224,20 +220,32 @@ std::deque<std::string> Client::getlines(std::string buf) {
 
 bool Client::handle_request() {
 	// set status code too 400 when no raw_request recieved
-	std::cout << YEL "raw request handling: " << _raw_request << "\n" RESET;
 	if (_raw_request.empty()) {
 		_request_is_complete = true;
 		_code = 400;
 	}
-	std::deque<std::string>	lines;
-	lines = getlines(_raw_request);
-	if (!lines.empty()) {
-		try { // This will catch any bad request 
-			parse_line(lines, _raw_request);
+
+	if (_method != "POST") {
+		std::deque<std::string>	lines;
+		lines = getlines(_raw_request);
+		if (!lines.empty()) {
+			try { // This will catch any bad request 
+				parse_line(lines, _raw_request);
+			}
+			catch (int error_code) {
+				std::cout << "Catched exception: " << error_code << "\n" ;
+				_code = error_code;
+				return true;
+			}
 		}
-		catch (int error_code) {
-			std::cout << "Catched exception: " << error_code << "\n" ;
-			_code = error_code;
+		_raw_request.clear();
+	} else {
+		std::cout << "this is a POST request!!!\n\n";
+		std::cout << RED "req size: " << _raw_request.size() << ", cont len: " << _headers["content-length"] << "\n" RESET;
+		if ((int)_raw_request.size() < toInt(_headers["content-length"]))
+			return false;
+		else {
+			process_body(_raw_request);
 			return true;
 		}
 	}
@@ -258,7 +266,7 @@ void Client::recv_request() {
 		return ;
 	}
 
-	_recv_length += valread;
 	buffer[valread] = '\0';
+	_recv_length += valread;
 	_raw_request.append(buffer, valread);
 }
