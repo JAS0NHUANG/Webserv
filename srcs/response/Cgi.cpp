@@ -45,6 +45,7 @@ void Cgi::set_env(){
 	this->env["SERVER_PORT"] = to_String(_conf.get_port());
 	this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
 	this->env["REDIRECT_STATUS"]="200";
+    print_env(this->env);
 }
 
 void close_fd(int fd_in[], int fd_out[]){
@@ -80,6 +81,7 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     };
     std::string body;
     std::string get_request_body;
+    std::cerr << "get_request_bpdy" << cgi_script << "|"<< get_request_body << "\n";
     if (!this->_client.get_body().empty()){
         get_request_body = this->_client.get_body();
     }

@@ -43,7 +43,11 @@ void Response::set_header_fields(int cont_Leng)
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
 	}
-	headers["Content-Type"] = content_mime_type(_extension);
+	//headers["Content-Type"] = content_mime_type(_extension);
+	if (!this->_extension.empty() && this->_extension.compare(".php") &&  this->_extension.compare(".py") )
+		headers["Content-Type"] = content_mime_type(this->_extension);
+	else
+		headers["Content-Type"] = "text/html; charset=utf-8";
 	if (_status_code >= 300 && _status_code < 400 && _if_location == true) {
 		if (!_location.get_return().empty())
 			headers["Location"] = _location.get_return();
@@ -321,7 +325,12 @@ bool Response::send_response()
 		send_error_response();
 		return true;
 	}
-
+	std::cerr <<  "cgi php:" << _conf.get_cgi(".php").first <<"\n";
+	if (_conf.get_cgi(".php").first)
+		std::cerr <<  "cgi php:" << _conf.get_cgi(".php").second <<"\n";
+	std::cerr <<  "cgi py:" << _conf.get_cgi(".py").first <<"\n";
+	if (_conf.get_cgi(".py").first)
+		std::cerr <<  "cgi py:" << _conf.get_cgi(".py").second <<"\n";
 	if (!_extension.empty() &&
 		((_if_location && _location.get_cgi(_extension).first == true) ||
 		_conf.get_cgi(_extension).first == true))
