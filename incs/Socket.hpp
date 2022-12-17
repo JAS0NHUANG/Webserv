@@ -5,17 +5,19 @@
 # include <sys/types.h>
 # include <netinet/in.h>
 
-#include "webserv.hpp"
-
-int create_socket(void);
+# include "webserv.hpp"
 
 class Socket {
 	private:
-		short			_port;
-		int				_sock_fd;
-		sockaddr_in		_addr;
-		size_t			_addr_len;
-		
+		// put into a struct socket
+		short				_port;
+		int					_sock_fd;
+		sockaddr_in			_addr;
+		size_t				_addr_len;
+		std::vector<Config>	_virtual_servers;
+
+		// save configuration for this address:port
+
 	public:
 		// canonical
 		Socket();
@@ -23,12 +25,13 @@ class Socket {
 		Socket(const Socket &toCopy);
 		Socket&			operator=(const Socket &toAssign);
 
-		Socket(int port, std::string address);
+		Socket(int port, std::string address, std::vector<Config> virtual_servers);
 		// getter
-		int				getPort(void);
-		int				getSockFd(void);
-		int				getAddr(void);
-		int				getAddrLen(void);
+		int					getPort(void);
+		int					getSockFd(void);
+		int					getAddr(void);
+		int					getAddrLen(void);
+		std::vector<Config>	get_virtual_servers(void);
 };
 
 #endif

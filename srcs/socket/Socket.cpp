@@ -1,12 +1,12 @@
-#include "../../incs/webserv.hpp"
+#include "webserv.hpp"
 
-Socket::Socket(int port, std::string address) {
-	this->_port = port;
+Socket::Socket(int port, std::string address, std::vector<Config> _virtual_servers) :
+	_port(port),
+	_virtual_servers(_virtual_servers) {
 
-	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		errMsgErrno("socket failed");
-		exit(EXIT_FAILURE);
-	}
+	// create socket
+	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		throwError("socket");
 
 	// this struct is needed to setsockopt and bind
 	sockaddr_in	sock_addr;
@@ -17,29 +17,19 @@ Socket::Socket(int port, std::string address) {
 	sock_addr.sin_addr.s_addr = inet_addr(address.c_str());
 	sock_addr.sin_port = htons(this->_port);
 
-	std::cout << "\n";
-	std::cout << BLU << "socket object:\naddress str: " << address << ", s_addr: " << sock_addr.sin_addr.s_addr << "\n";
 
 	// this will make addr reusable?!
 	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
-		sizeof(sock_addr)) < 0) {
-		errMsgErrno("setsockopt failed");
-       		exit(EXIT_FAILURE);
-	}
+		sizeof(sock_addr)) < 0)
+		throwError("setsockopt");
 
 	// bind
-	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0) {
-		errMsgErrno("bind failed! Really?!");
-		exit(EXIT_FAILURE);
-	}
-	std::cout << "binding ok on sock addr: " << sock_addr.sin_addr.s_addr << "\n";
+	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0)
+		throwError("bind");
 
 	// listen
-	if (listen(this->_sock_fd, 1024) < 0) {
-		errMsgErrno("listen failed");
-    		exit(EXIT_FAILURE);
-	}
-	std::cout << "Listening on socket fd " << _sock_fd << " \n";
+	if (listen(this->_sock_fd, 1024) < 0)
+		throwError("listen");
 }
 
 Socket::Socket() {
@@ -47,10 +37,8 @@ Socket::Socket() {
 	// The original socket that was set up for listening is used only for accepting connections, not for exchanging data.
 
 	// create socket
-	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		errMsgErrno("socket failed");
-		exit(EXIT_FAILURE);
-	}
+	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		throwError("socket");
 
 	// this struct is needed to setsockopt and bind
 	sockaddr_in	sock_addr;
@@ -63,37 +51,30 @@ Socket::Socket() {
 
 	// this will make addr reusable?!
 	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
-		sizeof(sock_addr)) < 0) {
-		errMsgErrno("setsockopt failed");
-       		exit(EXIT_FAILURE);
-	}
+		sizeof(sock_addr)) < 0)
+		throwError("setsockopt");
 
 	// bind
-	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0) {
-		errMsgErrno("bind failed! Really?!");
-		exit(EXIT_FAILURE);
-	}
+	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0)
+		throwError("bind");
 
 	// listen
-	if (listen(this->_sock_fd, 1024) < 0) {
-		errMsgErrno("listen failed");
-    		exit(EXIT_FAILURE);
-	}
+	if (listen(this->_sock_fd, 1024) < 0)
+		throwError("listen");
 }
 
-Socket::~Socket() {
-	std::cout << "socket distructor!!\n";
-}
+Socket::~Socket() {}
 
 Socket::Socket(const Socket &toCopy) {
 	*this = toCopy;
 }
 
 Socket&	Socket::Socket::operator=(const Socket &toAssign) {
-	this->_port = toAssign._port;
-	this->_sock_fd = toAssign._sock_fd;
-	this->_addr = toAssign._addr;
-	this->_addr_len = toAssign._addr_len;
+	this->_port				= toAssign._port;
+	this->_sock_fd			= toAssign._sock_fd;
+	this->_addr				= toAssign._addr;
+	this->_addr_len			= toAssign._addr_len;
+	this->_virtual_servers	= toAssign._virtual_servers;
 	return (*this);
 }
 
@@ -103,4 +84,8 @@ int	Socket::getPort(void) {
 
 int	Socket::getSockFd(void) {
 	return (this->_sock_fd);
+}
+
+std::vector<Config> Socket::get_virtual_servers(void) {
+	return _virtual_servers;
 }

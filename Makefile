@@ -7,13 +7,13 @@ RM			=	rm
 # **************************************************************************** #
 #       TITLE                                                                  #
 # **************************************************************************** #
-NAME		=	Webserv
-TEST		=	Webserv_test
+NAME		=	webserv
 
 # **************************************************************************** #
 #       FLAGS                                                                  #
 # **************************************************************************** #
-CFLAGS		=	-Wall -Wextra -Werror -std=c++98
+CFLAGS		=	-Wall -Wextra -Werror -std=c++98 -g3
+INCS		=	-Iincs
 RMFLAGS		=	-rf
 
 ifeq ($(VERBOSE), true)
@@ -23,46 +23,40 @@ endif
 # **************************************************************************** #
 #       SOURCES                                                                #
 # **************************************************************************** #
-SRCS		=	main.cpp \
+SRCS		=	srcs/main.cpp \
 				srcs/config/Location.cpp \
-				srcs/config/Server.cpp \
-				srcs/config/configParsing.cpp \
-				srcs/config/utilsParsing.cpp \
-				srcs/config/saveFile.cpp \
-				srcs/config/doParsing.cpp \
+				srcs/config/Config.cpp \
+				srcs/config/config_parsing.cpp \
+				srcs/config/utils_parsing.cpp \
+				srcs/config/save_file.cpp \
+				srcs/config/do_parsing.cpp \
 				srcs/socket/Socket.cpp \
-				srcs/epoll/epoll.cpp \
-				srcs/utils/utils.cpp 
-
-TEST_SRCS	=	tests/test.cpp \
+				srcs/server/run_server.cpp \
+				srcs/utils/utils.cpp \
+				srcs/client/Client.cpp \
+				srcs/client/Client_recv.cpp \
+				srcs/client/Client_post.cpp \
+				srcs/response/Response.cpp \
+				srcs/response/Cgi.cpp
 
 # **************************************************************************** #
 #       RULES                                                                  #
 # **************************************************************************** #
 OBJS		=	$(SRCS:.cpp=.o)
 
-TEST_OBJS	=	$(TEST_SRCS:.cpp=.o)
-
 %.o			:	%.cpp
-				$(CPP) $(CFLAGS) -c $< -o $@
+				$(CPP) $(CFLAGS) $(INCS) -c $< -o $@
 
 $(NAME)		:	$(OBJS)
-				$(CPP) $(CFLAGS) -o $@ $(OBJS)
-
-$(TEST)		:	$(TEST_OBJS)
-				$(CPP) $(CFLAGS) -o $@ $(TEST_OBJS)
+				$(CPP) $(CFLAGS) $(INCS) -o $@ $(OBJS)
 
 all			:	$(NAME)
 
-test		:	$(TEST)
-
 clean		:
 				$(RM) $(RMFLAGS) $(OBJS)
-				$(RM) $(RMFLAGS) $(TEST_OBJS)
 
 fclean		:	clean
 				$(RM) $(RMFLAGS) $(NAME)
-				$(RM) $(RMFLAGS) $(TEST)
 
 re			:	fclean all
 

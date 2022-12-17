@@ -15,10 +15,11 @@
 class Location {
 	protected:
 		/* A set of defined methods */
-		std::set<int>	_allow_method;
+		std::set<std::string>	_allow_method;
 
 		/* The url to redirect */
 		std::string	_return;
+		std::string _return_status;
 
 		/* Just the path where webserv will considered as its root to search files, etc... */
 		std::string	_root;
@@ -27,10 +28,11 @@ class Location {
 		bool	_autoindex;
 
 		/* vector that hold default page name */
-		std::vector<std::string>	_index;
+		std::string	_index;
 
+		std::map<std::string, std::string>	_cgi;
 		/* [ is_set/is_not_set | (extension | path_to_cgi_bin) ] */
-		std::pair<bool, std::pair<std::string, std::string> >	_cgi;
+		//std::pair<bool, std::pair<std::string, std::string> >	_cgi;
 
 		/* [ is_on/is_off | directory ] */
 		std::pair<bool, std::string>	_upload_store;
@@ -44,19 +46,23 @@ class Location {
 		~Location();
 		Location& operator=(const Location &x);
 
-		bool						is_method_allowed(int method) const;
+		bool						is_method_allowed(std::string method) const;
 		std::string					get_return() const;
+		std::string					get_return_status() const;
 		std::string					get_root() const;
 		bool						get_autoindex() const;
-		std::vector<std::string>	get_index() const;
-		std::pair<bool, std::pair<std::string, std::string> > get_cgi() const;
+		std::string					get_index() const;
+		//std::pair<bool, std::pair<std::string, std::string> > get_cgi() const;
+		std::pair<bool, std::string> get_cgi(std::string ext) const;
 		std::pair<bool, std::string> get_upload_store() const;
 
-		void	set_allow_method(std::vector<int> &vec);
+		void	set_allow_method(std::vector<std::string> &vec);
 		void	set_return(std::string &str);
+		void	set_return_status(std::string &str);
 		void	set_root(std::string &str);
 		void	set_autoindex(bool b);
-		void	set_index(std::vector<std::string> &vec);
+		void	set_index(std::string &vec);
+		//void	set_cgi(std::string &ext, std::string &bin);
 		void	set_cgi(std::string &ext, std::string &path);
 		void	set_upload_store(std::string &dir);
 };
@@ -66,6 +72,8 @@ void debug_print(std::map<int, std::string> x);
 void debug_print(std::vector<std::string> x);
 void debug_print(std::map<int, std::pair<int, std::string> > x);
 void debug_print(std::pair<bool, std::pair<std::string, std::string> > x);
+void debug_print(std::pair<bool, std::string> x);
+//void debug_print(std::map<std::string, std::string> x);
 void debug_print(std::pair<bool, std::string> x);
 
 #endif
