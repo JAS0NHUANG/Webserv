@@ -236,47 +236,67 @@ std::deque<std::string> Client::getlines(std::string buf) {
 	return lines;
 }
 
-bool Client::handle_request(std::string &raw_request) {
+bool Client::handle_request() {
 	// set status code too 400 when no raw_request recieved
-	if (raw_request.empty()) {
+	if (_raw_request.empty()) {
 		_request_is_complete = true;
 		_status_code = 400;
 	}
-	std::deque<std::string>	lines;
-	lines = getlines(raw_request);
-	if (!lines.empty()) {
-		try { // This will catch any bad request 
-			parse_line(lines, raw_request);
+
+	// the first recv and header parsing
+	if (_method.empty() && _raw_request.find("\r\n\r\n") != std::string::npos) {
+		std::string raw_header;
+		int body_index = _raw_request.find("\r\n\r\n");
+		raw_header = _raw_request.substr(0, body_index + 4);
+		_raw_request.erase(0, body_index + 4);
+		std::deque<std::string>	lines;
+		lines = getlines(raw_header);
+		if (!lines.empty()) {
+			try { // This will catch any bad request
+				parse_line(lines, raw_header);
+			}
+			catch (int error_code) {
+				_status_code = error_code;
+				return true;
+			}
 		}
-		catch (int error_code) {
-			_status_code = error_code;
-			return true;
-		}
+	}
+
+	// NOTE : check max_body_size just after the header is set.
+	int content_len;
+	std::stringstream ss;
+	ss << _headers["content-length"];
+	ss >> content_len;
+	if (content_len > (int)_conf.get_client_max_body_size()) {
+		// can't throw the status code directly
+		// should probably change all the throw 400 above!!
+		_status_code = 413;
+		_request_is_complete = true;
+		return true;
+	}
+
+	if (!_raw_request.empty()) {
+		if ((int)_raw_request.size() >= content_len)
+			process_body(_raw_request);
 	}
 
 	return _request_is_complete;
 }
 
-std::string Client::recv_request() {
+void Client::recv_request() {
 	char buffer[BUFFER_SIZE] = {};
 	int valread;
-	std::string raw_request;
 
-	while ((valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0)) > 0) {
-		buffer[valread] = '\0';
-		raw_request.append(buffer, valread);
-	}
+	valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
+
 	if (valread == 0) {
-		// change the condition from || to &&, dont know if it's logic?
-		if (_process_request_line == false && _process_headers == false)
-			_request_is_complete = true;
+		_request_is_complete = true;
 	}
 	if (valread < 0) {
 		_syscall_error = "recv()";
 		log(log_error(_syscall_error), false);
-		// Still don't know why sometimes will have "Resource temporarily unavailable" error...
-		// Is something blocking the recv?
 	}
 
-	return raw_request;
+	buffer[valread] = '\0';
+	_raw_request.append(buffer, valread);
 }

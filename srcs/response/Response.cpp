@@ -298,7 +298,7 @@ bool Response::send_error_response()
 	response += _body;
 
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0){
-		_syscall_error = "send()";  
+		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 	_client.log(_client.log_access(_status_code), true);
@@ -367,8 +367,10 @@ bool Response::send_response()
 		delete_file();
 	else if (_client.get_method() == "POST")
 	{
-		_status_code = 201;
-		return post_body();
+		if (_status_code < 300) {
+			_status_code = 201;
+			return post_body();
+		}
 	}
 
 	if (_status_code >= 300 && _status_code <= 599)

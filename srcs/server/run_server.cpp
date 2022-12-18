@@ -85,20 +85,22 @@ int run_server(std::vector<Socket> &socket_list) {
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
-				std::string raw_request  = clients[n].recv_request();
-				done = clients[n].handle_request(raw_request);
+				clients[n].recv_request();
+				done = clients[n].handle_request();
 				if (done) {
+					std::cout << YEL"done request!!!\n" << RESET;
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
 					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_MOD)");
 				}
-				else 
+				else
 					clients[events[n].data.fd].start_timeout();
 			}
 
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
+				std::cout << YEL "responding!!\n" RESET;
 				Response response(clients[n]);
 				done = response.send_response();
 				if (done) {

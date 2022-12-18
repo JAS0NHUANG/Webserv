@@ -2,67 +2,69 @@
 
 bool Client::upload_file(std::string &raw_request) {
 	std::string upload_path;
-	if (_if_location && _location.get_upload_store().first == true)
-		upload_path = create_path(_location.get_upload_store().second);
-	else if (_conf.get_upload_store().first == true)
-		upload_path = create_path(_conf.get_upload_store().second);
+	std::string filename;
+	std::string file_body;
+
+	if (_conf.get_upload_store().first == true)
+		upload_path = _conf.get_upload_store().second;
+
+	if (access(upload_path.c_str(), X_OK) != 0) {
+		_status_code = 500;
+		_request_is_complete = true;
+		return false;
+	}
 
 	while (raw_request.find("filename") != std::string::npos) {
-		if (!_conf.get_upload_store().second.empty()) {
-			if (access(upload_path.c_str(), X_OK) != 0) {
-				return false;
-			}
-		}
-		int filename_index = 0;
-		if (raw_request.find("filename=") != std::string::npos)
-			filename_index = raw_request.find("filename=");
 
-		try {
+		// check if "filename" exist.
+		int filename_index = 0;
+		if (raw_request.find("filename=") != std::string::npos) {
+			filename_index = raw_request.find("filename=");
 			raw_request.erase(0, filename_index);
 		}
-		catch (std::exception &e) {
-			std::cout << "First catch" << std::endl;
+
+		// get the filename
+		int n = 0;
+		if (raw_request.find("\n") != std::string::npos) {
+			n = raw_request.find("\n");
+			filename = raw_request.substr(10, n - 12 );
+			// std::cout << BLU << "FILENAME : " << filename << std::endl;
 		}
 
-		int n = 0;
-		if (raw_request.find("\n") != std::string::npos)
-			n = raw_request.find("\n");
-
-		// get the file name
-		std::string filename = raw_request.substr(10, n - 12 );
-		// std::cout << BLU << "FILENAME : " << filename << std::endl;
-
+		// remove the chars before the real content
 		int content_start_index = 0;
-		if (raw_request.find("\r\n\r\n") != std::string::npos)
+		if (raw_request.find("\r\n\r\n") != std::string::npos) {
 			content_start_index = raw_request.find("\r\n\r\n");
-
-		try {
 			raw_request.erase(0, content_start_index + 4);
 		}
-		catch (std::exception &e) {
-			std::cout << "Second catch" << std::endl;
-		}
 
-
+		// remove the end boundary
 		int content_end_index = 0;
-		if(raw_request.find(_body_boundary) != std::string::npos)
+		if(raw_request.find(_body_boundary) != std::string::npos) {
 			content_end_index = raw_request.find(_body_boundary);
-
-		try {
-			// Sometimes this `erase` throw because the first parameter is negative,
-			// leading to server crash.
-			std::cout << "content_end_index - 5 = " << content_end_index - 5 << 
-				" | _body_boundary.size =  " << +_body_boundary.size() << std::endl; 
-			raw_request.erase(content_end_index - 5, _body_boundary.size() + 8);
+			file_body = raw_request.substr(0, content_end_index - 5);
+			raw_request.erase(0, content_end_index + _body_boundary.size() + 8);
+			std::cout << "the raw_request left: " << raw_request.size() << " || \n";
 		}
-		catch (std::exception &e) {
-			std::cout << "Third catch : " << e.what() << std::endl;
-		}
+		//catch (std::exception &e) {
+		//	std::cout << "Third catch : " << e.what() << std::endl;
+		//}
 
+		std::cout << "writing into temp_file!!!\n";
 		std::ofstream temp_file((upload_path + "/" + filename).c_str());
-		temp_file << raw_request;
+		if (!temp_file.is_open()) {
+			_status_code = 500;
+			_request_is_complete = true;
+			return false;
+		}
+		temp_file << file_body;
 		temp_file.close();
+		if (raw_request.empty() || \
+			raw_request.find(_body_boundary) == std::string::npos) {
+			break ;
+		}
 	}
+	_request_is_complete = true;
 	return true;
 }
 
@@ -70,17 +72,13 @@ void Client::process_body(std::string &raw_request) {
 	// The presence of a message body in a request is signaled
 	// by a Content-Length or Transfer-Encoding header field.
 
-	// NOTE : Each time this function is called, need to check max_body_size
+	if (_request_is_complete == true || raw_request.empty())
+		return ;
 
 	// We dont expect receiving a body if the method is not POST
 	if (_method != "POST") {
 		_request_is_complete = true;
 		return;
-	}
-
-	if (raw_request.size() > _conf.get_client_max_body_size()) {
-		_request_is_complete = true;
-		throw 413;
 	}
 
 	if (_headers.count("transfer-encoding") == 0 && \
@@ -89,19 +87,8 @@ void Client::process_body(std::string &raw_request) {
 		return ;
 	}
 
-	// check if there's boundary
-	// int has_boundary = false; // -> variable ‘has_boundary’ set but not used 
-	// if (_headers["content-type"].find("boundary") != std::string::npos)
-	// 	has_boundary = true;
-
-	// seperate body from headers
-	if (raw_request.find("\r\n\r\n") != std::string::npos) {
-		int body_start_index = raw_request.find("\r\n\r\n");
-		raw_request.erase(0, body_start_index + 4);
-	}
-
 	_body.append(raw_request);
-	upload_file(raw_request);
-	_request_is_complete = true;
+	if (upload_file(raw_request))
+		_request_is_complete = true;
 	return ;
 }
