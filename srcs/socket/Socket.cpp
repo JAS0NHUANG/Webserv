@@ -41,7 +41,7 @@ Socket::Socket(int port, std::string address, std::vector<Config> _virtual_serve
 	if (rp == NULL) {               /* No address succeeded */
         throwError("bind");
     }
-	//freeaddrinfo(result);
+	freeaddrinfo(result);
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
 		throwError("listen");
@@ -86,7 +86,7 @@ Socket::Socket() {
 	if (rp == NULL) {               /* No address succeeded */
         throwError("bind");
     }
-	//freeaddrinfo(result);
+	freeaddrinfo(result);
 
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
