@@ -28,7 +28,6 @@ bool Client::upload_file(std::string &raw_request) {
 		if (raw_request.find("\n") != std::string::npos) {
 			n = raw_request.find("\n");
 			filename = raw_request.substr(10, n - 12 );
-			// std::cout << BLU << "FILENAME : " << filename << std::endl;
 		}
 
 		// remove the chars before the real content
@@ -44,13 +43,8 @@ bool Client::upload_file(std::string &raw_request) {
 			content_end_index = raw_request.find(_body_boundary);
 			file_body = raw_request.substr(0, content_end_index - 5);
 			raw_request.erase(0, content_end_index + _body_boundary.size() + 8);
-			std::cout << "the raw_request left: " << raw_request.size() << " || \n";
 		}
-		//catch (std::exception &e) {
-		//	std::cout << "Third catch : " << e.what() << std::endl;
-		//}
 
-		std::cout << "writing into temp_file!!!\n";
 		std::ofstream temp_file((upload_path + "/" + filename).c_str());
 		if (!temp_file.is_open()) {
 			_status_code = 500;

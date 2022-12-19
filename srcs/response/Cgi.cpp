@@ -130,7 +130,7 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
 		body += buff;
 	}
     std::size_t found = body.find("\r\n\r\n");
-    if (found!=std::string::npos){
+    if (found != std::string::npos){
         body = body.substr(found);
     }
 	close(fd_out[0]);

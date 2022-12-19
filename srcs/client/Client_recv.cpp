@@ -263,7 +263,7 @@ bool Client::handle_request() {
 	}
 
 	// NOTE : check max_body_size just after the header is set.
-	int content_len;
+	int content_len = 0;
 	std::stringstream ss;
 	ss << _headers["content-length"];
 	ss >> content_len;
@@ -291,10 +291,12 @@ void Client::recv_request() {
 
 	if (valread == 0) {
 		_request_is_complete = true;
+		return ;
 	}
 	if (valread < 0) {
 		_syscall_error = "recv()";
 		log(log_error(_syscall_error), false);
+		return ;
 	}
 
 	buffer[valread] = '\0';

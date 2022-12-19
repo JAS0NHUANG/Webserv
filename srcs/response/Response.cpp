@@ -73,7 +73,6 @@ bool Response::post_body()
 {
 	std::string response;
 
-	std::cout << "File successfully saved\n";
 	_status_code = 201;
 	_body = "<!DOCTYPE html><html><body><p>File/data successfully saved</p><p>";
 	_body += "</p></body></html>";
@@ -106,7 +105,7 @@ void Response::delete_file()
 	if (stat(_path.c_str(), &sb) == -1)
 	{
 		_status_code = 500;
-		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 	else if (sb.st_mode & S_IFDIR)
@@ -116,7 +115,7 @@ void Response::delete_file()
 		if (remove(_path.c_str()) != 0)
 		{
 			_status_code = 500;
-			_syscall_error = "remove() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+			_syscall_error = "remove() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";
 			_client.log(_client.log_error(_syscall_error), false);
 		}
 		else {
@@ -144,7 +143,7 @@ bool Response::send_cgi_response(std::string body)
 	response += "\r\n";
 	response += body;
 	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
-		_syscall_error = "send()";  
+		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 	_client.log(_client.log_access(_status_code), true);
@@ -325,12 +324,6 @@ bool Response::send_response()
 		send_error_response();
 		return true;
 	}
-	std::cerr <<  "cgi php:" << _conf.get_cgi(".php").first <<"\n";
-	if (_conf.get_cgi(".php").first)
-		std::cerr <<  "cgi php:" << _conf.get_cgi(".php").second <<"\n";
-	std::cerr <<  "cgi py:" << _conf.get_cgi(".py").first <<"\n";
-	if (_conf.get_cgi(".py").first)
-		std::cerr <<  "cgi py:" << _conf.get_cgi(".py").second <<"\n";
 	if (!_extension.empty() &&
 		((_if_location && _location.get_cgi(_extension).first == true) ||
 		_conf.get_cgi(_extension).first == true))
