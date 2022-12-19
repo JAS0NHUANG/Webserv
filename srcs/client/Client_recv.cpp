@@ -241,12 +241,19 @@ bool Client::handle_request() {
 	if (_raw_request.empty()) {
 		_request_is_complete = true;
 		_status_code = 400;
+		return true;
 	}
 
 	// the first recv and header parsing
-	if (_method.empty() && _raw_request.find("\r\n\r\n") != std::string::npos) {
+	if (_method.empty()) {
+		int body_index = -1;
 		std::string raw_header;
-		int body_index = _raw_request.find("\r\n\r\n");
+
+		body_index = _raw_request.find("\r\n\r\n");
+		if (body_index < 0) {
+			_status_code = 400;
+			return true;
+		}
 		raw_header = _raw_request.substr(0, body_index + 4);
 		_raw_request.erase(0, body_index + 4);
 		std::deque<std::string>	lines;
@@ -267,6 +274,7 @@ bool Client::handle_request() {
 	std::stringstream ss;
 	ss << _headers["content-length"];
 	ss >> content_len;
+
 	if (content_len > (int)_conf.get_client_max_body_size()) {
 		// can't throw the status code directly
 		// should probably change all the throw 400 above!!
