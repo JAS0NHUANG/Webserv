@@ -299,7 +299,7 @@ bool Response::send_error_response()
 	response += "\r\n";
 	response += _body;
 
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0){
+	if (send(_client.get_fd(), response.data(), response.size(), 0) < 0){
 		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}

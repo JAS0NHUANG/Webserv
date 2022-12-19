@@ -4,29 +4,44 @@ Socket::Socket(int port, std::string address, std::vector<Config> _virtual_serve
 	_port(port),
 	_virtual_servers(_virtual_servers) {
 
-	// create socket
-	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		throwError("socket");
+	(void)address;
+	struct addrinfo hints;
+    struct addrinfo *result, *rp;
+	int s;
+	ft_memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+	std::string port_string = to_String(port);
 
-	// this struct is needed to setsockopt and bind
-	sockaddr_in	sock_addr;
-	ft_memset((char *) &sock_addr, 0, (sizeof(sock_addr)));
-
-	// setup socket
-	sock_addr.sin_family = AF_INET;
-	sock_addr.sin_addr.s_addr = inet_addr(address.c_str());
-	sock_addr.sin_port = htons(this->_port);
-
-
-	// this will make addr reusable?!
-	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
-		sizeof(sock_addr)) < 0)
-		throwError("setsockopt");
-
-	// bind
-	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0)
-		throwError("bind");
-
+	if ((s = getaddrinfo(NULL, port_string.c_str(), &hints, &result)) != 0){
+		gai_strerror(s);
+		throwError("getaddrinfo");
+	}
+	 /* getaddrinfo() returns a list of address structures.
+       Try each address until we successfully bind(2).
+       If socket(2) (or bind(2)) fails, we (close the socket
+       and) try the next address. */
+	
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+        this->_sock_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (this->_sock_fd  == -1)
+            continue;
+		int yes = 1;
+		if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
+			throwError("setsockopt");
+       	if (bind(this->_sock_fd, rp->ai_addr, rp->ai_addrlen) == 0)
+            break;                  /* Success */
+       	close(this->_sock_fd);
+    }
+	if (rp == NULL) {               /* No address succeeded */
+        throwError("bind");
+    }
+	//freeaddrinfo(result);
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
 		throwError("listen");
@@ -34,29 +49,44 @@ Socket::Socket(int port, std::string address, std::vector<Config> _virtual_serve
 
 Socket::Socket() {
 	this->_port = 4242;
-	// The original socket that was set up for listening is used only for accepting connections, not for exchanging data.
+	
+	struct addrinfo hints;
+    struct addrinfo *result, *rp;
+	int s;
+	ft_memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+	std::string port_string = to_String(this->_port);
 
-	// create socket
-	if ((this->_sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		throwError("socket");
-
-	// this struct is needed to setsockopt and bind
-	sockaddr_in	sock_addr;
-	ft_memset((char *) &sock_addr, 0, (sizeof(sock_addr)));
-
-	// setup socket
-	sock_addr.sin_family = AF_INET;
-	sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	sock_addr.sin_port = htons(this->_port);
-
-	// this will make addr reusable?!
-	if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_addr, \
-		sizeof(sock_addr)) < 0)
-		throwError("setsockopt");
-
-	// bind
-	if (bind(this->_sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr)) < 0)
-		throwError("bind");
+	if ((s = getaddrinfo(NULL, port_string.c_str(), &hints, &result)) != 0){
+		gai_strerror(s);
+		throwError("getaddrinfo");
+	}
+	 /* getaddrinfo() returns a list of address structures.
+       Try each address until we successfully bind(2).
+       If socket(2) (or bind(2)) fails, we (close the socket
+       and) try the next address. */
+	
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+        this->_sock_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (this->_sock_fd == -1)
+            continue;
+		int yes = 1;
+		if (setsockopt(this->_sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
+			throwError("setsockopt");
+       	if (bind(this->_sock_fd, rp->ai_addr, rp->ai_addrlen) == 0)
+            break;                  /* Success */
+       	close(this->_sock_fd);
+    }
+	if (rp == NULL) {               /* No address succeeded */
+        throwError("bind");
+    }
+	//freeaddrinfo(result);
 
 	// listen
 	if (listen(this->_sock_fd, 1024) < 0)
