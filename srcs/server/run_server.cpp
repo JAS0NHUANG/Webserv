@@ -89,12 +89,15 @@ int run_server(std::vector<Socket> &socket_list) {
 				Response response(clients[events[n].data.fd]);
 				done = response.send_response();
 				if (done) {
-					clients.erase(events[n].data.fd);
-					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
+					// change the last argument to &ev
+					// this seems to fix the "auto request" probleme... 
+					// (see man page in the BUG section)
+					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_DEL)");
 
 					if (close(events[n].data.fd) < 0)
 						errMsgErrno("close");
+					clients.erase(events[n].data.fd);
 				}
 			}
 			else {
