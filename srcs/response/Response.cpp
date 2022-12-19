@@ -75,6 +75,9 @@ bool Response::post_body()
 
 	_status_code = 201;
 	_body = "<!DOCTYPE html><html><body><p>File/data successfully saved</p><p>";
+	if (_client.get_headers()["content-type"].find("multipart") == std::string::npos) {
+		_body += _client.get_body();
+	}
 	_body += "</p></body></html>";
 	response = "HTTP/1.1 ";
 	response += to_String(_status_code);
@@ -353,7 +356,7 @@ bool Response::send_response()
 	{
 		if (is_redirected())
 			_status_code = 301;
-		else 
+		else
 			set_body();
 	}
 	else if (_client.get_method() == "DELETE")
