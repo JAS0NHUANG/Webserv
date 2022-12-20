@@ -322,7 +322,8 @@ bool Response::is_redirected() {
 bool Response::send_response()
 {
 	if (_status_code) {
-		// If _status_code is already that means Client class found an error earlier
+		// If _status_code is already set with a value greater than zero that means 
+		// Client class found an error earlier
 		// No need to process more, just respond as soon as possible and leave the function
 		send_error_response();
 		return true;
@@ -343,9 +344,7 @@ bool Response::send_response()
 			_status_code = 500;
 		cgi_body = cgi.handler(const_cast<char *>(script.c_str()));
 		if (cgi_body.first == false)
-		{
 			_status_code = 500;
-		}
 		else
 		{
 			set_header_fields(cgi_body.second.size());

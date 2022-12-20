@@ -81,56 +81,73 @@ std::pair<bool, std::string> Cgi::handler(char * cgi_script){
     };
     std::string body;
     std::string get_request_body;
-    std::cerr << "get_request_bpdy" << cgi_script << "|"<< get_request_body << "\n";
     if (!this->_client.get_body().empty()){
         get_request_body = this->_client.get_body();
     }
 	if (pipe(fd_out) < 0 || pipe(fd_in) < 0){
-        std::cerr << "pipe: cgi"  << std::endl;
+		_client.log(_client.log_error("pipe()"), false);
         return std::make_pair(false, body);
     }
     if (write(fd_in[1], get_request_body.c_str(), get_request_body.size()) < 0){
-        std::cerr << "write in cgi"  << std::endl;
+		_client.log(_client.log_error("write()"), false);
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
     }
 	if ((pid = fork()) < 0){
-        std::cerr << "fork: cgi" << std::endl;
+		_client.log(_client.log_error("fork()"), false);
         close_fd(fd_in, fd_out);
         return std::make_pair(false, body);
     }else if (pid == 0){
         close(fd_in[1]);
-		if (dup2(fd_in[0], STDIN_FILENO)< 0){
-            std::cerr << "dup2 in in cgi"  << std::endl;
+		if (dup2(fd_in[0], STDIN_FILENO) < 0){
             close_fd(fd_in, fd_out);
-			return std::make_pair(false, body);
+			exit(40);
         }
 	 	close(fd_in[0]);
         close(fd_out[0]);
-		if (dup2(fd_out[1], STDOUT_FILENO)< 0){
-            std::cerr << "dup2 out in cgi" << std::endl;
+		if (dup2(fd_out[1], STDOUT_FILENO) < 0){
             close_fd(fd_in, fd_out);
-			return std::make_pair(false, body);
+			exit(41);
         }
 		close(fd_out[1]);
-		execve(cgi_script, arg, this->_env_char);
-		std::cerr << "execve in cgi"<< std::endl;
+		if (execve(cgi_script, arg, this->_env_char) < 0) {
+			close_fd(fd_in, fd_out);
+			exit(42);
+		}
     }
     close(fd_in[1]);
 	close(fd_in[0]);
     close(fd_out[1]);
+
     int status;
-    waitpid(-1, &status, 0);
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status)) {
+		status = WEXITSTATUS(status);
+		if (status >= 40 && status <= 42) {
+			if (status == 40)
+				_client.log(_client.log_error("dup2()"), false);
+			if (status == 41)
+				_client.log(_client.log_error("dup2()"), false);
+			if (status == 42)
+				_client.log(_client.log_error("execve()"), false);
+			return std::make_pair(false, body);
+		}
+	}
 
 	char buff[1024] = {0};
 	ssize_t res = 0;
-	while ((res = read(fd_out[0], buff, 1024)) > 0)
+	if ((res = read(fd_out[0], buff, 1024)) < 0) {
+		close(fd_out[0]);
+		return std::make_pair(false, body);
+	}
+	while (res > 0)
 	{
 		buff[res] = '\0';
 		body += buff;
+		res = read(fd_out[0], buff, 1024);
 	}
     std::size_t found = body.find("\r\n\r\n");
-    if (found != std::string::npos){
+    if (found != std::string::npos) {
         body = body.substr(found);
     }
 	close(fd_out[0]);
