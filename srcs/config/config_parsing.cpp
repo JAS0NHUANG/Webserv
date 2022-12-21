@@ -68,6 +68,8 @@ void config_parse(std::queue<std::vector<std::string> > &qu, std::vector<Config>
 				do_error_page_parsing(qu, c, line);
 			else if (d == e_client_max_body_size)
 				do_client_max_body_size_parsing(qu, c, line);
+			else if (d == e_set_cookie)
+				do_set_cookie_parsing(qu, c, line);
 			else if (d == e_location)
 				do_location_parsing(qu, c, line);
 			else

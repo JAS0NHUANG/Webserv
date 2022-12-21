@@ -307,3 +307,21 @@ void do_location_parsing(std::queue<std::vector<std::string> > &qu, Config &conf
 
 	erase_token(qu, line);
 }
+
+void do_set_cookie_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
+	erase_token(qu, line);
+	throw_if_file_is_empty(qu, line);
+
+	if (qu.front().front() != "on" && qu.front().front() != "off")
+		throw_parsing_error(std::string("expected 'on' or 'off'"), to_String(line));
+
+	conf.set_set_cookie(qu.front().front());
+
+	erase_token(qu, line);
+	throw_if_file_is_empty(qu, line);
+
+	if (qu.empty() || qu.front().front() != ";")
+		throw_parsing_error("expected ';'", to_String(line));
+
+	erase_token(qu, line);
+}

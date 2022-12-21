@@ -11,6 +11,7 @@ enum directives {
 	e_cgi,
 	e_error_page,
 	e_client_max_body_size,
+	e_set_cookie,
 	e_location,
 	e_return,
 	e_root,
@@ -19,18 +20,18 @@ enum directives {
 	e_upload_store
 };
 
-// saveFile.cpp
+// save_file.cpp
 std::vector<std::string> split_line(std::string str);
 void delete_comment(std::vector<std::string> &vec);
 void save_file(char *fileName, std::queue<std::vector<std::string> >	&qu);
 
-// configParsing.cpp
+// config_parsing.cpp
 void call_doers(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 void config_parse(std::queue<std::vector<std::string> > &qu, std::vector<Config> &conf);
 void debugPrintQ(std::queue<std::vector<std::string> >	&qu);
 void parse_file(char *fileName, std::map<std::string, std::vector<Config> > &virtual_servers);
 
-// doParsing.cpp
+// do_parsing.cpp
 void do_server_parsing(std::queue<std::vector<std::string> > &qu, int &line);
 void do_listen_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
 void do_server_name_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
@@ -44,8 +45,9 @@ void do_autoindex_parsing(std::queue<std::vector<std::string> > &qu, Location &c
 void do_index_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 void do_cgi_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
 void do_upload_store_parsing(std::queue<std::vector<std::string> > &qu, Location &conf, int &line);
+void do_set_cookie_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line);
 
-// utilsParsing.cpp
+// utils_parsing.cpp
 void err_msg_errno(std::string msg);
 void erase_token(std::queue<std::vector<std::string> > &qu, int &line);
 void check_if_line_is_empty(std::queue<std::vector<std::string> > &qu, int &line);

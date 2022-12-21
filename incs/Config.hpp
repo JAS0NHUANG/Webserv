@@ -20,6 +20,9 @@ class Config : public Location {
 		/* Size of the maximum bytes a client can send to webserv */
 		unsigned long long	_client_max_body_size;
 
+		/* Tell the server to set a cookie for this site or not */
+		bool	_set_cookie;
+
 		/* [ uri | uri_configuration ] */
 		std::map<std::string, Location>	_location;
 	public:
@@ -36,6 +39,7 @@ class Config : public Location {
 		std::vector<std::string>	get_server_name() const; // Return empty vector if not set
 		std::string					get_error_page(int code) const; // Return empty string if not set
 		unsigned long long			get_client_max_body_size() const; // Default is 1M
+		bool						get_set_cookie() const; // Default off
 		std::pair<bool, Location>	get_location(std::string uri) const; // If uri is not found, bool is false
 
 		void	set_address(std::string str);
@@ -43,6 +47,7 @@ class Config : public Location {
 		void	set_server_name(std::vector<std::string> &names);
 		void	set_error_page(std::vector<int> &codes, std::string &path);
 		void	set_client_max_body_size(unsigned long long size);
+		void	set_set_cookie(std::string str);
 		void	set_location(std::string &uri, Location &location);
 
 

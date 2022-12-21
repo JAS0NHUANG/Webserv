@@ -39,6 +39,8 @@ directives find_directive(std::string &str) {
 		return e_cgi;
 	else if (str == "upload_store")
 		return e_upload_store;
+	else if (str == "set_cookie")
+		return e_set_cookie;
 	return e_unknown;
 }
 
