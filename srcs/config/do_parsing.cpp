@@ -168,14 +168,12 @@ void do_return_parsing(std::queue<std::vector<std::string> > &qu, Location &conf
 		throw_parsing_error("expected a redirection status code `3xx`", to_String(line));
 
 	conf.set_return_status(qu.front().front());
-	std::cout << "return_status code : " << qu.front().front() << std::endl;
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);
 
 	if (qu.front().front() == ";")
 		throw_parsing_error("unexpected ';'", to_String(line));
 
-	std::cout << "return : " << qu.front().front() << std::endl;
 	conf.set_return(qu.front().front());
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);

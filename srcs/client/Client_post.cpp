@@ -9,6 +9,8 @@ bool Client::upload_file(std::string &raw_request) {
 		upload_path = _conf.get_upload_store().second;
 
 	if (access(upload_path.c_str(), X_OK) != 0) {
+		_syscall_error = "access() \"" + upload_path + "\"" + " failed (" + strerror(errno) + ")";
+		log(log_error(_syscall_error), false);
 		_status_code = 500;
 		_request_is_complete = true;
 		return false;
@@ -47,6 +49,9 @@ bool Client::upload_file(std::string &raw_request) {
 
 		std::ofstream temp_file((upload_path + "/" + filename).c_str());
 		if (!temp_file.is_open()) {
+			_syscall_error = "ofstream open() \"" + upload_path + "/" +
+				filename + "\" " + "failed ";
+			log(log_error(_syscall_error), false);
 			_status_code = 500;
 			_request_is_complete = true;
 			return false;
