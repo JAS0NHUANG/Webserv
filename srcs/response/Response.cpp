@@ -43,11 +43,11 @@ void Response::set_header_fields(int cont_Leng)
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
 	}
-	//headers["Content-Type"] = content_mime_type(_extension);
-	if (!this->_extension.empty() && this->_extension.compare(".php") &&  this->_extension.compare(".py") )
+	if ((_if_location && _location.get_cgi(_extension).first == false) ||
+		_conf.get_cgi(_extension).first == false)
 		headers["Content-Type"] = content_mime_type(this->_extension);
 	else
-		headers["Content-Type"] = "text/html; charset=utf-8";
+		headers["Content-Type"] = "text/html";
 	if (_status_code >= 300 && _status_code < 400 && _if_location == true) {
 		if (!_location.get_return().empty())
 			headers["Location"] = _location.get_return();
@@ -191,7 +191,7 @@ void Response::set_body()
 	struct stat s;
 
 	if (stat(_path.c_str(), &s) == 0) {
-		if (s.st_mode & S_IFREG) // ELement is a regular file.
+		if (s.st_mode & S_IFREG) // Element is a regular file.
 			_body = get_file_content(_path);
 		else if (s.st_mode & S_IFDIR ) { // Element is a directory
 			if ((_if_location && _location.get_autoindex() == true) ||
@@ -355,8 +355,10 @@ bool Response::send_response()
 	{
 		if (is_redirected())
 			_status_code = 301;
-		else
+		else {
 			set_body();
+			set_header_fields(_body.size());
+		}
 	}
 	else if (_client.get_method() == "DELETE")
 		delete_file();
