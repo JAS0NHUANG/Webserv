@@ -269,23 +269,25 @@ bool Client::handle_request() {
 		}
 	}
 
-	// NOTE : check max_body_size just after the header is set.
-	int content_len = 0;
+
+	size_t content_len = 0;
 	std::stringstream ss;
 	ss << _headers["content-length"];
 	ss >> content_len;
 
-	if (content_len > (int)_conf.get_client_max_body_size()) {
-		// can't throw the status code directly
-		// should probably change all the throw 400 above!!
-		_status_code = 413;
-		_request_is_complete = true;
-		return true;
-	}
-
 	if (!_raw_request.empty()) {
-		if ((int)_raw_request.size() >= content_len)
+		if (_raw_request.size() >= content_len) {
+			// NOTE : check max_body_size after the whole body is received!
+			// Don't send the body for processing if it's too big
+			if (content_len > _conf.get_client_max_body_size()) {
+				// can't throw the status code directly
+				// should probably change all the throw 400 above!!
+				_status_code = 413;
+				_request_is_complete = true;
+				return _request_is_complete;
+			}
 			process_body(_raw_request);
+		}
 	}
 
 	return _request_is_complete;
@@ -293,9 +295,10 @@ bool Client::handle_request() {
 
 void Client::recv_request() {
 	char buffer[BUFFER_SIZE] = {};
-	int valread;
+	int valread = 0;
 
 	valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
+	std::cout << _raw_request.size() << "\n";
 
 	if (valread == 0) {
 		_request_is_complete = true;
