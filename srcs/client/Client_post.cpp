@@ -6,7 +6,7 @@ bool Client::upload_file(std::string &raw_request) {
 	std::string file_body;
 
 	if (_conf.get_upload_store().first == true)
-		upload_path = _conf.get_upload_store().second;
+		upload_path = create_path(_conf.get_upload_store().second);
 
 	if (access(upload_path.c_str(), X_OK) != 0) {
 		_syscall_error = "access() \"" + upload_path + "\"" + " failed (" + strerror(errno) + ")";
