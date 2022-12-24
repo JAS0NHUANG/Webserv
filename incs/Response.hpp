@@ -50,6 +50,7 @@ class Response {
 											std::string> &expected_cookies, \
 											std::map<std::string, std::string> &received_cookies,\
 											std::vector<std::string> &cookies);
+		std::string							create_random_session_id();
 };
 
 #endif

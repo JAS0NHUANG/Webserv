@@ -82,7 +82,17 @@ void Response::check_all_cookies_received(std::map<std::string, std::string> &ex
 			cookies.push_back("Set-Cookie: " + it->first + "=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=" + _client.get_request_target() + "\r\n");
 		}
 	}
+}
 
+std::string Response::create_random_session_id() {
+  std::srand(std::time(NULL));
+  static const char hex_digits[] = "0123456789abcdef";
+
+  std::string session_id;
+  for (int i = 0; i < 32; ++i) {
+    session_id += hex_digits[std::rand() % 16];
+  }
+  return session_id;
 }
 
 void Response::manage_cookies(std::vector<std::string> &cookies) {
@@ -91,7 +101,7 @@ void Response::manage_cookies(std::vector<std::string> &cookies) {
 
 		std::map<std::string, std::string> client_cookies = parse_cookie(_client.get_headers()["cookie"]);
 		if (client_cookies.count("sessionId") == 0 || _sessions.count(client_cookies["sessionId"]) == 0) {
-			std::string session_id = to_String(_sessions.size() + 1);
+			std::string session_id = create_random_session_id();
 			cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, "sessionId", session_id) + "\r\n");
 			std::vector<std::string> cookie_strings = _client.get_conf().get_cookies();
 			std::vector<std::string>::iterator it = cookie_strings.begin();
