@@ -48,5 +48,6 @@ int main(int argc, char *argv[])
 		std::cerr << BRED << str << "\n" << RESET;
 		return 1;
 	}
+	std::cout << BGRN " -- Webserv exited succesfully. --\n" RESET;
 	return (0);
 }

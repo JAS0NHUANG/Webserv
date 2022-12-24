@@ -97,7 +97,6 @@ std::string Response::create_random_session_id() {
 
 void Response::manage_cookies(std::vector<std::string> &cookies) {
 	if (_client.get_conf().get_cookies().empty() == false) {
-		std::cout << "Number of sessions : " << _sessions.size() << std::endl;
 
 		std::map<std::string, std::string> client_cookies = parse_cookie(_client.get_headers()["cookie"]);
 		if (client_cookies.count("sessionId") == 0 || _sessions.count(client_cookies["sessionId"]) == 0) {

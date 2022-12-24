@@ -49,7 +49,7 @@ int run_server(std::vector<Socket> &socket_list) {
 	while (g_shutdown) {
 		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
-		if (event_fds == -1)
+		if (event_fds == -1 && errno != EINTR)
 			errMsgErrno("epoll_wait");
 
 		// Loop that handle events happening on server fd and connections fds
