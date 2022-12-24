@@ -46,6 +46,10 @@ class Response {
 		std::map<std::string, std::string>	parse_cookie(std::string& cookie_str);
 		std::string							set_session_cookie(const std::string& session_id, \
 											const std::string& name, const std::string& value);
+		void								check_all_cookies_received(std::map<std::string, \
+											std::string> &expected_cookies, \
+											std::map<std::string, std::string> &received_cookies,\
+											std::vector<std::string> &cookies);
 };
 
 #endif

@@ -59,6 +59,32 @@ std::map<std::string, std::string> Response::parse_cookie(std::string& cookie_st
   return cookies;
 }
 
+void Response::check_all_cookies_received(std::map<std::string, std::string> &expected_cookies,
+								std::map<std::string, std::string> &received_cookies,
+								std::vector<std::string> &cookies) {
+  // Iterate over the expected cookies
+	std::map<std::string, std::string>::iterator it = expected_cookies.begin();
+	for (; it != expected_cookies.end(); ++it) {
+		// Check if the received cookies map contains the current cookie
+		if (received_cookies.count(it->first) == 0 || received_cookies.find(it->first)->second != it->second) {
+			// The current cookie is not present in the received cookies map
+			cookies.push_back("Set-Cookie: " + set_session_cookie(expected_cookies["sessionId"], \
+				it->first, it->second) + "\r\n");
+		}
+		// Check if the value of the current cookie in the received cookies map matches the expected value
+			// The value of the current cookie does not match the expected value
+	}
+
+	// Iterate over the reveived cookies to check if there is unexpected ones
+	it = received_cookies.begin();
+	for (; it != received_cookies.end(); ++it) {
+		if (expected_cookies.count(it->first) == 0) {
+			cookies.push_back("Set-Cookie: " + it->first + "=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=" + _client.get_request_target() + "\r\n");
+		}
+	}
+
+}
+
 void Response::manage_cookies(std::vector<std::string> &cookies) {
 	if (_client.get_conf().get_cookies().empty() == false) {
 		std::cout << "Number of sessions : " << _sessions.size() << std::endl;
@@ -75,6 +101,8 @@ void Response::manage_cookies(std::vector<std::string> &cookies) {
 			cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, pr.first, pr.second) + "\r\n");
 			}
 		}
+		else
+			check_all_cookies_received(_sessions[client_cookies["sessionId"]], client_cookies, cookies);
 		// else not setting any cookies
 	}
 }
