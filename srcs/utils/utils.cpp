@@ -27,3 +27,13 @@ void str_to_lower(std::string &str) {
 	for (; it != str.end(); it++)
 		*it = std::tolower(*it);
 }
+
+void remove(std::string &str, char c) {
+	std::string result;
+	for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) {
+		if (*it != c) {
+		result += *it;
+		}
+	}
+	str = result;
+}

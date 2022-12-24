@@ -1,6 +1,7 @@
 #include "Response.hpp"
 
-Response::Response(Client client) : _client(client)
+Response::Response(Client client, std::map<std::string, std::map<std::string, std::string> > &sessions) : _client(client),
+			_sessions(sessions)
 {
 	_path = _client.get_path();
 	_conf = _client.get_conf();
@@ -23,9 +24,56 @@ Response::~Response(void)
 {
 }
 
+std::string Response::set_session_cookie(const std::string &session_id,
+										 const std::string &name,
+										 const std::string &value) {
+	_sessions[session_id][name] = value;
+	std::string cookie_str = name + "=" + value;
+
+	return cookie_str;
+}
+
+std::map<std::string, std::string> Response::parse_cookie(std::string& cookie_str) {
+	std::map<std::string, std::string> cookies;
+	std::size_t start = 0;
+
+	remove(cookie_str, ' ');
+	while (start < cookie_str.size()) {
+		// Find the name of the next cookie
+		std::size_t name_end = cookie_str.find('=', start);
+		if (name_end == std::string::npos)
+			break;
+		std::string name = cookie_str.substr(start, name_end - start);
+		// Find the value of the cookie
+		std::size_t value_start = name_end + 1;
+		std::size_t value_end = cookie_str.find(';', value_start);
+		if (value_end == std::string::npos)
+			value_end = cookie_str.size();
+		std::string value = cookie_str.substr(value_start, value_end - value_start);
+		// Store the cookie in the map
+		cookies[name] = value;
+		// Move to the next cookie
+		start = value_end + 1;
+  }
+  return cookies;
+}
+
+void Response::manage_cookies(std::vector<std::string> &cookies) {
+	std::cout << "Number of sessions : " << _sessions.size() << std::endl;
+
+	std::map<std::string, std::string> client_cookies = parse_cookie(_client.get_headers()["cookie"]);
+	if (client_cookies.count("session") == 0 || _sessions.count(client_cookies["session"]) == 0) {
+		std::string session_id = to_String(_sessions.size() + 1);
+		cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, "session", session_id) + "\r\n");
+		cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, "cookie", "chocolate") + "\r\n");
+	}
+	// else not setting any cookies
+}
+
 void Response::set_header_fields(int cont_Leng)
 {
-	std::map<std::string, std::string> headers;
+	std::map<std::string, std::string>	headers;
+	std::vector<std::string>			cookies;
 
 	headers["Content-Length"] = to_String(cont_Leng);
 	if (_status_code == 405)
@@ -48,13 +96,18 @@ void Response::set_header_fields(int cont_Leng)
 		headers["Content-Type"] = content_mime_type(this->_extension);
 	else
 		headers["Content-Type"] = "text/html";
-	if (_status_code >= 300 && _status_code < 400 && _if_location == true) {
+
+	manage_cookies(cookies);
+
+	if (_status_code >= 300 && _status_code < 400 && _if_location == true)
+	{
 		if (!_location.get_return().empty())
 			headers["Location"] = _location.get_return();
 		else
 			headers["Location"] = _location.get_index();
 	}
-	else if (_status_code >= 300 && _status_code < 400 && _if_location == false) {
+	else if (_status_code >= 300 && _status_code < 400 && _if_location == false)
+	{
 		if (!_conf.get_return().empty())
 			headers["Location"] = _conf.get_return();
 		else
@@ -67,6 +120,8 @@ void Response::set_header_fields(int cont_Leng)
 		_header_fields += it->second;
 		_header_fields += "\r\n";
 	}
+	for (std::vector<std::string>::iterator it = cookies.begin(); it != cookies.end(); it++)
+		_header_fields += *it;
 }
 
 bool Response::post_body()
@@ -75,7 +130,8 @@ bool Response::post_body()
 
 	_status_code = 201;
 	_body = "<!DOCTYPE html><html><body><p>File/data successfully saved</p><p>";
-	if (_client.get_headers()["content-type"].find("multipart") == std::string::npos) {
+	if (_client.get_headers()["content-type"].find("multipart") == std::string::npos)
+	{
 		_body += _client.get_body();
 	}
 	_body += "</p></body></html>";
@@ -88,7 +144,8 @@ bool Response::post_body()
 	response += "Content-Type:text/html; charset=utf-8 \n";
 	response += "\r\n";
 	response += _body;
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	{
 		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
@@ -121,7 +178,8 @@ void Response::delete_file()
 			_syscall_error = "remove() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";
 			_client.log(_client.log_error(_syscall_error), false);
 		}
-		else {
+		else
+		{
 			_status_code = 200;
 			_body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
 			_body += "DELETED";
@@ -145,7 +203,8 @@ bool Response::send_cgi_response(std::string body)
 	response += _header_fields;
 	response += "\r\n";
 	response += body;
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	{
 		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
@@ -165,8 +224,9 @@ bool Response::send_successful_response()
 	response += _header_fields;
 	response += "\r\n";
 	response += _body;
-	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0) {
-		_syscall_error = "send()";  
+	if (send(_client.get_fd(), response.c_str(), response.size(), 0) < 0)
+	{
+		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 	_client.log(_client.log_access(_status_code), true);
@@ -176,9 +236,10 @@ bool Response::send_successful_response()
 std::string Response::get_file_content(std::string content)
 {
 	std::ifstream input_file(content.c_str());
-	if (!input_file.is_open()) {
+	if (!input_file.is_open())
+	{
 		_status_code = 500;
-		_syscall_error = "ifstream open() \"" + _path + "\" " + "failed ";  
+		_syscall_error = "ifstream open() \"" + _path + "\" " + "failed ";
 		_client.log(_client.log_error(_syscall_error), false);
 		return std::string();
 	}
@@ -190,10 +251,12 @@ void Response::set_body()
 {
 	struct stat s;
 
-	if (stat(_path.c_str(), &s) == 0) {
+	if (stat(_path.c_str(), &s) == 0)
+	{
 		if (s.st_mode & S_IFREG) // Element is a regular file.
 			_body = get_file_content(_path);
-		else if (s.st_mode & S_IFDIR ) { // Element is a directory
+		else if (s.st_mode & S_IFDIR)
+		{ // Element is a directory
 			if ((_if_location && _location.get_autoindex() == true) ||
 				_conf.get_autoindex() == true)
 				set_autoindex_body();
@@ -201,9 +264,10 @@ void Response::set_body()
 				_status_code = 301;
 		}
 	}
-	else {
+	else
+	{
 		_status_code = 500;
-		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+		_syscall_error = "stat() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 }
@@ -227,11 +291,11 @@ void Response::set_autoindex_body()
 	else
 	{
 		_status_code = 500;
-		_syscall_error = "opendir() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";  
+		_syscall_error = "opendir() \"" + _path + "\" " + "failed (" + strerror(errno) + ")";
 		_client.log(_client.log_error(_syscall_error), false);
 		return;
 	}
-	_body =	"<!DOCTYPE html><html><body>\n"
+	_body = "<!DOCTYPE html><html><body>\n"
 			"<style>"
 			" body {background-color: #353535;}"
 			"div {border: solid 1px black; box-sizing: border-box; width: 50%;  height: auto; margin: 0 auto; border-radius: 10px; background-color: #2b2a33 }"
@@ -253,8 +317,10 @@ void Response::set_autoindex_body()
 	_status_code = 200;
 }
 
-bool Response::set_defined_error_page() {
-	if (!_conf.get_error_page(_status_code).empty()) {
+bool Response::set_defined_error_page()
+{
+	if (!_conf.get_error_page(_status_code).empty())
+	{
 		_path = _client.create_path(_conf.get_error_page(_status_code));
 		std::ifstream myfile(_path.c_str());
 		if (myfile.is_open())
@@ -268,13 +334,14 @@ bool Response::set_defined_error_page() {
 			myfile.close();
 			return true;
 		}
-		_syscall_error = "ifstream open() \"" + _path + "\" " + "failed ";  
+		_syscall_error = "ifstream open() \"" + _path + "\" " + "failed ";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
 	return false;
 }
 
-void Response::set_default_error_page() {
+void Response::set_default_error_page()
+{
 	_body = "<!DOCTYPE html><html lang=\"en\"><head><title>";
 	_body += to_String(_status_code) + " " + get_code_msg();
 	_body += "</title></head><body><center><h1>";
@@ -299,7 +366,8 @@ bool Response::send_error_response()
 	response += "\r\n";
 	response += _body;
 
-	if (send(_client.get_fd(), response.data(), response.size(), 0) < 0){
+	if (send(_client.get_fd(), response.data(), response.size(), 0) < 0)
+	{
 		_syscall_error = "send()";
 		_client.log(_client.log_error(_syscall_error), false);
 	}
@@ -307,13 +375,16 @@ bool Response::send_error_response()
 	return true;
 }
 
-bool Response::is_redirected() {
+bool Response::is_redirected()
+{
 	if (_if_location && !_location.get_return().empty() &&
-		_client.get_request_target() != _location.get_return()) {
+		_client.get_request_target() != _location.get_return())
+	{
 		return true;
 	}
 	else if (!_conf.get_return().empty() && _client.get_request_target() == "/" &&
-		_client.get_request_target() != _conf.get_return()) {
+			 _client.get_request_target() != _conf.get_return())
+	{
 		return true;
 	}
 	return false;
@@ -321,8 +392,9 @@ bool Response::is_redirected() {
 
 bool Response::send_response()
 {
-	if (_status_code) {
-		// If _status_code is already set with a value greater than zero that means 
+	if (_status_code)
+	{
+		// If _status_code is already set with a value greater than zero that means
 		// Client class found an error earlier
 		// No need to process more, just respond as soon as possible and leave the function
 		send_error_response();
@@ -330,7 +402,7 @@ bool Response::send_response()
 	}
 	if (!_extension.empty() &&
 		((_if_location && _location.get_cgi(_extension).first == true) ||
-		_conf.get_cgi(_extension).first == true))
+		 _conf.get_cgi(_extension).first == true))
 	{
 		std::pair<bool, std::string> cgi_body;
 		std::string reponse;
@@ -355,7 +427,8 @@ bool Response::send_response()
 	{
 		if (is_redirected())
 			_status_code = 301;
-		else {
+		else
+		{
 			set_body();
 			set_header_fields(_body.size());
 		}
@@ -364,7 +437,8 @@ bool Response::send_response()
 		delete_file();
 	else if (_client.get_method() == "POST")
 	{
-		if (_status_code < 300) {
+		if (_status_code < 300)
+		{
 			_status_code = 201;
 			return post_body();
 		}

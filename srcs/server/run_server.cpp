@@ -32,7 +32,7 @@ int accept_conn(struct epoll_event ev, int epollfd) {
 }
 
 int run_server(std::vector<Socket> &socket_list) {
-
+	std::map<std::string, std::map<std::string, std::string> > sessions; // Holding sessions cookies
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients;
@@ -85,7 +85,7 @@ int run_server(std::vector<Socket> &socket_list) {
 			else if (events[n].events & EPOLLOUT) {
 				// done = clients[events[n].data.fd].send_response();
 				// std::cout << "JUST TRIED TO SEND\n";
-				Response response(clients[events[n].data.fd]);
+				Response response(clients[events[n].data.fd], sessions);
 				done = response.send_response();
 				if (done) {
 					// change the last argument to &ev
