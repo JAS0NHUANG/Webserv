@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <cstdio>
 
+#include <algorithm>
+
 // containers
 #include <map>
 #include <set>

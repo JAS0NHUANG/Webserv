@@ -26,7 +26,6 @@ Config::Config() {
 	_address				= "127.0.0.1";
 	_port					= 8000;
 	_client_max_body_size	= 1000000; // 1M
-	_set_cookie				= false;
 }
 
 Config::~Config() {}
@@ -49,7 +48,7 @@ Config& Config::Config::operator=(const Config &x) {
 	_server_name			= x._server_name;
 	_error_page				= x._error_page;
 	_client_max_body_size 	= x._client_max_body_size;
-	_set_cookie				= x._set_cookie;
+	_cookies				= x._cookies;
 	_location				= x._location;
 	return *this;
 }
@@ -78,8 +77,8 @@ unsigned long long Config::get_client_max_body_size() const {
 	return _client_max_body_size;
 }
 
-bool Config::get_set_cookie() const {
-	return _set_cookie;
+std::vector<std::string> Config::get_cookies() const {
+	return _cookies;
 }
 
 std::pair<bool, Location>	Config::get_location(std::string uri) const {
@@ -120,11 +119,10 @@ void	Config::set_client_max_body_size(unsigned long long size) {
 	_client_max_body_size = size;
 }
 
-void	Config::set_set_cookie(std::string str) {
-	if (str == "on")
-		_set_cookie = true;
-	std::cout << "_set_cookie is " << _set_cookie << std::endl;
+void	Config::set_cookies(std::string str) {
+	_cookies.push_back(str);
 }
+
 void	Config::set_location(std::string &uri, Location &location) {
 	_location.erase(uri);
 	_location.insert(std::make_pair(uri, location));

@@ -308,14 +308,21 @@ void do_location_parsing(std::queue<std::vector<std::string> > &qu, Config &conf
 	erase_token(qu, line);
 }
 
+bool is_valid_format(const std::string& str) {
+	std::string::size_type pos = str.find('=');
+	if (pos == std::string::npos || pos == 0 || pos == str.size() - 1)
+		return false;
+	return !str.substr(0, pos).empty() && !str.substr(pos + 1).empty();
+}
+
 void do_set_cookie_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);
 
-	if (qu.front().front() != "on" && qu.front().front() != "off")
-		throw_parsing_error(std::string("expected 'on' or 'off'"), to_String(line));
+	if (is_valid_format(qu.front().front()) == false)
+		throw_parsing_error(std::string("expected format 'name=value'"), to_String(line));
 
-	conf.set_set_cookie(qu.front().front());
+	conf.set_cookies(qu.front().front());
 
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);

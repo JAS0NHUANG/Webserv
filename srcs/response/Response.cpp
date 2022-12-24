@@ -1,7 +1,8 @@
 #include "Response.hpp"
 
-Response::Response(Client client, std::map<std::string, std::map<std::string, std::string> > &sessions) : _client(client),
-			_sessions(sessions)
+Response::Response(Client client, std::map<std::string, std::map<std::string, std::string> > &sessions) :
+	_client(client),
+	_sessions(sessions)
 {
 	_path = _client.get_path();
 	_conf = _client.get_conf();
@@ -59,15 +60,23 @@ std::map<std::string, std::string> Response::parse_cookie(std::string& cookie_st
 }
 
 void Response::manage_cookies(std::vector<std::string> &cookies) {
-	std::cout << "Number of sessions : " << _sessions.size() << std::endl;
+	if (_client.get_conf().get_cookies().empty() == false) {
+		std::cout << "Number of sessions : " << _sessions.size() << std::endl;
 
-	std::map<std::string, std::string> client_cookies = parse_cookie(_client.get_headers()["cookie"]);
-	if (client_cookies.count("session") == 0 || _sessions.count(client_cookies["session"]) == 0) {
-		std::string session_id = to_String(_sessions.size() + 1);
-		cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, "session", session_id) + "\r\n");
-		cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, "cookie", "chocolate") + "\r\n");
+		std::map<std::string, std::string> client_cookies = parse_cookie(_client.get_headers()["cookie"]);
+		if (client_cookies.count("sessionId") == 0 || _sessions.count(client_cookies["sessionId"]) == 0) {
+			std::string session_id = to_String(_sessions.size() + 1);
+			cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, "sessionId", session_id) + "\r\n");
+			std::vector<std::string> cookie_strings = _client.get_conf().get_cookies();
+			std::vector<std::string>::iterator it = cookie_strings.begin();
+			for (; it != cookie_strings.end(); it++) {
+				std::string::iterator pos = std::find((*it).begin(), (*it).end(), '=');
+				std::pair<std::string, std::string> pr = std::make_pair(std::string((*it).begin(), pos), std::string(pos + 1, (*it).end()));
+			cookies.push_back("Set-Cookie: " + set_session_cookie(session_id, pr.first, pr.second) + "\r\n");
+			}
+		}
+		// else not setting any cookies
 	}
-	// else not setting any cookies
 }
 
 void Response::set_header_fields(int cont_Leng)
