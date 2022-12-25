@@ -45,7 +45,7 @@ void Cgi::set_env(){
 	this->env["SERVER_PORT"] = to_String(_conf.get_port());
 	this->env["SERVER_SOFTWARE"]= "WEBSERV/1.1";
 	this->env["REDIRECT_STATUS"]="200";
-    print_env(this->env);
+    // print_env(this->env);
 }
 
 void close_fd(int fd_in[], int fd_out[]){

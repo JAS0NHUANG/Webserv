@@ -298,7 +298,6 @@ void Client::recv_request() {
 	int valread = 0;
 
 	valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
-	std::cout << _raw_request.size() << "\n";
 
 	if (valread == 0) {
 		_request_is_complete = true;
