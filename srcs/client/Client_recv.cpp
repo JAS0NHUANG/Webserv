@@ -61,7 +61,7 @@ void Client::check_access(std::string request_target) {
 	_path = create_path(request_target);
 
 	int code = access(_path.c_str(), 0);
-	if (code < 0) {
+	if (code < 0 && ((_if_location && _location.get_return().empty()) || (!_if_location && _conf.get_return().empty()))) {
 		_syscall_error = "access() \"" + _path + "\"" + " failed (" + strerror(errno) + ")";
 		log(log_error(_syscall_error), false);
 		if (errno == ENOENT)
@@ -102,8 +102,6 @@ void Client::process_request_line(std::string &line) {
 	// Get request target and query string if any
 	// and delete it from request_target
 	_request_target = *it;
-
-	_if_location = check_if_location_required(_request_target); 
 
 	_query_string =  get_query_string(_request_target);
 
@@ -185,6 +183,8 @@ void Client::process_field_line(std::string &line) {
 
 		// Check if the method is allowed by the virtual server
 		check_method(_method);
+
+		_if_location = check_if_location_required(_request_target);
 
 		// Check is the resource is accessible
 		check_access(_request_target);

@@ -162,7 +162,7 @@ void Response::set_header_fields(int cont_Leng)
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
 		_header_fields += it->first;
-		_header_fields += ":";
+		_header_fields += ": ";
 		_header_fields += it->second;
 		_header_fields += "\r\n";
 	}
@@ -307,7 +307,7 @@ void Response::set_body()
 				_conf.get_autoindex() == true)
 				set_autoindex_body();
 			else
-				_status_code = 301;
+				_status_code = 307;
 		}
 	}
 	else
@@ -407,7 +407,6 @@ bool Response::send_error_response()
 	if (set_defined_error_page() == false)
 		set_default_error_page();
 
-	set_header_fields(_body.size());
 	response += _header_fields;
 	response += "\r\n";
 	response += _body;
@@ -425,14 +424,9 @@ bool Response::is_redirected()
 {
 	if (_if_location && !_location.get_return().empty() &&
 		_client.get_request_target() != _location.get_return())
-	{
 		return true;
-	}
-	else if (!_conf.get_return().empty() && _client.get_request_target() == "/" &&
-			 _client.get_request_target() != _conf.get_return())
-	{
+	else if (!_conf.get_return().empty() && _client.get_request_target() != _conf.get_return())
 		return true;
-	}
 	return false;
 }
 
@@ -472,12 +466,10 @@ bool Response::send_response()
 	else if (_client.get_method() == "GET")
 	{
 		if (is_redirected())
-			_status_code = 301;
+			_status_code = 307;
 		else
-		{
 			set_body();
-			set_header_fields(_body.size());
-		}
+		set_header_fields(_body.size());
 	}
 	else if (_client.get_method() == "DELETE")
 		delete_file();
