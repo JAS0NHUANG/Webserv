@@ -1,4 +1,0 @@
-server {	
-	listen localhost:9999;
-	root ./www/tribute-page;
-}

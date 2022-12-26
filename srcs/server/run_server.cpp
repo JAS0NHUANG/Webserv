@@ -30,23 +30,8 @@ int accept_conn(struct epoll_event ev, int epollfd) {
 	return conn_sock;
 }
 
-void check_client_timeouts(std::map<int, Client> &clients, int &epollfd,
-	struct epoll_event ev, struct epoll_event events[]) {
-	std::map<int, Client>::iterator it = clients.begin();
-
-	for (; it != clients.end(); it++) {
-		if (it->second.get_timeout() > 30) {
-			ev.events = EPOLLOUT;
-			ev.data.fd = events[it->first].data.fd;
-			if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[it->first].data.fd, &ev) == -1)
-				errMsgErrno("epoll_ctl (op: EPOLL_CTL_MOD)");
-			it->second.set_timeout_status_code();
-		}
-	}
-}
-
 int run_server(std::vector<Socket> &socket_list) {
-
+	std::map<std::string, std::map<std::string, std::string> > sessions; // Holding sessions cookies
 	struct epoll_event ev, events[MAX_EVENTS];
 	int event_fds, epollfd;
 	std::map<int, Client> clients;
@@ -60,11 +45,10 @@ int run_server(std::vector<Socket> &socket_list) {
 		add_event(epollfd, socket_list[i].getSockFd(), EPOLLIN);
 	}
 
-	std::cout << BGRN << UGRN << ">> Webserv successfully running and waiting for requests <<" << RESET << std::endl;
 	while (g_shutdown) {
-		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, 5000); // blocking 5 secs
+		event_fds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
 
-		if (event_fds == -1)
+		if (event_fds == -1 && errno != EINTR)
 			errMsgErrno("epoll_wait");
 
 		// Loop that handle events happening on server fd and connections fds
@@ -80,39 +64,44 @@ int run_server(std::vector<Socket> &socket_list) {
 			if (it != socket_list.end()) {
 				int conn_sock = accept_conn(events[n], epollfd);
 				Client new_client(conn_sock, (*it).get_virtual_servers());
-				clients[n] = new_client;
+				clients[conn_sock] = new_client;
 			}
 
 			// Receiving request
 			else if (events[n].events & EPOLLIN) {
-				std::string raw_request  = clients[n].recv_request();
-				done = clients[n].handle_request(raw_request);
+				clients[events[n].data.fd].recv_request();
+				// std::cout << "raw request: " << raw_request << "\n";
+				done = clients[events[n].data.fd].handle_request();
 				if (done) {
 					ev.events = EPOLLOUT;
 					ev.data.fd = events[n].data.fd;
 					if (epoll_ctl(epollfd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_MOD)");
 				}
-				else 
-					clients[events[n].data.fd].start_timeout();
 			}
 
 			// Sending response
 			else if (events[n].events & EPOLLOUT) {
-				Response response(clients[n]);
+				// done = clients[events[n].data.fd].send_response();
+				// std::cout << "JUST TRIED TO SEND\n";
+				Response response(clients[events[n].data.fd], sessions);
 				done = response.send_response();
 				if (done) {
-					clients.erase(n);
-					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, NULL) == -1)
+					// change the last argument to &ev
+					// this seems to fix the "auto request" probleme... 
+					// (see man page in the BUG section)
+					if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 						errMsgErrno("epoll_ctl (op: EPOLL_CTL_DEL)");
-					else
 
 					if (close(events[n].data.fd) < 0)
 						errMsgErrno("close");
+					clients.erase(events[n].data.fd);
 				}
 			}
+			else {
+				continue ;
+			}
 		}
-		check_client_timeouts(clients, epollfd, ev, events);
 	}
 	if (close(epollfd) == -1)
 		errMsgErrno("close");

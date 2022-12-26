@@ -41,6 +41,7 @@ class Client {
 		Config								_conf;
 		Location							_location;
 		// add body boundary
+		std::string							_raw_request;
 		std::string							_body_boundary;
 		bool								_is_upload_ok;
 		// parsing
@@ -71,8 +72,8 @@ class Client {
 		~Client();
 
 		// received from client / send to client
-		std::string							recv_request();
-		bool								handle_request(std::string &raw_request);
+		void								recv_request();
+		bool								handle_request();
 
 		void								log(std::string message, bool success);
 		std::string							log_access(int status_code);

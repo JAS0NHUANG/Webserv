@@ -48,6 +48,7 @@ Config& Config::Config::operator=(const Config &x) {
 	_server_name			= x._server_name;
 	_error_page				= x._error_page;
 	_client_max_body_size 	= x._client_max_body_size;
+	_cookies				= x._cookies;
 	_location				= x._location;
 	return *this;
 }
@@ -74,6 +75,10 @@ std::string Config::get_error_page(int code) const {
 
 unsigned long long Config::get_client_max_body_size() const {
 	return _client_max_body_size;
+}
+
+std::vector<std::string> Config::get_cookies() const {
+	return _cookies;
 }
 
 std::pair<bool, Location>	Config::get_location(std::string uri) const {
@@ -112,6 +117,10 @@ void	Config::set_error_page(std::vector<int> &codes, std::string &uri) {
 
 void	Config::set_client_max_body_size(unsigned long long size) {
 	_client_max_body_size = size;
+}
+
+void	Config::set_cookies(std::string str) {
+	_cookies.push_back(str);
 }
 
 void	Config::set_location(std::string &uri, Location &location) {

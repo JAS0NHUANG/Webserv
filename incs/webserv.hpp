@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <cstdio>
 
+#include <algorithm>
+
 // containers
 #include <map>
 #include <set>
@@ -37,6 +39,8 @@
 #include "colorcodes.hpp"
 // #include "Cgi.hpp"
 // #include "Response.hpp"
+#include <netdb.h>
+#include <sys/socket.h>
 
 #define BUFFER_SIZE 2056
 #define MAX_EVENTS	128

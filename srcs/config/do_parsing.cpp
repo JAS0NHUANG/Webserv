@@ -168,14 +168,12 @@ void do_return_parsing(std::queue<std::vector<std::string> > &qu, Location &conf
 		throw_parsing_error("expected a redirection status code `3xx`", to_String(line));
 
 	conf.set_return_status(qu.front().front());
-	std::cout << "return_status code : " << qu.front().front() << std::endl;
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);
 
 	if (qu.front().front() == ";")
 		throw_parsing_error("unexpected ';'", to_String(line));
 
-	std::cout << "return : " << qu.front().front() << std::endl;
 	conf.set_return(qu.front().front());
 	erase_token(qu, line);
 	throw_if_file_is_empty(qu, line);
@@ -306,6 +304,31 @@ void do_location_parsing(std::queue<std::vector<std::string> > &qu, Config &conf
 
 	if (qu.empty() || qu.front().front() != "}")
 		throw_parsing_error("expected '}'", to_String(line));
+
+	erase_token(qu, line);
+}
+
+bool is_valid_format(const std::string& str) {
+	std::string::size_type pos = str.find('=');
+	if (pos == std::string::npos || pos == 0 || pos == str.size() - 1)
+		return false;
+	return !str.substr(0, pos).empty() && !str.substr(pos + 1).empty();
+}
+
+void do_set_cookie_parsing(std::queue<std::vector<std::string> > &qu, Config &conf, int &line) {
+	erase_token(qu, line);
+	throw_if_file_is_empty(qu, line);
+
+	if (is_valid_format(qu.front().front()) == false)
+		throw_parsing_error(std::string("expected format 'name=value'"), to_String(line));
+
+	conf.set_cookies(qu.front().front());
+
+	erase_token(qu, line);
+	throw_if_file_is_empty(qu, line);
+
+	if (qu.empty() || qu.front().front() != ";")
+		throw_parsing_error("expected ';'", to_String(line));
 
 	erase_token(qu, line);
 }

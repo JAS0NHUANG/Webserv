@@ -52,8 +52,14 @@ std::string Client::create_path(std::string request_target) {
 }
 
 void Client::check_method(std::string &method) {
-	if(!_conf.is_method_allowed(method))
-		throw 405;
+	if (_if_location && !_location.is_method_allowed(method)) {
+		_status_code = 405;
+		_request_is_complete = true;
+	}
+	else if(!_conf.is_method_allowed(method)) {
+		_status_code = 405;
+		_request_is_complete = true;
+	}
 }
 
 void Client::check_access(std::string request_target) {
@@ -61,7 +67,7 @@ void Client::check_access(std::string request_target) {
 	_path = create_path(request_target);
 
 	int code = access(_path.c_str(), 0);
-	if (code < 0) {
+	if (code < 0 && ((_if_location && _location.get_return().empty()) || (!_if_location && _conf.get_return().empty()))) {
 		_syscall_error = "access() \"" + _path + "\"" + " failed (" + strerror(errno) + ")";
 		log(log_error(_syscall_error), false);
 		if (errno == ENOENT)
@@ -102,8 +108,6 @@ void Client::process_request_line(std::string &line) {
 	// Get request target and query string if any
 	// and delete it from request_target
 	_request_target = *it;
-
-	_if_location = check_if_location_required(_request_target); 
 
 	_query_string =  get_query_string(_request_target);
 
@@ -183,6 +187,8 @@ void Client::process_field_line(std::string &line) {
 		// the default for this host:port
 		retrieve_conf(_headers["host"]);
 
+		_if_location = check_if_location_required(_request_target);
+
 		// Check if the method is allowed by the virtual server
 		check_method(_method);
 
@@ -236,47 +242,79 @@ std::deque<std::string> Client::getlines(std::string buf) {
 	return lines;
 }
 
-bool Client::handle_request(std::string &raw_request) {
+bool Client::handle_request() {
 	// set status code too 400 when no raw_request recieved
-	if (raw_request.empty()) {
+	if (_raw_request.empty()) {
 		_request_is_complete = true;
 		_status_code = 400;
+		return true;
 	}
-	std::deque<std::string>	lines;
-	lines = getlines(raw_request);
-	if (!lines.empty()) {
-		try { // This will catch any bad request 
-			parse_line(lines, raw_request);
-		}
-		catch (int error_code) {
-			_status_code = error_code;
+
+	// the first recv and header parsing
+	if (_method.empty()) {
+		int body_index = -1;
+		std::string raw_header;
+
+		body_index = _raw_request.find("\r\n\r\n");
+		if (body_index < 0) {
+			_status_code = 400;
 			return true;
+		}
+		raw_header = _raw_request.substr(0, body_index + 4);
+		_raw_request.erase(0, body_index + 4);
+		std::deque<std::string>	lines;
+		lines = getlines(raw_header);
+		if (!lines.empty()) {
+			try { // This will catch any bad request
+				parse_line(lines, raw_header);
+			}
+			catch (int error_code) {
+				_status_code = error_code;
+				return true;
+			}
+		}
+	}
+
+
+	size_t content_len = 0;
+	std::stringstream ss;
+	ss << _headers["content-length"];
+	ss >> content_len;
+
+	if (!_raw_request.empty()) {
+		if (_raw_request.size() >= content_len) {
+			// NOTE : check max_body_size after the whole body is received!
+			// Don't send the body for processing if it's too big
+			if (content_len > _conf.get_client_max_body_size()) {
+				// can't throw the status code directly
+				// should probably change all the throw 400 above!!
+				_status_code = 413;
+				_request_is_complete = true;
+				return _request_is_complete;
+			}
+			process_body(_raw_request);
 		}
 	}
 
 	return _request_is_complete;
 }
 
-std::string Client::recv_request() {
+void Client::recv_request() {
 	char buffer[BUFFER_SIZE] = {};
-	int valread;
-	std::string raw_request;
+	int valread = 0;
 
-	while ((valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0)) > 0) {
-		buffer[valread] = '\0';
-		raw_request.append(buffer, valread);
-	}
+	valread = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
+
 	if (valread == 0) {
-		// change the condition from || to &&, dont know if it's logic?
-		if (_process_request_line == false && _process_headers == false)
-			_request_is_complete = true;
+		_request_is_complete = true;
+		return ;
 	}
 	if (valread < 0) {
 		_syscall_error = "recv()";
 		log(log_error(_syscall_error), false);
-		// Still don't know why sometimes will have "Resource temporarily unavailable" error...
-		// Is something blocking the recv?
+		return ;
 	}
 
-	return raw_request;
+	buffer[valread] = '\0';
+	_raw_request.append(buffer, valread);
 }
