@@ -27,7 +27,6 @@ int accept_conn(struct epoll_event ev, int epollfd) {
 	if (fcntl(conn_sock, F_SETFL, flag | O_NONBLOCK) < 0)
 		errMsgErrno("fcntl");
 	add_event(epollfd, conn_sock, EPOLLIN);
-	std::cout << BBLU "New incoming connection:" << conn_sock << RESET "\n";
 	return conn_sock;
 }
 

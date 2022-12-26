@@ -52,8 +52,14 @@ std::string Client::create_path(std::string request_target) {
 }
 
 void Client::check_method(std::string &method) {
-	if(!_conf.is_method_allowed(method))
-		throw 405;
+	if (_if_location && !_location.is_method_allowed(method)) {
+		_status_code = 405;
+		_request_is_complete = true;
+	}
+	else if(!_conf.is_method_allowed(method)) {
+		_status_code = 405;
+		_request_is_complete = true;
+	}
 }
 
 void Client::check_access(std::string request_target) {
@@ -181,10 +187,10 @@ void Client::process_field_line(std::string &line) {
 		// the default for this host:port
 		retrieve_conf(_headers["host"]);
 
+		_if_location = check_if_location_required(_request_target);
+
 		// Check if the method is allowed by the virtual server
 		check_method(_method);
-
-		_if_location = check_if_location_required(_request_target);
 
 		// Check is the resource is accessible
 		check_access(_request_target);

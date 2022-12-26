@@ -48,3 +48,26 @@ epoll and kqueue
 [srcs/response](srcs/response)  
 
 ### CGI
+
+## Testing
+### stress test with siege
+`./Desktop/siege/bin/siege -t 20S -c 10 -v 127.0.0.1:8080/index.html`
+
+
+### telnet
+`telnet 127.0.0.1 8080`
+```
+GET /index.html HTTP/1.1
+Host: 127.0.0.1
+
+```
+```
+GET /get_php.php HTTP/1.1
+Host: 127.0.0.1
+
+```
+
+### curl with hostname
+`curl --resolve example.com:8080:127.0.0.1 http://example.com:8080/`
+
+https://www.onlinenotepad.io/

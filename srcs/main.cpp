@@ -11,10 +11,10 @@ void init_virtual_servers(std::map<std::string, std::vector<Config> > &virtual_s
 	std::vector<Socket> &socket_list) {
 	// create sockets
 	std::map<std::string, std::vector<Config> >::iterator it = virtual_servers.begin();
-	std::cout << BBLU << "Virtual servers set:" << RESET << std::endl;
+	std::cout << GRN << "Virtual servers set:" << RESET << std::endl;
 	int i = 1;
 	for (; it != virtual_servers.end(); it++) {
-		std::cout << BBLU << i << ". "<< it->second.front().get_address() << ":"
+		std::cout << GRN << i << ". "<< it->second.front().get_address() << ":"
 				<< it->second.front().get_port() << "\n" RESET;
 		socket_list.push_back(Socket(it->second.front().get_port(),
 			it->second.front().get_address(), it->second));

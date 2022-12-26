@@ -137,8 +137,9 @@ void Response::set_header_fields(int cont_Leng)
 		tmp = tmp.substr(0, tmp.size() - 2);
 		headers["Allow"] = tmp;
 	}
+
 	if ((_if_location && _location.get_cgi(_extension).first == false) ||
-		_conf.get_cgi(_extension).first == false)
+		(_if_location == false &&_conf.get_cgi(_extension).first == false))
 		headers["Content-Type"] = content_mime_type(this->_extension);
 	else
 		headers["Content-Type"] = "text/html";
